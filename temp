@@ -1,0 +1,3 @@
+"build": "babel src --out-dir dist",
+        "start": "nodemon --exec babel-node index.js",
+        "start": "node index.js",
