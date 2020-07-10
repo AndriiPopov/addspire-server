@@ -5,14 +5,14 @@
     "main": "index.js",
     "scripts": {
         "test": "jest --watchAll --verbose --runInBand",
-        "start": "node ./build/index.js",
+        "start": "node ./src/index.js",
         "serve": "node dist/server.js",
         "lint": "eslint ./src",
         "webpack": "webpack -wd",
         "dev": "nodemon --exec babel-node src/index.js",
         "clean": "rm -rf build && mkdir build",
         "build-server": "babel src -d ./build --copy-files",
-        "build-app": "npm run clean &&  npm run build-server"
+        "build-app": "webpack --mode production && npm run clean &&  npm run build-server"
     },
     "engines": {
         "node": "10.15.1"
