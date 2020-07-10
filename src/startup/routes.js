@@ -35,7 +35,7 @@ module.exports = function(app) {
 
     // app.use(sslRedirect());
 
-    app.use(express.static(path.join(__dirname, "/../../client")));
+    // app.use(express.static(path.join(__dirname, "/../../client")));
 
     app.use(express.json());
     // app.use(
