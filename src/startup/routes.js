@@ -35,8 +35,6 @@ module.exports = function(app) {
 
     // app.use(sslRedirect());
 
-    // app.use(express.static(path.join(__dirname, "/../../client")));
-
     app.use(express.json());
     // app.use(
     //     '/api/graphql',
@@ -45,6 +43,8 @@ module.exports = function(app) {
     //         graphiql: true,
     //     })
     // )
+    app.use(express.static(path.join(__dirname, "/../../client")));
+
     app.use("/api/goals", goals);
     app.use("/api/progresses", progresses);
     app.use("/api/activate-account", activateAccount);
@@ -61,5 +61,8 @@ module.exports = function(app) {
     app.use("/api/", sendMail);
 
     app.use("/api/authtest", authtest);
+    app.get("*", (req, res) => {
+        res.sendFile(path.join(__dirname + "/../../client/index.html"));
+    });
     app.use(error);
 };
