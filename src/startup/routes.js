@@ -18,7 +18,7 @@ const graphlHTTP = require("express-graphql");
 // const schema = require('../graphql/schema')
 const authtest = require("../routes/authtest");
 
-const sslRedirect = require("heroku-ssl-redirect");
+// const sslRedirect = require("heroku-ssl-redirect");
 
 module.exports = function(app) {
     app.all("*", (req, res, next) => {
@@ -29,11 +29,11 @@ module.exports = function(app) {
             "Access-Control-Allow-Headers",
             "Origin, X-Requested With, Content-Type, Accept, x-auth-token"
         );
-
+        console.log("we are here");
         next();
     });
 
-    app.use(sslRedirect());
+    // app.use(sslRedirect());
 
     app.use(express.static(path.join(__dirname, "/../../client")));
 
