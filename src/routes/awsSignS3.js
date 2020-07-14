@@ -24,7 +24,7 @@ router.post('/', auth, async (req, res) => {
         if (!account) return
         let fileName = req.body.fileName
         if (fileName === 'avatar') {
-            account.image = true
+            account.image = account.image + 1
             account.save()
         }
         if (!fileName) {

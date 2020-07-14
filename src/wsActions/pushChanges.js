@@ -44,7 +44,6 @@ module.exports.pushChanges = wss => {
         Progress.watch(pipe, {
             fullDocument: 'updateLookup',
         }).on('change', data => {
-            console.log('change')
             pushChange(data)
         })
     } catch (ex) {}

@@ -3,14 +3,36 @@ const auth = require('../middleware/auth')
 const { User } = require('../models/user')
 const { Account } = require('../models/account')
 const express = require('express')
-
+const Joi = require('@hapi/joi')
+const { resSendError } = require('../utils/resError')
+Joi.objectId = require('joi-objectid')(Joi)
 const router = express.Router()
+
+const activateAccountSchema = Joi.object({
+    nickname: Joi.string()
+        .min(2)
+        .max(200)
+        .regex(new RegExp(/^[a-zA-Z0-9_-]*$/))
+        .required(),
+    name: Joi.string()
+        .min(2)
+        .max(200)
+        .required(),
+})
 
 router.post('/', auth, async (req, res, next) => {
     try {
-        const _id = req.body.nickname.toLowerCase()
-        const nicknmaeNotUnique = await Account.count({ _id })
-        if (nicknmaeNotUnique > 0) {
+        const data = req.body
+        const { error } = activateAccountSchema.validate(data)
+        if (error) {
+            console.log(error)
+            resSendError(res, 'bad data')
+            return
+        }
+
+        const _id = data.nickname.toLowerCase()
+        const nicknameNotUnique = await Account.count({ _id })
+        if (nicknameNotUnique > 0) {
             res.send({
                 nicknameNotUnique: true,
             })
@@ -18,7 +40,7 @@ router.post('/', auth, async (req, res, next) => {
         }
         let account = new Account({
             _id,
-            name: req.body.name,
+            name: data.name,
             status: 'activated',
         })
 

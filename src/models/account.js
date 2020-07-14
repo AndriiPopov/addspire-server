@@ -226,7 +226,7 @@ const accountSchema = new mongoose.Schema(
     {
         name: { type: String, minlength: 2, required: true },
         _id: String,
-        image: { type: Boolean },
+        image: { type: Number, default: 0 },
         settings: {},
         isTeam: Boolean,
         goals: [goalSchema],

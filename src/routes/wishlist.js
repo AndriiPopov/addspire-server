@@ -6,14 +6,15 @@ const { Account } = require('../models/account')
 const { Transaction } = require('../models/transaction')
 const express = require('express')
 const getAccount = require('../utils/getAccount')
-
+const Joi = require('@hapi/joi')
+const { resSendError } = require('../utils/resError')
 const router = express.Router()
 
 router.get('/', auth, async (req, res, next) => {
     try {
         let account
         if (req.user) {
-            account = await getAccount(req, res, 'name wishlist')
+            account = await getAccount(req, res, 'name wishlist image')
         }
 
         res.send({
@@ -28,6 +29,8 @@ router.get('/:_id/:wishlistItemId', authNotForce, async (req, res, next) => {
         let profile = await Account.findById(req.params._id)
             .select({
                 wishlist: { $elemMatch: { itemId: req.params.wishlistItemId } },
+                name: 1,
+                image: 1,
             })
             .lean()
             .exec()
@@ -40,6 +43,7 @@ router.get('/:_id/:wishlistItemId', authNotForce, async (req, res, next) => {
             res.send({
                 account,
                 wishlistItem: profile.wishlist[0],
+                profile,
                 success: true,
             })
         } else {
@@ -51,8 +55,33 @@ router.get('/:_id/:wishlistItemId', authNotForce, async (req, res, next) => {
     } catch (ex) {}
 })
 
+const addWishlistSchema = Joi.object({
+    id: Joi.string()
+        .max(100)
+        .allow(''),
+    name: Joi.string()
+        .min(1)
+        .max(100)
+        .required(),
+    description: Joi.string()
+        .min(0)
+        .max(500)
+        .allow(''),
+    images: Joi.array().items(Joi.string()),
+})
+
 router.post('/add', auth, async (req, res) => {
     try {
+        const data = req.body
+        const { error } = addWishlistSchema.validate({
+            ...data.value,
+            id: data.id,
+        })
+        if (error) {
+            console.log(error)
+            resSendError(res, 'bad data')
+            return
+        }
         let account
         if (req.user) {
             account = await getAccount(
@@ -62,18 +91,18 @@ router.post('/add', auth, async (req, res) => {
                 true
             )
         }
-        let wishlistItemId = req.body.id
+        let wishlistItemId = data.id
         if (wishlistItemId) {
             account.wishlist = account.toObject().wishlist.map(item => {
                 if (item.itemId === wishlistItemId)
-                    return { ...item, ...req.body.value }
+                    return { ...item, ...data.value }
                 else return item
             })
         } else {
             wishlistItemId = 'wishlistItem_' + account.currentId
             account.currentId = account.currentId + 1
             account.wishlist = [
-                { wishlistItemId, ...req.body.value },
+                { itemId: wishlistItemId, ...data.value },
                 ...account.wishlist,
             ]
         }
@@ -82,6 +111,7 @@ router.post('/add', auth, async (req, res) => {
         res.send({
             account: account.toObject(),
             success: true,
+            successCode: 'item saved',
         })
     } catch (ex) {}
 })
@@ -90,7 +120,7 @@ router.post('/delete/:id', auth, async (req, res) => {
     try {
         let account
         if (req.user) {
-            account = await getAccount(req, res, 'name wishlist', true)
+            account = await getAccount(req, res, 'name wishlist image', true)
         }
         const itemId = req.params.id
         if (itemId) {
@@ -103,6 +133,7 @@ router.post('/delete/:id', auth, async (req, res) => {
         res.send({
             account: account.toObject(),
             success: true,
+            successCode: 'item deleted',
         })
     } catch (ex) {}
 })

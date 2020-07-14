@@ -6,7 +6,8 @@ const { Account } = require('../models/account')
 const { Transaction } = require('../models/transaction')
 const express = require('express')
 const getAccount = require('../utils/getAccount')
-
+const Joi = require('@hapi/joi')
+const { resSendError } = require('../utils/resError')
 const router = express.Router()
 
 router.get('/', auth, async (req, res, next) => {
@@ -16,7 +17,7 @@ router.get('/', auth, async (req, res, next) => {
             account = await getAccount(
                 req,
                 res,
-                'name friends wallet perks transactions'
+                'name image friends wallet perks transactions progresses'
             )
         }
         let friends = account.friends.map(item => item.friend)
@@ -50,6 +51,8 @@ router.get('/:_id/:perkId', authNotForce, async (req, res, next) => {
             .select({
                 perks: { $elemMatch: { perkId: req.params.perkId } },
                 friends: 1,
+                name: 1,
+                image: 1,
             })
             .lean()
             .exec()
@@ -75,6 +78,7 @@ router.get('/:_id/:perkId', authNotForce, async (req, res, next) => {
             res.send({
                 account,
                 profile: {
+                    ...profile,
                     friendsData: friends,
                 },
                 perk: profile.perks[0],
@@ -89,35 +93,61 @@ router.get('/:_id/:perkId', authNotForce, async (req, res, next) => {
     } catch (ex) {}
 })
 
-router.post('/add', auth, async (req, res) => {
+const addPerkSchema = Joi.object({
+    id: Joi.string()
+        .max(100)
+        .allow(''),
+    name: Joi.string()
+        .min(1)
+        .max(100)
+        .required(),
+    description: Joi.string()
+        .min(0)
+        .max(500)
+        .allow(''),
+    images: Joi.array().items(Joi.string()),
+    users: Joi.array().items(Joi.string()),
+    price: Joi.number().min(0),
+})
+
+router.post('/add', auth, async (req, res, next) => {
     try {
+        const data = req.body
+        const { error } = addPerkSchema.validate({
+            ...data.value,
+            id: data.id,
+        })
+        if (error) {
+            console.log(error)
+            resSendError(res, 'bad data')
+            return
+        }
         let account
         if (req.user) {
             account = await getAccount(
                 req,
                 res,
-                'name friends perks currentId transactions wallet',
+                'name friends perks currentId transactions wallet progresses',
                 true
             )
         }
-        let perkId = req.body.id
+        let perkId = data.id
         if (perkId) {
             account.perks = account.toObject().perks.map(perk => {
-                if (perk.perkId === perkId)
-                    return { ...perk, ...req.body.value }
+                if (perk.perkId === perkId) return { ...perk, ...data.value }
                 else return perk
             })
         } else {
             perkId = 'perk_' + account.currentId
             account.currentId = account.currentId + 1
-            account.perks = [{ perkId, ...req.body.value }, ...account.perks]
+            account.perks = [{ perkId, ...data.value }, ...account.perks]
         }
         account.save()
         let friends = account.friends.map(item => item.friend)
         friends = await Account.find({
             _id: { $in: friends },
         })
-            .select('name image goals')
+            .select('name image ')
             .lean()
             .exec()
         const transactions = await Transaction.find({
@@ -133,31 +163,51 @@ router.post('/add', auth, async (req, res) => {
                 transactionsData: transactions,
             },
             success: true,
+            successCode: 'item added',
         })
-    } catch (ex) {}
+    } catch (ex) {
+        console.log(ex)
+        next(ex)
+    }
+})
+
+const buyPerkSchema = Joi.object({
+    perkId: Joi.string()
+        .max(100)
+        .required(),
+    ownerId: Joi.string()
+        .max(100)
+        .required(),
 })
 
 router.post('/buy', auth, async (req, res) => {
     try {
+        const data = req.body
+        const { error } = buyPerkSchema.validate(data)
+        if (error) {
+            console.log(error)
+            resSendError(res, 'bad data')
+            return
+        }
         let account
         if (req.user) {
             account = await getAccount(
                 req,
                 res,
-                'transactions wallet perks friends name image goals progresses',
+                'transactions wallet perks friends name image  progresses',
                 true
             )
         }
         const owner =
-            req.body.ownerId !== account._id
-                ? await Account.findById(req.body.ownerId)
+            data.ownerId !== account._id
+                ? await Account.findById(data.ownerId)
                       .select(
-                          'transactions wallet perks friends name image goals progresses'
+                          'transactions wallet perks friends name image progresses'
                       )
                       .exec()
                 : account
 
-        const perkId = req.body.perkId
+        const perkId = data.perkId
         if (owner && account && perkId) {
             const accountInFriends = owner.friends.find(
                 item => item.friend === account._id
@@ -173,7 +223,6 @@ router.post('/buy', auth, async (req, res) => {
                 )
 
                 if (perk && currency && perk.price <= currency.amount) {
-                    console.log(perk)
                     let transaction = new Transaction({
                         from: owner._id,
                         to: account._id,
@@ -220,15 +269,31 @@ router.post('/buy', auth, async (req, res) => {
                         .lean()
                         .exec()
 
-                    res.send({
-                        account: account.toObject(),
-                        profile: {
-                            ...owner.toObject(),
-                            friendsData: friends,
-                            transactionsData: transactions,
-                        },
-                        success: true,
-                    })
+                    if (account._id !== owner._id)
+                        res.send({
+                            account: account.toObject(),
+                            profile: {
+                                ...owner.toObject(),
+                                friendsData: friends,
+                                transactionsData: transactions,
+                            },
+                            success: true,
+                        })
+                    else
+                        res.send({
+                            account: {
+                                ...account.toObject(),
+                                friendsData: friends,
+                                transactionsData: transactions,
+                            },
+                            profile: {
+                                ...owner.toObject(),
+                                friendsData: friends,
+                                transactionsData: transactions,
+                            },
+                            success: true,
+                            successCode: 'item bought',
+                        })
                     return
                 }
             }
@@ -249,7 +314,7 @@ router.post('/delete/:id', auth, async (req, res) => {
             account = await getAccount(
                 req,
                 res,
-                'name friends perks currentId',
+                'name friends perks currentId transactions wallet progresses',
                 true
             )
         }
@@ -264,23 +329,43 @@ router.post('/delete/:id', auth, async (req, res) => {
         friends = await Account.find({
             _id: { $in: friends },
         })
-            .select('name image goals')
+            .select('name image')
+            .lean()
+            .exec()
+        const transactions = await Transaction.find({
+            _id: { $in: account.transactions },
+        })
             .lean()
             .exec()
         res.send({
             account: {
                 ...account.toObject(),
                 friendsData: friends,
+                transactionsData: transactions,
             },
             success: true,
+            successCode: 'item deleted',
         })
     } catch (ex) {}
 })
 
+const editTrancsactionSchema = Joi.object({
+    transactionId: Joi.string()
+        .max(100)
+        .required(),
+})
+
 router.post('/confirm', auth, async (req, res) => {
     try {
+        const data = req.body
+        const { error } = editTrancsactionSchema.validate(data)
+        if (error) {
+            console.log(error)
+            resSendError(res, 'bad data')
+            return
+        }
         await Transaction.findOneAndUpdate(
-            { _id: req.body.transactionId },
+            { _id: data.transactionId },
             { status: 'Confirmed' }
         )
         let account
@@ -288,7 +373,7 @@ router.post('/confirm', auth, async (req, res) => {
             account = await getAccount(
                 req,
                 res,
-                'name friends wallet perks transactions'
+                'name friends perks currentId transactions wallet progresses'
             )
         }
         let friends = account.friends.map(item => item.friend)
@@ -312,6 +397,7 @@ router.post('/confirm', auth, async (req, res) => {
                 transactionsData: transactions,
             },
             success: true,
+            successCode: 'transaction confirmed',
         })
     } catch (ex) {
         console.log(ex)
@@ -320,6 +406,13 @@ router.post('/confirm', auth, async (req, res) => {
 
 router.post('/cancel', auth, async (req, res) => {
     try {
+        const data = req.body
+        const { error } = editTrancsactionSchema.validate(data)
+        if (error) {
+            console.log(error)
+            resSendError(res, 'bad data')
+            return
+        }
         let account
         if (req.user) {
             account = await getAccount(
@@ -331,7 +424,7 @@ router.post('/cancel', auth, async (req, res) => {
         }
 
         const transaction = await Transaction.findOneAndUpdate(
-            { _id: req.body.transactionId },
+            { _id: data.transactionId },
             { status: 'Cancelled' }
         )
         const buyer =
@@ -370,6 +463,7 @@ router.post('/cancel', auth, async (req, res) => {
                 transactionsData: transactions,
             },
             success: true,
+            successCode: 'transaction cancelled',
         })
     } catch (ex) {
         console.log(ex)

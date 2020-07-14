@@ -460,8 +460,6 @@ module.exports.editGoalInProgress = async (data, ws) => {
                         ...progress.goal.toObject(),
                         ...data.value,
                     }
-                    console.log(data.value)
-                    console.log(progress.goal)
 
                     const allOldAccounts = [
                         ...new Set([
