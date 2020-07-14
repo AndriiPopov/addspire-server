@@ -373,9 +373,22 @@ module.exports.changeStage = async (data, ws) => {
                     progress.markModified('patch')
 
                     progress.save()
+                    ws.send(
+                        JSON.stringify({
+                            messageCode: 'successMessage',
+                            messageText: 'Changes are saved',
+                        })
+                    )
+                    return
                 }
             }
         }
+        ws.send(
+            JSON.stringify({
+                messageCode: 'errorMessage',
+                messageText: 'Something failed.',
+            })
+        )
     } catch (ex) {
         console.log(ex)
         sendError(ws)
@@ -411,13 +424,25 @@ module.exports.leaveProgress = async (data, ws) => {
             progress.markModified('patch')
 
             progress.save()
-
+            ws.send(
+                JSON.stringify({
+                    messageCode: 'successMessage',
+                    messageText: 'You have left the progress',
+                })
+            )
             ws.send(
                 JSON.stringify({
                     messageCode: 'redirectToProgresses',
                 })
             )
+            return
         }
+        ws.send(
+            JSON.stringify({
+                messageCode: 'errorMessage',
+                messageText: 'Something failed.',
+            })
+        )
     } catch (ex) {
         console.log(ex)
         sendError(ws)
@@ -514,9 +539,22 @@ module.exports.editGoalInProgress = async (data, ws) => {
                     progress.markModified('patch')
 
                     progress.save()
+                    ws.send(
+                        JSON.stringify({
+                            messageCode: 'successMessage',
+                            messageText: 'Changes are saved',
+                        })
+                    )
+                    return
                 }
             }
         }
+        ws.send(
+            JSON.stringify({
+                messageCode: 'errorMessage',
+                messageText: 'Something failed.',
+            })
+        )
     } catch (ex) {
         console.log(ex)
         sendError(ws)

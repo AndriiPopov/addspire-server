@@ -24,8 +24,8 @@ router.get('/', auth, async (req, res, next) => {
         res.send({
             account: {
                 ...account,
+                progressesData,
             },
-            progressesData,
             success: true,
         })
     } catch (ex) {}
@@ -184,10 +184,16 @@ router.post('/add', auth, async (req, res) => {
 
                         owner.save()
 
-                        res.send({ success: true })
+                        res.send({
+                            success: true,
+                            successCode: 'prgress created',
+                        })
                         return
                     } else {
-                        res.send({ progressExists: true })
+                        res.send({
+                            progressExists: true,
+                            errorCode: 'progress exist',
+                        })
                         return
                     }
                 }
@@ -198,53 +204,4 @@ router.post('/add', auth, async (req, res) => {
         // console.log(ex)
     }
 })
-
-router.post('/delete/:id', auth, async (req, res) => {
-    try {
-        let account
-        if (req.user) {
-            account = await getAccount(
-                req,
-                res,
-                'name friends goals currentId',
-                true
-            )
-        }
-        const goalId = req.params.id
-        if (goalId) {
-            account.goals = account
-                .toObject()
-                .goals.filter(goal => goal.goalId !== goalId)
-        }
-        account.save()
-        let friends = account.friends.map(item => item.friend)
-        friends = await Account.find({
-            _id: { $in: friends },
-        })
-            .select('name image goals')
-            .lean()
-            .exec()
-        res.send({
-            account: {
-                ...account.toObject(),
-                friendsData: friends,
-            },
-            success: true,
-        })
-    } catch (ex) {}
-})
-
-router.delete('/:id', [auth], async (req, res) => {
-    try {
-        let goalId = req.params.id
-        if (goalId) {
-            req.user.goals = req.user.goals.filter(
-                goal => goal.goalId !== goalId
-            )
-            req.user.save()
-        }
-        res.send({ goalId })
-    } catch (ex) {}
-})
-
 module.exports = router
