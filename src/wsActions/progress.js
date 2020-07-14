@@ -552,7 +552,7 @@ module.exports.editGoalInProgress = async (data, ws) => {
         ws.send(
             JSON.stringify({
                 messageCode: 'errorMessage',
-                messageText: 'Something failed.',
+                messageText: 'Something failed...',
             })
         )
     } catch (ex) {
