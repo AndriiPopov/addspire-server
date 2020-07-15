@@ -6,6 +6,8 @@ const { Account } = require('../models/account')
 const express = require('express')
 const getAccount = require('../utils/getAccount')
 const Joi = require('@hapi/joi')
+const { JoiLength } = require('../constants/fieldLength')
+const { resSendError } = require('../utils/resError')
 
 const router = express.Router()
 
@@ -80,52 +82,15 @@ router.get('/:_id/:goalId', authNotForce, async (req, res, next) => {
 
 const addGoalSchema = Joi.object({
     id: Joi.string()
-        .max(100)
+        .max(JoiLength.id)
         .allow(''),
     name: Joi.string()
         .min(1)
-        .max(100)
+        .max(JoiLength.name)
         .required(),
     description: Joi.string()
         .min(0)
-        .max(500)
-        .allow(''),
-    images: Joi.array().items(Joi.string()),
-    users: Joi.array().items(Joi.string()),
-    experts: Joi.array().items(Joi.string()),
-    supporters: Joi.array().items(Joi.string()),
-    rewardsGroups: Joi.array().items(
-        Joi.object({
-            key: Joi.string()
-                .max(50)
-                .required(),
-            rewards: Joi.array().items(
-                Joi.object({
-                    mode: Joi.string()
-                        .valid('simple', 'money', 'item')
-                        .required(),
-                    simple: Joi.string()
-                        .min(0)
-                        .max(500)
-                        .allow(''),
-                    money: Joi.number().allow(''),
-                    itemName: Joi.string()
-                        .min(0)
-                        .max(500)
-                        .allow(''),
-                    itemDescription: Joi.string()
-                        .min(0)
-                        .max(500)
-                        .allow(''),
-                    itemImages: Joi.array().items(Joi.string()),
-                })
-            ),
-        })
-    ),
-    newTabIndex: Joi.number().allow(''),
-    withMilestones: Joi.boolean(),
-    goalId: Joi.string()
-        .max(50)
+        .max(JoiLength.description)
         .allow(''),
 }).unknown(true)
 

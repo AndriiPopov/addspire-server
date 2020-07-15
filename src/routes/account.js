@@ -7,6 +7,7 @@ const getAccount = require('../utils/getAccount')
 const { Progress } = require('../models/progress')
 const Joi = require('@hapi/joi')
 const { resSendError } = require('../utils/resError')
+const { JoiLength } = require('../constants/fieldLength')
 
 const router = express.Router()
 
@@ -24,7 +25,7 @@ router.get('/', auth, async (req, res, next) => {
 const changeAccountSchema = Joi.object({
     name: Joi.string()
         .min(2)
-        .max(200)
+        .max(JoiLength.name)
         .required(),
 })
 

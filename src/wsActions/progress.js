@@ -1,6 +1,8 @@
 const { Progress } = require('../models/progress')
 const { Account } = require('../models/account')
 const { Transaction } = require('../models/transaction')
+const Joi = require('@hapi/joi')
+const { JoiLength } = require('../constants/fieldLength')
 
 const diffpatcher = require('jsondiffpatch/dist/jsondiffpatch.umd.js').create({
     propertyFilter: (name, context) => name !== '__patch__',
@@ -17,8 +19,26 @@ module.exports.requestProgress = async (data, ws) => {
     }
 }
 
+const sendMessageSchema = Joi.object({
+    progressId: Joi.string()
+        .max(JoiLength.progressId)
+        .required(),
+    accountId: Joi.string()
+        .max(JoiLength.name)
+        .required(),
+    messageValue: Joi.string()
+        .max(JoiLength.description)
+        .allow(''),
+}).unknown(true)
+
 module.exports.sendMessage = async (data, ws) => {
     try {
+        const { error } = sendMessageSchema.validate(data)
+        if (error) {
+            console.log(error)
+            sendError(ws, 'Bad data!')
+            return
+        }
         if (ws.progressId === data.progressId) {
             const progress = await Progress.findById(ws.progressId)
                 .select(
@@ -182,8 +202,8 @@ module.exports.changeLikesMessage = async (data, ws) => {
 module.exports.changeStage = async (data, ws) => {
     try {
         if (ws.progressId === data.progressId) {
-            const progress = await (await Progress.findById(ws.progressId))
-                .isSelected('-patch')
+            const progress = await Progress.findById(ws.progressId)
+                .select('-patch')
                 .exec()
             const { accountId } = data
 

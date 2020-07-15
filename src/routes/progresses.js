@@ -54,7 +54,7 @@ router.get('/:ownerId/:id', authNotForce, async (req, res, next) => {
                 progress.worker,
                 ...progress.goal.supporters,
                 ...progress.goal.experts,
-                ...account.friends.map(item => item.friend),
+                //...account.friends.map(item => item.friend),
             ]
 
             accountIds = [...new Set(accountIds)]

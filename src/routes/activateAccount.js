@@ -5,18 +5,19 @@ const { Account } = require('../models/account')
 const express = require('express')
 const Joi = require('@hapi/joi')
 const { resSendError } = require('../utils/resError')
+const { JoiLength } = require('../constants/fieldLength')
 Joi.objectId = require('joi-objectid')(Joi)
 const router = express.Router()
 
 const activateAccountSchema = Joi.object({
     nickname: Joi.string()
         .min(2)
-        .max(200)
+        .max(JoiLength.name)
         .regex(new RegExp(/^[a-zA-Z0-9_-]*$/))
         .required(),
     name: Joi.string()
         .min(2)
-        .max(200)
+        .max(JoiLength.name - 1)
         .required(),
 })
 

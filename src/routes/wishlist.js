@@ -7,6 +7,7 @@ const { Transaction } = require('../models/transaction')
 const express = require('express')
 const getAccount = require('../utils/getAccount')
 const Joi = require('@hapi/joi')
+const { JoiLength } = require('../constants/fieldLength')
 const { resSendError } = require('../utils/resError')
 const router = express.Router()
 
@@ -57,15 +58,15 @@ router.get('/:_id/:wishlistItemId', authNotForce, async (req, res, next) => {
 
 const addWishlistSchema = Joi.object({
     id: Joi.string()
-        .max(100)
+        .max(JoiLength.id)
         .allow(''),
     name: Joi.string()
         .min(1)
-        .max(100)
+        .max(JoiLength.name)
         .required(),
     description: Joi.string()
         .min(0)
-        .max(500)
+        .max(JoiLength.description)
         .allow(''),
     images: Joi.array().items(Joi.string()),
 })

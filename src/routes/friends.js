@@ -5,6 +5,7 @@ const express = require('express')
 const getAccount = require('../utils/getAccount')
 const { Account } = require('../models/account')
 const Joi = require('@hapi/joi')
+const { JoiLength } = require('../constants/fieldLength')
 
 const router = express.Router()
 
@@ -46,7 +47,7 @@ router.post('/find', auth, async (req, res) => {
 
 const editFrienshipSchema = Joi.object({
     id: Joi.string()
-        .max(100)
+        .max(JoiLength.id)
         .required(),
 })
 

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
+const { mongoLength } = require('../constants/fieldLength')
 
 const types = mongoose.Types
 const milestoneSchema = new mongoose.Schema(
@@ -7,13 +8,13 @@ const milestoneSchema = new mongoose.Schema(
         key: {
             type: String,
             required: true,
-            maxlength: 100,
+            maxlength: mongoLength.id,
         },
         name: {
             type: String,
             required: true,
             default: 'New milestone',
-            maxlength: 100,
+            maxlength: mongoLength.name,
         },
     },
     { minimize: false, _id: false, id: false }
@@ -24,18 +25,18 @@ const milestonesValueSchema = new mongoose.Schema(
         key: {
             type: String,
             required: true,
-            maxlength: 100,
+            maxlength: mongoLength.id,
         },
         name: {
             type: String,
             required: true,
             default: 'New milestone',
-            maxlength: 100,
+            maxlength: mongoLength.name,
         },
         description: {
             type: String,
             default: '',
-            maxlength: 3000,
+            maxlength: mongoLength.description,
         },
         images: [
             {
@@ -71,14 +72,14 @@ const wishListItemSchema = new mongoose.Schema(
     {
         name: {
             type: String,
-            maxlength: 500,
+            maxlength: mongoLength.name,
             required: true,
             default: 'New item',
         },
         description: {
             type: String,
             default: '',
-            maxlength: 3000,
+            maxlength: mongoLength.description,
         },
         images: [
             {
@@ -98,17 +99,17 @@ const rewardsSchema = new mongoose.Schema(
             enum: ['simple', 'money', 'item'],
             required: true,
         },
-        simple: String,
+        simple: { type: String, maxlength: mongoLength.description },
         money: Number,
-        itemName: String,
-        itemDescription: String,
+        itemName: { type: String, maxlength: mongoLength.name },
+        itemDescription: { type: String, maxlength: mongoLength.description },
         itemImages: [String],
     },
     { minimize: false, _id: false, id: false }
 )
 const rewardsGroupSchema = new mongoose.Schema(
     {
-        key: { type: String, required: true },
+        key: { type: String, required: true, maxlength: mongoLength.id },
         rewards: [rewardsSchema],
     },
     { minimize: false, _id: false, id: false }
@@ -120,12 +121,12 @@ const goalSchema = new mongoose.Schema(
             type: String,
             required: true,
             default: 'New goal',
-            maxlength: 500,
+            maxlength: mongoLength.name,
         },
         description: {
             type: String,
             default: '',
-            maxlength: 3000,
+            maxlength: mongoLength.description,
         },
         images: [
             {
@@ -149,7 +150,7 @@ const goalSchema = new mongoose.Schema(
         newTabIndex: Number,
         withMilestones: Boolean,
         progresses: [progressSchema],
-        goalId: { type: String, required: true },
+        goalId: { type: String, required: true, maxlength: mongoLength.id },
     },
     { minimize: false, _id: false, id: false }
 )
@@ -162,7 +163,7 @@ const friendSchema = new mongoose.Schema(
             required: true,
             default: 'inviting',
         },
-        friend: String,
+        friend: { type: String, maxlength: mongoLength.name, required: true },
     },
 
     { minimize: false, _id: false, id: false }
@@ -172,14 +173,14 @@ const perkSchema = new mongoose.Schema(
     {
         name: {
             type: String,
-            maxlength: 500,
+            maxlength: mongoLength.name,
             required: true,
             default: 'New item',
         },
         description: {
             type: String,
             default: '',
-            maxlength: 3000,
+            maxlength: mongoLength.description,
         },
         images: [
             {
@@ -200,14 +201,14 @@ const wishlistItemSchema = new mongoose.Schema(
     {
         name: {
             type: String,
-            maxlength: 500,
+            maxlength: mongoLength.name,
             required: true,
             default: 'New item',
         },
         description: {
             type: String,
             default: '',
-            maxlength: 3000,
+            maxlength: mongoLength.description,
         },
         images: [
             {
@@ -217,15 +218,25 @@ const wishlistItemSchema = new mongoose.Schema(
             },
         ],
         urls: [String],
-        itemId: { type: String, required: true },
+        itemId: { type: String, required: true, maxlength: mongoLength.id },
     },
     { minimize: false }
 )
 
 const accountSchema = new mongoose.Schema(
     {
-        name: { type: String, minlength: 2, required: true },
-        _id: String,
+        name: {
+            type: String,
+            minlength: 2,
+            required: true,
+            maxlength: mongoLength.name,
+        },
+        _id: {
+            type: String,
+            minlength: 2,
+            required: true,
+            maxlength: mongoLength.name,
+        },
         image: { type: Number, default: 0 },
         settings: {},
         isTeam: Boolean,

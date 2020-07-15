@@ -8,6 +8,7 @@ const express = require('express')
 const getAccount = require('../utils/getAccount')
 const Joi = require('@hapi/joi')
 const { resSendError } = require('../utils/resError')
+const { JoiLength } = require('../constants/fieldLength')
 const router = express.Router()
 
 router.get('/', auth, async (req, res, next) => {
@@ -95,15 +96,15 @@ router.get('/:_id/:perkId', authNotForce, async (req, res, next) => {
 
 const addPerkSchema = Joi.object({
     id: Joi.string()
-        .max(100)
+        .max(JoiLength.id)
         .allow(''),
     name: Joi.string()
         .min(1)
-        .max(100)
+        .max(JoiLength.name)
         .required(),
     description: Joi.string()
         .min(0)
-        .max(500)
+        .max(JoiLength.description)
         .allow(''),
     images: Joi.array().items(Joi.string()),
     users: Joi.array().items(Joi.string()),
@@ -173,10 +174,10 @@ router.post('/add', auth, async (req, res, next) => {
 
 const buyPerkSchema = Joi.object({
     perkId: Joi.string()
-        .max(100)
+        .max(JoiLength.id)
         .required(),
     ownerId: Joi.string()
-        .max(100)
+        .max(JoiLength.id)
         .required(),
 })
 
@@ -271,26 +272,27 @@ router.post('/buy', auth, async (req, res) => {
 
                     if (account._id !== owner._id)
                         res.send({
-                            account: account.toObject(),
-                            profile: {
-                                ...owner.toObject(),
-                                friendsData: friends,
-                                transactionsData: transactions,
-                            },
+                            // account: account.toObject(),
+                            // profile: {
+                            //     ...owner.toObject(),
+                            //     friendsData: friends,
+                            //     transactionsData: transactions,
+                            // },
+                            successCode: 'item bought',
                             success: true,
                         })
                     else
                         res.send({
-                            account: {
-                                ...account.toObject(),
-                                friendsData: friends,
-                                transactionsData: transactions,
-                            },
-                            profile: {
-                                ...owner.toObject(),
-                                friendsData: friends,
-                                transactionsData: transactions,
-                            },
+                            // account: {
+                            //     ...account.toObject(),
+                            //     friendsData: friends,
+                            //     transactionsData: transactions,
+                            // },
+                            // profile: {
+                            //     ...owner.toObject(),
+                            //     friendsData: friends,
+                            //     transactionsData: transactions,
+                            // },
                             success: true,
                             successCode: 'item bought',
                         })
@@ -351,7 +353,7 @@ router.post('/delete/:id', auth, async (req, res) => {
 
 const editTrancsactionSchema = Joi.object({
     transactionId: Joi.string()
-        .max(100)
+        .max(JoiLength.id)
         .required(),
 })
 
@@ -431,7 +433,7 @@ router.post('/cancel', auth, async (req, res) => {
             account._id === transaction.to
                 ? account
                 : await Account.findById(transaction.to)
-                      .select('walet')
+                      .select('wallet')
                       .exec()
 
         const currency = buyer.wallet.find(

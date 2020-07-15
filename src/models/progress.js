@@ -2,12 +2,13 @@ const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const { goalSchema, rewardsSchema } = require('./account')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
+const { mongoLength } = require('../constants/fieldLength')
 const types = mongoose.Schema.Types
 
 const messageSchema = new mongoose.Schema(
     {
         author: String,
-        text: String,
+        text: { type: String, maxlength: mongoLength.message },
         action: String,
         image: String,
         date: {
