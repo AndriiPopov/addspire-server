@@ -20,7 +20,7 @@ router.post('/', auth, async (req, res) => {
         // if (error) {
         //     return res.status(400).send('Image upload failed. Wrong data.')
         // }
-        let account = await getAccount(req, res, 'currentId image', true)
+        let account = await getAccount(req, res, 'currentId image __v', true)
         if (!account) return
         let fileName = req.body.fileName
         if (fileName === 'avatar') {

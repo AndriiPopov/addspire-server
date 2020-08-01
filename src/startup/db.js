@@ -5,7 +5,7 @@ module.exports = function() {
     try {
         const db = process.env.websiter_db
 
-        mongoose.connect(db).then(() => {
+        mongoose.connect(db, { poolSize: 50 }).then(() => {
             // User.update({}, { currentAction: 0 }, { multi: true }, function(
             //     err,
             //     numberAffected

@@ -1,7 +1,6 @@
 const { User } = require('../models/user')
 const jwt = require('jsonwebtoken')
-
-const { sendError } = require('./error')
+const { sendError } = require('./confirm')
 
 const authenticate = async (data, ws) => {
     try {
@@ -16,7 +15,9 @@ const authenticate = async (data, ws) => {
                     if (err) {
                         sendError(ws, 'Login error1.', true)
                     } else {
-                        user = await User.findById(decoded._id)
+                        user = (await User.exists({ _id: decoded._id }))
+                            ? decoded._id
+                            : null
                         if (!user) {
                             sendError(ws, 'Login error2.', true)
                         }
@@ -36,7 +37,8 @@ module.exports.auth = async (ws, data) => {
     try {
         let user = await authenticate(data, ws)
         if (user) {
-            ws.progressId = data.progressId
+            ws.user = user
+            ws.resources = data.resourcesToMonitor
         } else {
             sendError(ws, 'Login error.4', true)
         }

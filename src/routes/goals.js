@@ -35,40 +35,26 @@ router.get('/', auth, async (req, res, next) => {
     } catch (ex) {}
 })
 
-router.get('/:_id/:goalId', authNotForce, async (req, res, next) => {
+router.get('/:_id/:itemId', authNotForce, async (req, res, next) => {
     try {
         let profile = await Account.findById(req.params._id)
             .select({
-                goals: { $elemMatch: { goalId: req.params.goalId } },
-                friends: 1,
+                goals: { $elemMatch: { itemId: req.params.itemId } },
+                name: 1,
+                image: 1,
             })
             .lean()
             .exec()
         let account
         if (req.user) {
-            account = await getAccount(
-                req,
-                res,
-                'name image friends goals',
-                false,
-                true
-            )
+            account = await getAccount(req, res, 'name image', false, true)
         }
 
         if (profile && profile.goals && profile.goals.length > 0) {
-            let friends = profile.friends.map(item => item.friend)
-            friends = await Account.find({
-                _id: { $in: friends },
-            })
-                .select('name image')
-                .lean()
-                .exec()
             res.send({
                 account,
-                profile: {
-                    friendsData: friends,
-                },
                 goal: profile.goals[0],
+                profile,
                 success: true,
             })
         } else {
@@ -81,17 +67,20 @@ router.get('/:_id/:goalId', authNotForce, async (req, res, next) => {
 })
 
 const addGoalSchema = Joi.object({
-    id: Joi.string()
+    goalId: Joi.string()
         .max(JoiLength.id)
         .allow(''),
-    name: Joi.string()
-        .min(1)
-        .max(JoiLength.name)
-        .required(),
-    description: Joi.string()
-        .min(0)
-        .max(JoiLength.description)
-        .allow(''),
+    accountId: Joi.string().required(),
+    value: Joi.object({
+        name: Joi.string()
+            .min(1)
+            .max(JoiLength.name)
+            .required(),
+        description: Joi.string()
+            .min(0)
+            .max(JoiLength.description)
+            .allow(''),
+    }),
 }).unknown(true)
 
 router.post('/add', auth, async (req, res) => {

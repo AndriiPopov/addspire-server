@@ -1,33 +1,69 @@
+const { auth } = require('../wsActions/auth')
 const {
     requestProgress,
-    sendMessage,
-    changeLikesMessage,
     changeStage,
     getFriendsData,
     editGoalInProgress,
     leaveProgress,
+    saveReward,
+    deleteReward,
+    startProgress,
+    createGroup,
 } = require('../wsActions/progress')
-const { auth } = require('../wsActions/auth')
+const {
+    sendMessage,
+    changeLikesMessage,
+    addPost,
+} = require('../wsActions/post')
+const { editAccount, deleteAccount } = require('../wsActions/account')
+const {
+    saveWishlistItem,
+    deleteWishlistItem,
+} = require('../wsActions/wishlist')
+const { savePerk, deletePerk, buyPerk } = require('../wsActions/perks')
+const {
+    searchFriends,
+    addFriend,
+    acceptFriend,
+    unfriend,
+} = require('../wsActions/friends')
+const { saveGoal, deleteGoal } = require('../wsActions/goals')
+const {
+    cancelTransaction,
+    confirmTransaction,
+} = require('../wsActions/transactions')
 
 const { pushChanges } = require('../wsActions/pushChanges')
 const { heartbeat } = require('../wsActions/heartbeat')
-const { sendError } = require('../wsActions/error')
+const { requestResource } = require('../wsActions/requestResource')
 const { Server } = require('ws')
+const { sendError } = require('../wsActions/confirm')
 
 const connectSocket = server => {
     try {
         const wss = new Server({ server })
+
         setTimeout(() => pushChanges(wss), 4000)
 
         wss.on('connection', function connection(ws) {
-            ws.progressId = ''
+            ws.resources = {
+                user: {},
+                account: {},
+                progress: {},
+                post: {},
+                group: {},
+                transactionData: {},
+                friendData: {},
+                progressData: {},
+                postData: {},
+                groupData: {},
+            }
             ws.isAlive = true
             ws.createdTime = Date.now()
 
             ws.on('message', async message => {
                 try {
                     const data = JSON.parse(message)
-                    // console.log(data)
                     switch (data.messageCode) {
                         case 'heartbeat':
                             heartbeat(ws, data)
@@ -35,11 +71,14 @@ const connectSocket = server => {
                         case 'auth':
                             auth(ws, data)
                             break
-                        case 'requestProgress':
-                            requestProgress(data, ws)
+                        case 'requestResource':
+                            requestResource(data, ws)
                             break
                         case 'sendMessage':
                             sendMessage(data, ws)
+                            break
+                        case 'addPost':
+                            addPost(data, ws)
                             break
                         case 'changeStage':
                             changeStage(data, ws)
@@ -58,6 +97,63 @@ const connectSocket = server => {
                             break
                         case 'editGoalInProgress':
                             editGoalInProgress(data, ws)
+                            break
+                        case 'editAccount':
+                            editAccount(data, ws)
+                            break
+                        case 'deleteAccount':
+                            deleteAccount(data, ws)
+                            break
+                        case 'saveWishlistItem':
+                            saveWishlistItem(data, ws)
+                            break
+                        case 'deleteWishlistItem':
+                            deleteWishlistItem(data, ws)
+                            break
+                        case 'savePerk':
+                            savePerk(data, ws)
+                            break
+                        case 'deletePerk':
+                            deletePerk(data, ws)
+                            break
+                        case 'buyPerk':
+                            buyPerk(data, ws)
+                            break
+                        case 'cancelTransaction':
+                            cancelTransaction(data, ws)
+                            break
+                        case 'confirmTransaction':
+                            confirmTransaction(data, ws)
+                            break
+                        case 'searchFriends':
+                            searchFriends(data, ws)
+                            break
+                        case 'addFriend':
+                            addFriend(data, ws)
+                            break
+                        case 'acceptFriend':
+                            acceptFriend(data, ws)
+                            break
+                        case 'unfriend':
+                            unfriend(data, ws)
+                            break
+                        case 'startProgress':
+                            startProgress(data, ws)
+                            break
+                        case 'saveReward':
+                            saveReward(data, ws)
+                            break
+                        case 'deleteReward':
+                            deleteReward(data, ws)
+                            break
+                        case 'saveGoal':
+                            saveGoal(data, ws)
+                            break
+                        case 'deleteGoal':
+                            deleteGoal(data, ws)
+                            break
+                        case 'createGroup':
+                            createGroup(data, ws)
                             break
                         default:
                             break
@@ -83,6 +179,7 @@ const connectSocket = server => {
                 ws.send(
                     JSON.stringify({
                         messageCode: 'heartbeat',
+                        versions: ws.resources,
                     })
                 )
             })

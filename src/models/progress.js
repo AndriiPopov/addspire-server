@@ -1,55 +1,16 @@
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
-const { goalSchema, rewardsSchema } = require('./account')
-const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
 const { mongoLength } = require('../constants/fieldLength')
+const notificationSchema = require('./schemas/notification')
+const stageSchema = require('./schemas/stage')
+const goalSchema = require('./schemas/goal')
+const increaseVersion = require('../utils/increaseVersion')
+const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
 const types = mongoose.Schema.Types
-
-const messageSchema = new mongoose.Schema(
-    {
-        author: String,
-        text: { type: String, maxlength: mongoLength.message },
-        action: String,
-        image: String,
-        date: {
-            type: Date,
-            default: Date.now,
-        },
-        editedDate: {
-            type: Date,
-            default: Date.now,
-        },
-        likes: [String],
-        dislikes: [String],
-        replies: [],
-        messageId: { type: String, required: true },
-    },
-    { minimize: false, _id: false, id: false }
-)
-
-const stageSchema = new mongoose.Schema(
-    {
-        milestoneId: { type: String, required: true },
-        approvedBy: [
-            {
-                accountId: String,
-                date: {
-                    type: Date,
-                    default: Date.now,
-                },
-            },
-        ],
-        paid: [rewardsSchema],
-        status: String,
-    },
-    { minimize: false, _id: false, id: false }
-)
 
 const progressSchema = new mongoose.Schema(
     {
-        _id: String,
-        messages: [messageSchema],
-        worker: String,
+        posts: [String],
         owner: String,
         stages: [stageSchema],
         status: String,
@@ -59,10 +20,29 @@ const progressSchema = new mongoose.Schema(
             default: 0,
             required: true,
         },
-        patch: {},
+        admins: [String],
+        settings: {},
+        notifications: [notificationSchema],
+        group: String,
     },
     { minimize: false }
 )
+// progressSchema.pre('save', function(next) {
+//     this.increment()
+//     return next()
+// })
 progressSchema.plugin(updateIfCurrentPlugin)
 
+progressSchema.pre(
+    [
+        'update',
+        'updateOne',
+        'findOneAndUpdate',
+        'findByIdAndUpdate',
+        'updateMany',
+    ],
+    increaseVersion
+)
+
 module.exports.Progress = mongoose.model('Progress', progressSchema)
+module.exports.progressSchema = progressSchema

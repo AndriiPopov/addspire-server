@@ -51,7 +51,6 @@ router.get('/:_id/:perkId', authNotForce, async (req, res, next) => {
         let profile = await Account.findById(req.params._id)
             .select({
                 perks: { $elemMatch: { perkId: req.params.perkId } },
-                friends: 1,
                 name: 1,
                 image: 1,
             })
@@ -59,30 +58,14 @@ router.get('/:_id/:perkId', authNotForce, async (req, res, next) => {
             .exec()
         let account
         if (req.user) {
-            account = await getAccount(
-                req,
-                res,
-                'name image friends',
-                false,
-                true
-            )
+            account = await getAccount(req, res, 'name image', false, true)
         }
 
         if (profile && profile.perks && profile.perks.length > 0) {
-            let friends = profile.friends.map(item => item.friend)
-            friends = await Account.find({
-                _id: { $in: friends },
-            })
-                .select('name image')
-                .lean()
-                .exec()
             res.send({
                 account,
-                profile: {
-                    ...profile,
-                    friendsData: friends,
-                },
                 perk: profile.perks[0],
+                profile,
                 success: true,
             })
         } else {

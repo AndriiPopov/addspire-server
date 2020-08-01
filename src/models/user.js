@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
+const increaseVersion = require('../utils/increaseVersion')
+const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
 
 const types = mongoose.Schema.Types
 
@@ -23,6 +25,23 @@ const userSchema = new mongoose.Schema(
         teamAccounts: [String],
     },
     { minimize: false }
+)
+
+// userSchema.pre('save', function(next) {
+//     this.increment()
+//     return next()
+// })
+userSchema.plugin(updateIfCurrentPlugin)
+
+userSchema.pre(
+    [
+        'update',
+        'updateOne',
+        'findOneAndUpdate',
+        'findByIdAndUpdate',
+        'updateMany',
+    ],
+    increaseVersion
 )
 
 userSchema.methods.generateAuthToken = function() {
