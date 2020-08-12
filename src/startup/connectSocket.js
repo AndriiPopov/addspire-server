@@ -21,6 +21,7 @@ const {
     deleteWishlistItem,
 } = require('../wsActions/wishlist')
 const { savePerk, deletePerk, buyPerk } = require('../wsActions/perks')
+const { setLastSeenNot } = require('../wsActions/dashboard')
 const {
     searchFriends,
     addFriend,
@@ -154,6 +155,9 @@ const connectSocket = server => {
                             break
                         case 'createGroup':
                             createGroup(data, ws)
+                            break
+                        case 'setLastSeenNot':
+                            setLastSeenNot(data, ws)
                             break
                         default:
                             break

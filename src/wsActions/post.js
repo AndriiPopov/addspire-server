@@ -8,6 +8,7 @@ const { sendError } = require('./confirm')
 const { Post } = require('../models/post')
 const { Progress } = require('../models/progress')
 const { Group } = require('../models/group')
+const addNotification = require('../utils/addNotification')
 
 const sendMessageSchema = Joi.object({
     postId: Joi.string()
@@ -47,6 +48,10 @@ module.exports.sendMessage = async (data, ws) => {
                 messageId: post.currentId,
             })
             post.currentId = post.currentId + 1
+            addNotification(post, {
+                user: data.accountId,
+                code: 'comment',
+            })
         } else if (data.editedMessage) {
             const message = findMessage(post.messages, data.editedMessage)
 
@@ -55,6 +60,10 @@ module.exports.sendMessage = async (data, ws) => {
                 message.action = data.imageUrl ? 'image' : 'message'
                 message.editedDate = Date.now()
             }
+            addNotification(post, {
+                user: message.author,
+                code: 'edit comment',
+            })
         } else if (data.replyToMessage) {
             const message = findMessage(post.messages, data.replyToMessage)
 
@@ -70,6 +79,10 @@ module.exports.sendMessage = async (data, ws) => {
                     likes: [],
                     dislikes: [],
                     replies: [],
+                })
+                addNotification(post, {
+                    user: data.accountId,
+                    code: 'comment',
                 })
                 post.currentId = post.currentId + 1
             }
@@ -113,12 +126,20 @@ module.exports.changeLikesMessage = async (data, ws) => {
                 case 'likeMessage':
                     if (message.likes.indexOf(data.accountId) === -1) {
                         message.likes.push(data.accountId)
+                        addNotification(post, {
+                            user: data.accountId,
+                            code: 'like',
+                        })
                     }
                     break
                 case 'dislikeMessage':
                     message.likes = message.likes.filter(
                         item => item !== data.accountId
                     )
+                    addNotification(post, {
+                        user: data.accountId,
+                        code: 'dislike',
+                    })
                     break
             }
             if (!account.followPosts.includes(post._id.toString())) {
@@ -159,10 +180,10 @@ module.exports.addPost = async (data, ws) => {
         const parent =
             data.parentType === 'progress'
                 ? await Progress.findById(data.parentId)
-                      .select('posts __v')
+                      .select('posts notifications __v')
                       .exec()
                 : await Group.findById(data.parentId)
-                      .select('posts __v')
+                      .select('posts notifications __v')
                       .exec()
 
         const account = await Account.findById(data.accountId)
@@ -181,9 +202,27 @@ module.exports.addPost = async (data, ws) => {
                 text: data.imageUrl || data.messageValue,
                 action: data.imageUrl ? 'image' : 'message',
                 messageId: '0',
-                image: '',
                 date: Date.now(),
                 editedDate: Date.now(),
+            },
+            parent: { parentId: parent._id, parentType: data.parentType },
+        })
+
+        post.notifications = [
+            {
+                user: data.accountId,
+                code: 'add post',
+                details: {
+                    postId: post._id,
+                },
+            },
+        ]
+
+        addNotification(parent, {
+            user: data.accountId,
+            code: 'add post',
+            details: {
+                postId: post._id,
             },
         })
 

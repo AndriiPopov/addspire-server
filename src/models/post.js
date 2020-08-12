@@ -15,7 +15,7 @@ const postSchema = new mongoose.Schema(
             default: {
                 likes: [],
                 replies: [],
-                messageId: 0,
+                messageId: '0',
             },
         },
         notifications: [notificationSchema],
@@ -24,6 +24,10 @@ const postSchema = new mongoose.Schema(
             type: Number,
             default: 1,
             required: true,
+        },
+        parent: {
+            parentId: String,
+            parentType: String,
         },
     },
     { minimize: false }

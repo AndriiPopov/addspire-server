@@ -41,6 +41,7 @@ const accountSchema = new mongoose.Schema(
         transactions: [String],
         friends: [friendSchema],
         followPosts: [String],
+        myPosts: [String],
         currentId: {
             type: Number,
             default: 0,
@@ -55,14 +56,11 @@ const accountSchema = new mongoose.Schema(
         },
         notifications: [notificationSchema],
         myNotifications: [notificationSchema],
+        lastSeenNot: { type: Number, default: 0 },
     },
     { minimize: false }
 )
 accountSchema.plugin(updateIfCurrentPlugin)
-// accountSchema.pre('save', function(next) {
-//     this.increment()
-//     return next()
-// })
 
 accountSchema.pre(
     [

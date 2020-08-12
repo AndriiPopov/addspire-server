@@ -22,6 +22,7 @@ const groupSchema = new mongoose.Schema(
         description: { type: String, default: 'Description of the group' },
         name: { type: String, default: 'New group' },
         active: { type: Boolean, default: false },
+        images: [String],
     },
     { minimize: false }
 )

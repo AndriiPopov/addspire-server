@@ -4,6 +4,8 @@ const Joi = require('@hapi/joi')
 const { JoiLength } = require('../constants/fieldLength')
 
 const { sendSuccess, sendError } = require('./confirm')
+const { getNotificationId } = require('../models/system')
+const addNotification = require('../utils/addNotification')
 
 const searchFriendsSchema = Joi.object({
     search: Joi.string().max(JoiLength.name),
@@ -69,7 +71,7 @@ module.exports.addFriend = async (data, ws) => {
         }
 
         const friend = await Account.findById(friendId)
-            .select('friends __v')
+            .select('friends myNotifications __v')
             .exec()
 
         if (friend) {
@@ -93,6 +95,17 @@ module.exports.addFriend = async (data, ws) => {
                     status: 'inviting',
                 })
             }
+
+            const newNotificationId = await getNotificationId()
+            addNotification(
+                friend,
+                {
+                    user: data.accountId,
+                    code: 'friend request',
+                    notId: newNotificationId,
+                },
+                true
+            )
             friend.save()
             account.save()
 
@@ -103,6 +116,7 @@ module.exports.addFriend = async (data, ws) => {
             return
         }
     } catch (ex) {
+        console.log(ex)
         sendError(ws, 'Something failed.')
     }
 }
@@ -117,7 +131,7 @@ module.exports.acceptFriend = async (data, ws) => {
         }
 
         const account = await Account.findById(data.accountId)
-            .select('friends __v')
+            .select('friends myNotifications notifications notifications __v')
             .exec()
 
         if (!account) {
@@ -133,7 +147,7 @@ module.exports.acceptFriend = async (data, ws) => {
         }
 
         const friend = await Account.findById(friendId)
-            .select('friends __v')
+            .select('friends myNotifications notifications __v')
             .exec()
 
         if (friend) {
@@ -147,6 +161,34 @@ module.exports.acceptFriend = async (data, ws) => {
                     return { ...item.toObject(), status: 'friend' }
                 else return item.toObject()
             })
+
+            const newNotificationId = await getNotificationId()
+            addNotification(
+                friend,
+                {
+                    user: data.accountId,
+                    code: 'friend add',
+                    notId: newNotificationId,
+                    details: {
+                        friend: friend._id,
+                    },
+                },
+                true,
+                true
+            )
+            addNotification(
+                account,
+                {
+                    user: data.accountId,
+                    code: 'friend add',
+                    notId: newNotificationId,
+                    details: {
+                        friend: friend._id,
+                    },
+                },
+                true
+            )
+
             friend.save()
             account.save()
 
@@ -174,7 +216,7 @@ module.exports.unfriend = async (data, ws) => {
         }
 
         const account = await Account.findById(data.accountId)
-            .select('friends wallet __v')
+            .select('friends myNotifications notifications wallet __v')
             .exec()
 
         if (!account) {
@@ -193,10 +235,26 @@ module.exports.unfriend = async (data, ws) => {
             item => item.friend !== friendId
         )
         account.wallet = account.wallet.filter(item => item.user !== friendId)
+
+        const newNotificationId = await getNotificationId()
+        addNotification(
+            account,
+            {
+                user: data.accountId,
+                code: 'unfriend',
+                notId: newNotificationId,
+                details: {
+                    friend: friendId,
+                },
+            },
+            true,
+            true
+        )
+
         account.save()
 
         const friend = await Account.findById(friendId)
-            .select('friends wallet __v')
+            .select('friends wallet myNotifications notifications __v')
             .exec()
 
         if (friend) {
@@ -205,6 +263,19 @@ module.exports.unfriend = async (data, ws) => {
             )
             friend.wallet = friend.wallet.filter(
                 item => item.user !== account._id
+            )
+            addNotification(
+                friend,
+                {
+                    user: data.accountId,
+                    code: 'unfriend',
+                    notId: newNotificationId,
+                    details: {
+                        friend: friendId,
+                    },
+                },
+                true,
+                true
             )
             friend.save()
         }

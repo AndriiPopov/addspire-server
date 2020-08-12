@@ -14,53 +14,49 @@ module.exports.pushChanges = wss => {
                     const sendData = keys => {
                         for (let client of wss.clients) {
                             for (let key of keys) {
+                                // if (
+                                //     ![
+                                //         'friendData',
+                                //         'progressData',
+                                //         'postData',
+                                //         'groupData',
+                                //     ].includes(key) ||
+                                //     !data.updateDescription.updatedFields
+                                //         .notifications
+                                // ) {
+                                // console.log(client.resources)
+                                // console.log(key)
                                 if (
-                                    ![
-                                        'friendData',
-                                        'progressData',
-                                        'postData',
-                                        'groupData',
-                                    ].includes(key) ||
-                                    !data.updateDescription.updatedFields
-                                        .notifications
+                                    typeof client.resources[key][
+                                        data.documentKey._id.toString()
+                                    ] !== 'undefined'
                                 ) {
-                                    // console.log(client.resources)
-                                    // console.log(key)
-                                    if (
-                                        typeof client.resources[key][
-                                            data.documentKey._id.toString()
-                                        ] !== 'undefined'
-                                    ) {
+                                    if (client.readyState === WebSocket.OPEN) {
+                                        // console.log('KEY')
+                                        // console.log(key)
+                                        // console.log(data)
+                                        client.send(
+                                            JSON.stringify({
+                                                messageCode: 'updateResource',
+                                                code: key,
+                                                id: data.documentKey._id.toString(),
+                                                update: data.updateDescription,
+                                            })
+                                        )
                                         if (
-                                            client.readyState === WebSocket.OPEN
-                                        ) {
-                                            // console.log('KEY')
-                                            // console.log(key)
-                                            // console.log(data)
-                                            client.send(
-                                                JSON.stringify({
-                                                    messageCode:
-                                                        'updateResource',
-                                                    code: key,
-                                                    id: data.documentKey._id.toString(),
-                                                    update:
-                                                        data.updateDescription,
-                                                })
-                                            )
-                                            if (
-                                                data.updateDescription &&
-                                                data.updateDescription
-                                                    .updatedFields &&
-                                                data.updateDescription
-                                                    .updatedFields.__v
-                                            )
-                                                client.resources[key][
-                                                    data.documentKey._id.toString()
-                                                ] =
-                                                    data.updateDescription.updatedFields.__v
-                                        }
+                                            data.updateDescription &&
+                                            data.updateDescription
+                                                .updatedFields &&
+                                            data.updateDescription.updatedFields
+                                                .__v
+                                        )
+                                            client.resources[key][
+                                                data.documentKey._id.toString()
+                                            ] =
+                                                data.updateDescription.updatedFields.__v
                                     }
                                 }
+                                // }
                             }
                         }
                     }

@@ -78,7 +78,7 @@ module.exports.requestResource = async (data, ws) => {
                     result = await Group.find({
                         _id: { $in: data.ids },
                     })
-                        .select('notifications __v')
+                        .select('notifications __v name active')
                         .lean()
                         .exec()
 

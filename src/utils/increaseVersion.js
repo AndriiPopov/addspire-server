@@ -1,6 +1,5 @@
 const increaseVersion = function() {
     const update = this.getUpdate()
-    console.log(update)
     if (update.__v != null) {
         delete update.__v
     }

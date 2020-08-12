@@ -5,6 +5,8 @@ const { JoiLength } = require('../constants/fieldLength')
 
 const { sendSuccess, sendError } = require('./confirm')
 const { Post } = require('../models/post')
+const { getNotificationId } = require('../models/system')
+const addNotification = require('../utils/addNotification')
 
 const savePerkSchema = Joi.object({
     id: Joi.string()
@@ -36,7 +38,7 @@ module.exports.savePerk = async (data, ws) => {
         }
 
         const account = await Account.findById(data.accountId)
-            .select('perks currentId followPosts __v')
+            .select('perks currentId notifications myPosts __v')
             .exec()
         if (!account) {
             sendError(ws, 'Bad data!')
@@ -44,18 +46,93 @@ module.exports.savePerk = async (data, ws) => {
         }
 
         let perkId = data.id
+        const newNotificationId = await getNotificationId()
         if (perkId) {
+            let postId
             account.perks = account.toObject().perks.map(perk => {
-                if (perk.perkId === perkId) return { ...perk, ...data.value }
-                else return perk
+                if (perk.perkId === perkId) {
+                    postId = item.post
+                    return { ...perk, ...data.value }
+                } else return perk
+            })
+            const newNotificationIdPost = await getNotificationId()
+
+            await Post.findOneAndUpdate(
+                { _id: postId },
+                {
+                    $set: {
+                        startMessage: {
+                            author: account._id,
+                            text: data.value.description,
+                            action: 'edit perk',
+                            image: data.value.images,
+                            messageId: '0',
+                            messageType: 'perk',
+                            details: {
+                                owner: account._id,
+                                name: data.value.name,
+                                itemId: perkId,
+                            },
+                        },
+                    },
+                    $push: {
+                        notifications: {
+                            $each: [
+                                {
+                                    user: account._id,
+                                    code: 'edit perk',
+                                    notId: newNotificationIdPost,
+                                    details: {
+                                        itemId: perkId,
+                                    },
+                                },
+                            ],
+                            $position: 0,
+                            $slice: 20,
+                        },
+                    },
+                },
+                { useFindAndModify: false }
+            )
+            addNotification(account, {
+                user: account._id,
+                code: 'edit perk',
+                notId: newNotificationId,
+                details: {
+                    itemId: perkId,
+                    itemName: data.value.name,
+                },
             })
         } else {
-            let post = new Post({
-                users: [account._id],
-            })
-            post = await post.save()
-            account.followPosts.push(post._id.toString())
             perkId = 'perk_' + account.currentId
+            const post = new Post({
+                users: [account._id],
+                parent: account._id,
+                startMessage: {
+                    author: account._id,
+                    text: data.value.description,
+                    action: 'add perk',
+                    image: data.value.images,
+                    messageId: '0',
+                    messageType: 'perk',
+                    details: {
+                        owner: account._id,
+                        name: data.value.name,
+                        itemId: perkId,
+                    },
+                },
+            })
+            post.save()
+            account.myPosts.push(post._id.toString())
+            addNotification(account, {
+                user: account._id,
+                code: 'add perk',
+                notId: newNotificationId,
+                details: {
+                    itemName: data.value.name,
+                    itemId: perkId,
+                },
+            })
             account.currentId = account.currentId + 1
             account.perks = [
                 { perkId, ...data.value, post: post._id },
@@ -84,7 +161,7 @@ module.exports.deletePerk = async (data, ws) => {
         }
 
         const account = await Account.findById(data.accountId)
-            .select('perks followPosts __v')
+            .select('perks notifications myPosts __v')
             .exec()
         if (!account) {
             console.log(error)
@@ -94,11 +171,13 @@ module.exports.deletePerk = async (data, ws) => {
 
         let postId
         const perkId = data.id
+        let itemName = ''
         if (perkId) {
             account.perks = account.toObject().perks.filter(item => {
                 if (item.perkId !== perkId) {
                     return true
                 } else {
+                    itemName = item.name
                     postId = item.post
                     return false
                 }
@@ -108,6 +187,15 @@ module.exports.deletePerk = async (data, ws) => {
             account.followPosts.filter(
                 item => item.toString() !== postId.toString()
             )
+        const newNotificationId = await getNotificationId()
+        addNotification(account, {
+            user: account._id,
+            code: 'delete perk',
+            notId: newNotificationId,
+            details: {
+                itemName,
+            },
+        })
         account.save()
 
         sendSuccess(ws)
@@ -132,13 +220,17 @@ module.exports.buyPerk = async (data, ws) => {
         }
 
         const account = await Account.findById(data.buyer)
-            .select('transactions wallet perks friends __v')
+            .select(
+                'transactions notifications myNotifications wallet perks friends __v'
+            )
             .exec()
 
         const owner =
             data.seller !== account._id
                 ? await Account.findById(data.seller)
-                      .select('transactions wallet perks friends __v')
+                      .select(
+                          'transactions notifications myNotifications wallet perks friends __v'
+                      )
                       .exec()
                 : account
 
@@ -157,12 +249,19 @@ module.exports.buyPerk = async (data, ws) => {
                     item => item.user === owner._id
                 )
 
-                if (perk && currency && perk.price <= currency.amount) {
+                if (
+                    perk &&
+                    (perk.users.length === 0 ||
+                        perk.users.includes(account._id.toString())) &&
+                    currency &&
+                    perk.price <= currency.amount
+                ) {
                     let transaction = new Transaction({
                         from: owner._id,
                         to: account._id,
                         item: {
                             itemName: perk.name,
+                            itemId: perk.perkId,
                             itemDescription: perk.description,
                             itemImages: perk.images,
                             mode: 'item',
@@ -175,20 +274,32 @@ module.exports.buyPerk = async (data, ws) => {
 
                     transaction = await transaction.save()
 
-                    if (owner.transactions)
-                        owner.transactions.unshift(transaction._id.toString())
-                    else owner.transactions = [transaction._id.toString()]
+                    owner.transactions.unshift(transaction._id.toString())
+
                     if (owner._id !== account._id) {
-                        if (account.transactions)
-                            account.transactions.unshift(
-                                transaction._id.toString()
-                            )
-                        else account.transactions = [transaction._id.toString()]
+                        account.transactions.unshift(transaction._id.toString())
                     }
 
                     currency.amount = currency.amount - perk.price
+
+                    const newNotificationId = await getNotificationId()
+                    const notification = {
+                        user: account._id,
+                        code: 'buy perk',
+                        notId: newNotificationId,
+                        details: {
+                            itemName: perk.name,
+                            itemId: perk.perkId,
+                            price: perk.price,
+                            owner: owner._id,
+                        },
+                    }
+                    addNotification(owner, notification, true, true)
                     await owner.save()
-                    if (owner._id !== account._id) await account.save()
+                    if (owner._id !== account._id) {
+                        addNotification(account, notification, true, true)
+                        await account.save()
+                    }
 
                     sendSuccess(ws)
                     return

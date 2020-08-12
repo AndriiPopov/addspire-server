@@ -5,6 +5,8 @@ const { JoiLength } = require('../constants/fieldLength')
 const getAccount = require('../utils/getAccount')
 const { sendSuccess, sendError } = require('./confirm')
 const { User } = require('../models/user')
+const { getNotificationId } = require('../models/system')
+const addNotification = require('../utils/addNotification')
 
 const editAccountSchema = Joi.object({
     accountId: Joi.string()
@@ -25,16 +27,31 @@ module.exports.editAccount = async (data, ws) => {
             sendError(ws, 'Bad data!')
             return
         }
-        const res = await Account.updateOne(
+        const newNotificationId = await getNotificationId()
+        await Account.findOneAndUpdate(
             { _id: data.accountId },
-            { name: data.name }
+            {
+                $set: { name: data.name },
+                $push: {
+                    notifications: {
+                        $each: [
+                            {
+                                user: data.accountId,
+                                code: 'change name',
+                                notId: newNotificationId,
+                            },
+                        ],
+                        $position: 0,
+                        $slice: 20,
+                    },
+                },
+            },
+            { useFindAndModify: false }
         )
-        if (res.n > 0) {
-            sendSuccess(ws)
-        } else {
-            sendError(ws, 'Something failed.')
-        }
+
+        sendSuccess(ws)
     } catch (ex) {
+        console.log(ex)
         sendError(ws, 'Something failed.')
     }
 }
@@ -63,7 +80,7 @@ module.exports.deleteAccount = async (data, ws) => {
         const friends = await Account.find({
             _id: { $in: account.friends },
         })
-            .select('friends wallet __v')
+            .select('friends wallet myNotifications __v')
             .exec()
 
         for (let friend of friends) {
@@ -73,6 +90,12 @@ module.exports.deleteAccount = async (data, ws) => {
             friend.wallet = friend.wallet.filter(
                 item => item.user !== account._id
             )
+            const newNotificationId = await getNotificationId()
+
+            addNotification(friend, {
+                user: account._id,
+                code: 'delete account',
+            })
             friend.save()
         }
 

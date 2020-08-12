@@ -5,8 +5,10 @@ const messageSchema = new mongoose.Schema(
     {
         author: String,
         text: { type: String, maxlength: mongoLength.message },
+        messageType: String,
+        details: {},
         action: String,
-        image: String,
+        image: [String],
         date: {
             type: Date,
             default: Date.now,
@@ -21,7 +23,7 @@ const messageSchema = new mongoose.Schema(
                 author: String,
                 text: { type: String, maxlength: mongoLength.message },
                 action: String,
-                image: String,
+                image: [String],
                 date: {
                     type: Date,
                     default: Date.now,
@@ -32,7 +34,7 @@ const messageSchema = new mongoose.Schema(
                 },
                 likes: [String],
                 replies: [],
-                messageId: { type: String, required: true },
+                messageId: { type: String, required: true, default: '0' },
             },
         ],
         messageId: { type: String, required: true },
