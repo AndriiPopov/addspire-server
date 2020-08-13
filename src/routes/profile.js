@@ -5,25 +5,18 @@ const { Account } = require('../models/account')
 const { Progress } = require('../models/progress')
 const express = require('express')
 const getAccount = require('../utils/getAccount')
+const { Group } = require('../models/group')
 
 const router = express.Router()
 
 router.get('/:_id*', authNotForce, async (req, res, next) => {
     try {
         const profile = await Account.findById(req.params._id)
-            .select('name image friends goals progresses perks wallet wishlist')
-            .lean()
-        let account
-
-        if (req.user) {
-            account = await getAccount(
-                req,
-                res,
-                'name image friends wallet',
-                false,
-                true
+            .select(
+                'name image friends goals progresses perks wallet wishlist groups'
             )
-        }
+            .lean()
+
         if (!profile) {
             res.send({
                 account,
@@ -32,8 +25,13 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
             return
         }
 
-        const progressesData = await Progress.find({
+        const progressData = await Progress.find({
             _id: { $in: profile.progresses },
+        })
+            .lean()
+            .exec()
+        const groupData = await Group.find({
+            _id: { $in: profile.groups },
         })
             .lean()
             .exec()
@@ -47,12 +45,10 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
             .exec()
 
         res.send({
-            account,
-            profile: {
-                ...profile,
-                friendsData: friends,
-                progressesData,
-            },
+            profile,
+            progressData,
+            groupData,
+            friendData: friends,
             success: true,
         })
     } catch (ex) {}

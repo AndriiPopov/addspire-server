@@ -9,6 +9,7 @@ const getAccount = require('../utils/getAccount')
 const Joi = require('@hapi/joi')
 const { resSendError } = require('../utils/resError')
 const { JoiLength } = require('../constants/fieldLength')
+const { Post } = require('../models/post')
 const router = express.Router()
 
 router.get('/', auth, async (req, res, next) => {
@@ -56,24 +57,35 @@ router.get('/:_id/:perkId', authNotForce, async (req, res, next) => {
             })
             .lean()
             .exec()
-        let account
-        if (req.user) {
-            account = await getAccount(req, res, 'name image', false, true)
-        }
-
         if (profile && profile.perks && profile.perks.length > 0) {
-            res.send({
-                account,
-                perk: profile.perks[0],
-                profile,
-                success: true,
-            })
-        } else {
-            res.send({
-                account,
-                success: false,
-            })
+            const perk = profile.perks[0]
+            if (perk.post.length > 0) {
+                const post = await Post.findById(perk.post[0])
+                    .lean()
+                    .exec()
+                if (post) {
+                    const friendData = await Account.find({
+                        _id: { $in: post.users },
+                    })
+                        .select('name image ')
+                        .lean()
+                        .exec()
+
+                    res.send({
+                        perk,
+                        profile,
+                        post,
+                        friendData,
+                        success: true,
+                    })
+                    return
+                }
+            }
         }
+        res.send({
+            account,
+            success: false,
+        })
     } catch (ex) {}
 })
 

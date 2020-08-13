@@ -8,6 +8,7 @@ const getAccount = require('../utils/getAccount')
 const Joi = require('@hapi/joi')
 const { JoiLength } = require('../constants/fieldLength')
 const { resSendError } = require('../utils/resError')
+const { Post } = require('../models/post')
 
 const router = express.Router()
 
@@ -45,24 +46,35 @@ router.get('/:_id/:itemId', authNotForce, async (req, res, next) => {
             })
             .lean()
             .exec()
-        let account
-        if (req.user) {
-            account = await getAccount(req, res, 'name image', false, true)
-        }
-
         if (profile && profile.goals && profile.goals.length > 0) {
-            res.send({
-                account,
-                goal: profile.goals[0],
-                profile,
-                success: true,
-            })
-        } else {
-            res.send({
-                account,
-                success: false,
-            })
+            const goal = profile.goals[0]
+            if (goal.post.length > 0) {
+                const post = await Post.findById(goal.post[0])
+                    .lean()
+                    .exec()
+                if (post) {
+                    const friendData = await Account.find({
+                        _id: { $in: post.users },
+                    })
+                        .select('name image ')
+                        .lean()
+                        .exec()
+
+                    res.send({
+                        goal,
+                        profile,
+                        post,
+                        friendData,
+                        success: true,
+                    })
+                    return
+                }
+            }
         }
+        res.send({
+            account,
+            success: false,
+        })
     } catch (ex) {}
 })
 

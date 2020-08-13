@@ -9,6 +9,8 @@ const getAccount = require('../utils/getAccount')
 const Joi = require('@hapi/joi')
 const { JoiLength } = require('../constants/fieldLength')
 const { resSendError } = require('../utils/resError')
+const { Post } = require('../models/post')
+const wishlistItemSchema = require('../models/schemas/wishlistItem')
 const router = express.Router()
 
 router.get('/', auth, async (req, res, next) => {
@@ -35,24 +37,35 @@ router.get('/:_id/:wishlistItemId', authNotForce, async (req, res, next) => {
             })
             .lean()
             .exec()
-        let account
-        if (req.user) {
-            account = await getAccount(req, res, 'name image', false, true)
-        }
 
         if (profile && profile.wishlist && profile.wishlist.length > 0) {
-            res.send({
-                account,
-                wishlistItem: profile.wishlist[0],
-                profile,
-                success: true,
-            })
-        } else {
-            res.send({
-                account,
-                success: false,
-            })
+            const wishlistItem = profile.wishlist[0]
+            if (wishlistItem.post.length > 0) {
+                const post = await Post.findById(wishlistItem.post[0])
+                    .lean()
+                    .exec()
+                if (post) {
+                    const friendData = await Account.find({
+                        _id: { $in: post.users },
+                    })
+                        .select('name image ')
+                        .lean()
+                        .exec()
+
+                    res.send({
+                        wishlistItem,
+                        profile,
+                        post,
+                        friendData,
+                        success: true,
+                    })
+                    return
+                }
+            }
         }
+        res.send({
+            success: false,
+        })
     } catch (ex) {}
 })
 
