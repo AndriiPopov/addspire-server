@@ -5,6 +5,7 @@ const { JoiLength } = require('../constants/fieldLength')
 
 const { sendSuccess, sendError } = require('./confirm')
 const { Post } = require('../models/post')
+const { Transaction } = require('../models/transaction')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
 
@@ -51,7 +52,7 @@ module.exports.savePerk = async (data, ws) => {
             let postId
             account.perks = account.toObject().perks.map(perk => {
                 if (perk.perkId === perkId) {
-                    postId = item.post
+                    postId = perk.post
                     return { ...perk, ...data.value }
                 } else return perk
             })
@@ -142,6 +143,7 @@ module.exports.savePerk = async (data, ws) => {
         account.save()
         sendSuccess(ws)
     } catch (ex) {
+        console.log(ex)
         sendError(ws, 'Something failed.')
     }
 }
@@ -226,7 +228,7 @@ module.exports.buyPerk = async (data, ws) => {
             .exec()
 
         const owner =
-            data.seller !== account._id
+            data.seller.toString() !== account._id.toString()
                 ? await Account.findById(data.seller)
                       .select(
                           'transactions notifications myNotifications wallet perks friends __v'
@@ -249,13 +251,25 @@ module.exports.buyPerk = async (data, ws) => {
                     item => item.user === owner._id
                 )
 
-                if (
-                    perk &&
-                    (perk.users.length === 0 ||
-                        perk.users.includes(account._id.toString())) &&
-                    currency &&
-                    perk.price <= currency.amount
-                ) {
+                if (perk) {
+                    if (
+                        !currency ||
+                        (currency && perk.price >= currency.amount)
+                    ) {
+                        sendError(
+                            ws,
+                            "You don't have enough money from this user."
+                        )
+                        return
+                    }
+                    if (
+                        perk.users.length > 0 &&
+                        !perk.users.includes(account._id.toString())
+                    ) {
+                        sendError(ws, 'You are not allowed to buy this item.')
+                        return
+                    }
+
                     let transaction = new Transaction({
                         from: owner._id,
                         to: account._id,
@@ -276,7 +290,7 @@ module.exports.buyPerk = async (data, ws) => {
 
                     owner.transactions.unshift(transaction._id.toString())
 
-                    if (owner._id !== account._id) {
+                    if (owner._id.toString() !== account._id.toString()) {
                         account.transactions.unshift(transaction._id.toString())
                     }
 
@@ -296,7 +310,7 @@ module.exports.buyPerk = async (data, ws) => {
                     }
                     addNotification(owner, notification, true, true)
                     await owner.save()
-                    if (owner._id !== account._id) {
+                    if (owner._id.toString() !== account._id.toString()) {
                         addNotification(account, notification, true, true)
                         await account.save()
                     }
@@ -309,6 +323,7 @@ module.exports.buyPerk = async (data, ws) => {
 
         sendError(ws, 'Something failed.')
     } catch (ex) {
+        console.log(ex)
         sendError(ws, 'Something failed.')
     }
 }
