@@ -40,7 +40,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
         friends = await Account.find({
             _id: { $in: friends },
         })
-            .select('name image')
+            .select('name image  notifications')
             .lean()
             .exec()
 

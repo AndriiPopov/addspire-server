@@ -34,16 +34,6 @@ module.exports.startProgress = async (data, ws) => {
                 status: 'not started',
                 owner: accountId,
                 goal,
-                stages: [
-                    {
-                        milestoneId: 'start',
-                        approvedBy: [
-                            {
-                                accountId,
-                            },
-                        ],
-                    },
-                ],
                 admins: [accountId],
             })
             let group
@@ -159,7 +149,7 @@ module.exports.changeStage = async (data, ws) => {
                     }
                     if (stage) {
                         let newNotificationId = await getNotificationId()
-                        let milestone = progres.goal.milestones.find(
+                        let milestone = progress.goal.milestones.find(
                             item => item.key === stage.milestoneId
                         )
 
@@ -201,6 +191,15 @@ module.exports.changeStage = async (data, ws) => {
                                         progressName: progress.goal.name,
                                     },
                                 })
+                            } else {
+                                ws.send(
+                                    JSON.stringify({
+                                        messageCode: 'errorMessage',
+                                        messageText:
+                                            'Start milestone cannot be disapproved.',
+                                    })
+                                )
+                                return
                             }
                         }
                     }
@@ -244,11 +243,17 @@ module.exports.changeStage = async (data, ws) => {
                                 item => item.accountId === progress.owner
                             ) &&
                             (stageIn.milestoneId !== 'start' ||
-                                stageIn.approvedBy.find(
-                                    item => item.accountId === progress.worker
+                                [progress.owner, ...progress.goal.users].reduce(
+                                    (res, user) =>
+                                        stageIn.approvedBy.find(
+                                            item => item.accountId === user
+                                        )
+                                            ? res
+                                            : false,
+                                    true
                                 ))
                         ) {
-                            milestone = progres.goal.milestones.find(
+                            milestone = progress.goal.milestones.find(
                                 item => item.key === stage.milestoneId
                             )
 
@@ -280,12 +285,12 @@ module.exports.changeStage = async (data, ws) => {
                                         const owner = await Account.findById(
                                             reward.owner
                                         )
-                                            .select('transactions wallet')
+                                            .select('transactions wallet __v')
                                             .exec()
                                         const beniciaries =
                                             reward.for.length > 0
                                                 ? reward.for
-                                                : goal.users
+                                                : progress.goal.users
                                         for (let reciever of beniciaries) {
                                             const worker =
                                                 owner._id !== reciever
@@ -293,7 +298,7 @@ module.exports.changeStage = async (data, ws) => {
                                                           reciever
                                                       )
                                                           .select(
-                                                              'transactions wallet'
+                                                              'transactions wallet __v'
                                                           )
                                                           .exec()
                                                     : owner
@@ -308,11 +313,11 @@ module.exports.changeStage = async (data, ws) => {
                                                     itemImages:
                                                         reward.itemImages,
                                                 },
-                                                progress: progress._id,
+                                                progress: progress.goal.name,
                                                 amount: reward.money,
                                                 status: 'Confirmed',
                                             })
-                                            transaction = transaction.save()
+                                            transaction.save()
 
                                             owner.transactions.unshift(
                                                 transaction._id.toString()
@@ -426,7 +431,7 @@ module.exports.leaveProgress = async (data, ws) => {
                 )
                 .exec()
             const account = await Account.findById(accountId)
-                .select('progresses')
+                .select('__v progresses')
                 .exec()
             if (account) {
                 account.progresses = account.progresses.filter(
@@ -551,7 +556,7 @@ module.exports.editGoalInProgress = async (data, ws) => {
 
                 for (let id of droppedAccounts) {
                     const account = await Account.findById(id)
-                        .select('progresses notifications myNotifications')
+                        .select('progresses notifications myNotifications __v')
                         .exec()
                     if (account) {
                         account.progresses = account.progresses.filter(
@@ -579,7 +584,7 @@ module.exports.editGoalInProgress = async (data, ws) => {
 
                 for (let id of addedAccounts) {
                     const account = await Account.findById(id)
-                        .select('progresses notifications myNotifications')
+                        .select('progresses notifications myNotifications __v')
                         .exec()
                     if (account) {
                         account.progresses = [

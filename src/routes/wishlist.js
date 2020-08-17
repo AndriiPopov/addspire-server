@@ -48,7 +48,7 @@ router.get('/:_id/:wishlistItemId', authNotForce, async (req, res, next) => {
                     const friendData = await Account.find({
                         _id: { $in: post.users },
                     })
-                        .select('name image ')
+                        .select('name image notifications')
                         .lean()
                         .exec()
 

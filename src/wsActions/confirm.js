@@ -11,6 +11,12 @@ module.exports.sendSuccess = (ws, message) => {
 
 module.exports.sendError = (ws, text, toLogout) => {
     try {
+        if (toLogout)
+            ws.send(
+                JSON.stringify({
+                    messageCode: 'logout',
+                })
+            )
         ws.send(
             JSON.stringify({
                 messageCode: 'error',
@@ -19,7 +25,7 @@ module.exports.sendError = (ws, text, toLogout) => {
                     'An error occured during this operation. If the error persists, try to refresh the page.',
             })
         )
-        if (toLogout) toLogout()
+        // if (toLogout) toLogout()
     } catch (ex) {}
 }
 

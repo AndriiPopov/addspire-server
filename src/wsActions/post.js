@@ -43,7 +43,8 @@ module.exports.sendMessage = async (data, ws) => {
         if (!data.editedMessage && !data.replyToMessage) {
             post.messages.push({
                 author: data.accountId,
-                text: data.imageUrl || data.messageValue,
+                text: data.messageValue,
+                image: data.image,
                 action: data.imageUrl ? 'image' : 'message',
                 messageId: post.currentId,
             })
@@ -56,7 +57,8 @@ module.exports.sendMessage = async (data, ws) => {
             const message = findMessage(post.messages, data.editedMessage)
 
             if (message) {
-                message.text = data.imageUrl || data.messageValue
+                message.text = data.messageValue
+                message.image = data.image
                 message.action = data.imageUrl ? 'image' : 'message'
                 message.editedDate = Date.now()
             }
@@ -70,7 +72,8 @@ module.exports.sendMessage = async (data, ws) => {
             if (message) {
                 message.replies.push({
                     author: data.accountId,
-                    text: data.imageUrl || data.messageValue,
+                    text: data.messageValue,
+                    image: data.image,
                     action: data.imageUrl ? 'image' : 'message',
                     messageId: post.currentId,
                     image: '',
@@ -199,8 +202,9 @@ module.exports.addPost = async (data, ws) => {
             users: [data.accountId],
             startMessage: {
                 author: data.accountId,
-                text: data.imageUrl || data.messageValue,
-                action: data.imageUrl ? 'image' : 'message',
+                text: data.messageValue,
+                image: data.images,
+                action: 'message',
                 messageId: '0',
                 date: Date.now(),
                 editedDate: Date.now(),
