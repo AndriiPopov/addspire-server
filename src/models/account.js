@@ -22,6 +22,7 @@ const accountSchema = new mongoose.Schema(
             minlength: 2,
             required: true,
             maxlength: mongoLength.name,
+            index: true,
         },
         _id: {
             type: String,

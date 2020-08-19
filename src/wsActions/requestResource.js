@@ -36,11 +36,16 @@ module.exports.requestResource = async (data, ws) => {
                         .exec()
                     break
                 case 'progress':
-                    result = await Progress.find({
-                        _id: { $in: data.ids },
-                    })
-                        .lean()
-                        .exec()
+                    result = [
+                        await Progress.findOneAndUpdate(
+                            {
+                                _id: { $in: data.ids },
+                            },
+                            { $inc: { views: 1 } }
+                        )
+                            .lean()
+                            .exec(),
+                    ]
                     break
                 case 'post':
                     result = await Post.find({
@@ -87,7 +92,7 @@ module.exports.requestResource = async (data, ws) => {
                     result = await Progress.find({
                         _id: { $in: data.ids },
                     })
-                        .select('worker owner goal notifications __v')
+                        .select('worker owner goal notifications __v name')
                         .lean()
                         .exec()
 

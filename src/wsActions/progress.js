@@ -35,6 +35,7 @@ module.exports.startProgress = async (data, ws) => {
                 owner: accountId,
                 goal,
                 admins: [accountId],
+                name: goal.name,
             })
             let group
             if (!data.inGroup) {
@@ -515,6 +516,7 @@ module.exports.editGoalInProgress = async (data, ws) => {
                     ...progress.goal.toObject(),
                     ...data.value,
                 }
+                progress.name = progress.goal.name
                 updateRewardIds(progress.goal)
 
                 const allOldAccounts = [
@@ -636,7 +638,6 @@ module.exports.editGoalInProgress = async (data, ws) => {
 module.exports.saveReward = async (data, ws) => {
     try {
         const progress = await Progress.findById(data.progressId)
-        console.log('here0')
         if (progress) {
             const rewardsGroup = progress.goal.rewardsGroups.find(
                 item => item.key === data.rewardKey
@@ -757,7 +758,7 @@ module.exports.deleteReward = async (data, ws) => {
 module.exports.createGroup = async (data, ws) => {
     try {
         const progress = await Progress.findById(data.progressId)
-            .select('group goal')
+            .select('group goal name')
             .lean()
             .exec()
 

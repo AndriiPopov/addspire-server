@@ -11,7 +11,10 @@ const router = express.Router()
 
 router.get('/:id', authNotForce, async (req, res, next) => {
     try {
-        const progress = await Progress.findById(req.params.id)
+        const progress = await Progress.findOneAndUpdate(
+            { _id: req.params.id },
+            { $inc: { views: 1 } }
+        )
             .lean()
             .exec()
 

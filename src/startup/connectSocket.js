@@ -159,6 +159,7 @@ const connectSocket = server => {
                         case 'setLastSeenNot':
                             setLastSeenNot(data, ws)
                             break
+
                         default:
                             break
                     }

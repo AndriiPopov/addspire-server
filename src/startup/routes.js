@@ -7,6 +7,7 @@ const account = require('../routes/account')
 const awsSignS3 = require('../routes/awsSignS3')
 
 const friends = require('../routes/friends')
+const explore = require('../routes/explore')
 const profile = require('../routes/profile')
 const shop = require('../routes/shop')
 const wishlist = require('../routes/wishlist')
@@ -52,6 +53,7 @@ module.exports = function(app) {
     app.use('/api/profile', profile)
     app.use('/api/shop', shop)
     app.use('/api/wishlist', wishlist)
+    app.use('/api/explore', explore)
 
     app.use('/api/auth', auth)
     app.use('/api/user', user)
