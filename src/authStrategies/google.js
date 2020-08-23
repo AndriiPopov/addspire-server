@@ -5,9 +5,7 @@ const { User } = require('../models/user')
 const passportConfig = {
     clientID: process.env.GoogleClientID,
     clientSecret: process.env.GoogleClientSecret,
-    callbackURL:
-        process.env.NODE_ENV ===
-        'https://addspiration.com/api/auth/google/redirect',
+    callbackURL: 'https://addspiration.com/api/auth/google/redirect',
 }
 
 passport.use(
