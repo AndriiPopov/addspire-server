@@ -66,7 +66,7 @@ router.post('/popular', async (req, res, next) => {
         const progresses = await Progress.find()
             .sort('views')
             .skip(req.body.skip)
-            .limit(20)
+            .limit(4)
             .select('__v owner name goal.images goal.users')
             .lean()
             .exec()
@@ -84,7 +84,7 @@ router.post('/popular', async (req, res, next) => {
             progresses,
             friends,
             success: true,
-            noMore: progresses.length < 20,
+            noMore: progresses.length < 4,
         })
     } catch (ex) {}
 })

@@ -294,7 +294,8 @@ module.exports.changeStage = async (data, ws) => {
                                                 : progress.goal.users
                                         for (let reciever of beniciaries) {
                                             const worker =
-                                                owner._id !== reciever
+                                                owner._id.toString() !==
+                                                reciever.toString()
                                                     ? await Account.findById(
                                                           reciever
                                                       )
@@ -303,19 +304,16 @@ module.exports.changeStage = async (data, ws) => {
                                                           )
                                                           .exec()
                                                     : owner
+                                            const ownerIsWorker =
+                                                owner._id.toString() ===
+                                                worker._id.toString()
+
                                             let transaction = new Transaction({
                                                 from: owner._id,
                                                 to: worker._id,
-                                                item: {
-                                                    simple: reward.simple,
-                                                    itemName: reward.itemName,
-                                                    itemDescription:
-                                                        reward.itemDescription,
-                                                    itemImages:
-                                                        reward.itemImages,
-                                                },
+                                                item: reward,
                                                 progress: progress.goal.name,
-                                                amount: reward.money,
+                                                progressId: progress._id,
                                                 status: 'Confirmed',
                                             })
                                             transaction.save()
@@ -324,7 +322,7 @@ module.exports.changeStage = async (data, ws) => {
                                                 transaction._id.toString()
                                             )
 
-                                            if (progress.owner !== reciever) {
+                                            if (!ownerIsWorker) {
                                                 worker.transactions.unshift(
                                                     transaction._id.toString()
                                                 )
@@ -347,9 +345,9 @@ module.exports.changeStage = async (data, ws) => {
                                                     })
                                                 }
                                             }
-                                            owner.save()
-                                            if (progress.owner !== reciever)
-                                                worker.save()
+                                            await owner.save()
+                                            if (!ownerIsWorker)
+                                                await worker.save()
                                             newNotificationId = await getNotificationId()
                                             addNotification(progress, {
                                                 user: reciever,
@@ -378,6 +376,9 @@ module.exports.changeStage = async (data, ws) => {
                 const startStage = progress.stages.find(
                     stage => stage.milestoneId === 'start'
                 )
+                const finishStage = progress.stages.find(
+                    stage => stage.milestoneId === 'finish'
+                )
                 if (!startStage) progress.status = 'not started'
                 else {
                     const ownerIsReady = startStage.approvedBy.find(
@@ -396,6 +397,23 @@ module.exports.changeStage = async (data, ws) => {
                         progress.status = 'in progress'
                     } else {
                         progress.status = 'not started'
+                    }
+                }
+                if (finishStage) {
+                    const ownerIsReady = finishStage.approvedBy.find(
+                        item => item.accountId === progress.owner
+                    )
+                    let workersAreReady = true
+                    for (let stageWorker of progress.goal.users) {
+                        if (
+                            !finishStage.approvedBy.find(
+                                item => item.accountId === stageWorker
+                            )
+                        )
+                            workersAreReady = false
+                    }
+                    if (ownerIsReady && workersAreReady) {
+                        progress.status = 'finished'
                     }
                 }
 
@@ -424,59 +442,51 @@ module.exports.changeStage = async (data, ws) => {
 
 module.exports.leaveProgress = async (data, ws) => {
     try {
-        if (ws.progressId === data.progressId) {
-            const { accountId, progressId } = data
-            const progress = await Progress.findById(ws.progressId)
-                .select(
-                    '__v owner worker goal.name goal.experts goal.supporters notifications'
-                )
-                .exec()
-            const account = await Account.findById(accountId)
-                .select('__v progresses')
-                .exec()
-            if (account) {
-                account.progresses = account.progresses.filter(
-                    item => item !== progressId
-                )
-                account.save()
-            }
-
-            if (accountId === progress.owner) progress.owner = ''
-            else if (accountId === progress.worker) progress.worker = ''
-            progress.goal.experts.filter(item => item !== accountId)
-            progress.goal.supporters.filter(item => item !== accountId)
-
-            const newNotificationId = await getNotificationId()
-            addNotification(progress, {
-                user: accountId,
-                code: 'leave progress',
-                notId: newNotificationId,
-                details: {
-                    progressId: progress._id,
-                    progressName: progress.goal.name,
-                },
-            })
-
-            progress.save()
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'successMessage',
-                    messageText: 'You have left the progress',
-                })
+        const { accountId, progressId } = data
+        const progress = await Progress.findById(progressId)
+            .select(
+                '__v owner worker goal.name goal.experts goal.supporters notifications'
             )
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'redirectToProgresses',
-                })
+            .exec()
+        const account = await Account.findById(accountId)
+            .select('__v progresses')
+            .exec()
+        if (account) {
+            account.progresses = account.progresses.filter(
+                item => item !== progressId
             )
-            return
+            account.save()
         }
+
+        if (accountId === progress.owner) progress.owner = ''
+        else if (accountId === progress.worker) progress.worker = ''
+        progress.goal.experts.filter(item => item !== accountId)
+        progress.goal.supporters.filter(item => item !== accountId)
+
+        const newNotificationId = await getNotificationId()
+        addNotification(progress, {
+            user: accountId,
+            code: 'leave progress',
+            notId: newNotificationId,
+            details: {
+                progressId: progress._id,
+                progressName: progress.goal.name,
+            },
+        })
+
+        progress.save()
         ws.send(
             JSON.stringify({
-                messageCode: 'errorMessage',
-                messageText: 'Something failed.',
+                messageCode: 'successMessage',
+                messageText: 'You have left the progress',
             })
         )
+        ws.send(
+            JSON.stringify({
+                messageCode: 'redirectToProgresses',
+            })
+        )
+        return
     } catch (ex) {
         console.log(ex)
         sendError(ws)
@@ -524,6 +534,7 @@ module.exports.editGoalInProgress = async (data, ws) => {
                         ...oldProgress.goal.experts,
                         ...oldProgress.goal.supporters,
                         ...oldProgress.goal.users,
+                        oldProgress.owner,
                     ]),
                 ]
 
@@ -532,6 +543,7 @@ module.exports.editGoalInProgress = async (data, ws) => {
                         ...progress.goal.experts,
                         ...progress.goal.supporters,
                         ...progress.goal.users,
+                        progress.owner,
                     ]),
                 ]
 
