@@ -15,11 +15,11 @@ const auth = require('../routes/auth')
 const user = require('../routes/user')
 const sendMail = require('../routes/sendMail')
 const error = require('../middleware/error')
-const graphlHTTP = require('express-graphql')
+// const graphlHTTP = require('express-graphql')
 // const schema = require('../graphql/schema')
 const authtest = require('../routes/authtest')
 
-// const sslRedirect = require("heroku-ssl-redirect");
+const sslRedirect = require('heroku-ssl-redirect')
 
 module.exports = function(app) {
     app.all('*', (req, res, next) => {
@@ -33,7 +33,7 @@ module.exports = function(app) {
         next()
     })
 
-    // app.use(sslRedirect());
+    app.use(sslRedirect())
 
     app.use(express.json())
     // app.use(
