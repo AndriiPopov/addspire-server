@@ -28,7 +28,7 @@ router.post('/', auth, async (req, res) => {
             account.save()
         }
         if (!fileName) {
-            fileName = 'image' + account.currentId + '.png'
+            fileName = 'image' + account.currentId + '.jpeg'
             account.currentId = account.currentId + 1
             account.save()
         }
