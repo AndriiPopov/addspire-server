@@ -96,9 +96,7 @@ router.post('/delete', auth, async (req, res, next) => {
             for (let progress of progresses) {
                 if (progress.owner === account._id) progress.owner = ''
                 if (progress.worker === account._id) progress.worker = ''
-                progress.goal.supporters = progress.goal.supporters.filter(
-                    item => item !== account._id
-                )
+
                 progress.goal.experts = progress.goal.experts.filter(
                     item => item !== account._id
                 )

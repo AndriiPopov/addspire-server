@@ -31,7 +31,7 @@ router.get(
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
         }).redirect(
             process.env.NODE_ENV === 'production'
-                ? 'https://addspiration.com/login'
+                ? 'https://addspire.com'
                 : 'http://my.websiter.test:3000/login'
         )
     }
@@ -61,7 +61,7 @@ router.get(
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
         }).redirect(
             process.env.NODE_ENV === 'production'
-                ? 'https://addspiration.com/login'
+                ? 'https://addspire.com'
                 : 'http://my.websiter.test:3000/login'
         )
     }
@@ -121,7 +121,7 @@ router.get(
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
         }).redirect(
             process.env.NODE_ENV === 'production'
-                ? 'https://addspiration.com/login'
+                ? 'https://addspire.com'
                 : 'http://my.websiter.test:3000/login'
         )
     }

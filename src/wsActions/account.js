@@ -7,6 +7,7 @@ const { sendSuccess, sendError } = require('./confirm')
 const { User } = require('../models/user')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
+const { Progress } = require('../models/progress')
 
 const editAccountSchema = Joi.object({
     accountId: Joi.string()
@@ -16,8 +17,7 @@ const editAccountSchema = Joi.object({
     name: Joi.string()
         .max(JoiLength.name)
         .required(),
-    messageCode: Joi.string().required(),
-})
+}).unknown(true)
 
 module.exports.editAccount = async (data, ws) => {
     try {
@@ -69,55 +69,192 @@ module.exports.deleteAccount = async (data, ws) => {
             return
         }
 
-        let account = await findById(data.accountId)
-            .select('friends progresses __v')
+        let account = await Account.findById(data.accountId)
+            .select(
+                'friends progresses followAccounts followingAccounts followProgresses __v'
+            )
             .lean()
         if (!account) {
             sendError(ws, 'Bad data!')
             return
         }
 
-        const friends = await Account.find({
-            _id: { $in: account.friends },
-        })
-            .select('friends wallet myNotifications __v')
-            .exec()
+        await Account.updateMany(
+            {
+                _id: {
+                    $in: [
+                        ...account.friends.map(friend => friend.friend),
+                        ...account.followAccounts,
+                        ...account.followingAccounts,
+                    ],
+                },
+            },
+            {
+                $pull: {
+                    followAccounts: data.accountId,
+                    followingAccounts: data.accountId,
+                    friends: { friend: data.accountId },
+                },
+                $push: {
+                    notifications: {
+                        $each: [
+                            {
+                                user: account._id,
+                                code: 'delete account',
+                            },
+                        ],
+                        $position: 0,
+                        $slice: 20,
+                    },
+                },
+            },
+            { useFindAndModify: false }
+        )
 
-        for (let friend of friends) {
-            friend.friends = friend.friends.filter(
-                item => item.friend !== account._id
-            )
-            friend.wallet = friend.wallet.filter(
-                item => item.user !== account._id
-            )
-            const newNotificationId = await getNotificationId()
+        await Progress.updateMany(
+            {
+                _id: {
+                    $in: [...account.progresses, ...account.followProgresses],
+                },
+            },
+            {
+                $pull: {
+                    followingAccounts: data.accountId,
+                    'goal.users': data.accountId,
+                    'goal.experts': data.accountId,
+                },
+                $push: {
+                    notifications: {
+                        $each: [
+                            {
+                                user: account._id,
+                                code: 'delete account',
+                            },
+                        ],
+                        $position: 0,
+                        $slice: 20,
+                    },
+                },
+            },
+            { useFindAndModify: false }
+        )
 
-            addNotification(friend, {
-                user: account._id,
-                code: 'delete account',
-            })
-            friend.save()
+        await Account.findByIdAndDelete(account._id).exec()
+        await User.findByIdAndDelete(ws.user).exec()
+
+        sendSuccess(ws)
+    } catch (ex) {
+        sendError(ws, 'Something failed.')
+    }
+}
+
+const followAccountSchema = Joi.object({
+    accountId: Joi.string().required(),
+    accountFollow: Joi.string().required(),
+}).unknown(true)
+
+module.exports.followAccount = async (data, ws) => {
+    try {
+        const { error } = followAccountSchema.validate(data)
+        if (error) {
+            sendError(ws, 'Bad data!')
+            return
         }
 
-        const progresses = await Progress.find({
-            _id: { $in: account.progresses },
-        })
-            .select('worker owner goal __v')
-            .exec()
+        await Account.updateOne(
+            { _id: data.accountId },
+            { $addToSet: { followAccounts: data.accountFollow } },
+            { useFindAndModify: false }
+        )
 
-        for (let progress of progresses) {
-            if (progress.owner === account._id) progress.owner = ''
-            if (progress.worker === account._id) progress.worker = ''
-            progress.goal.supporters = progress.goal.supporters.filter(
-                item => item !== account._id
-            )
-            progress.goal.experts = progress.goal.experts.filter(
-                item => item !== account._id
-            )
-            progress.save()
+        await Account.updateOne(
+            { _id: data.accountFollow },
+            { $addToSet: { followingAccounts: data.accountId } },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+    } catch (ex) {
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.unfollowAccount = async (data, ws) => {
+    try {
+        const { error } = followAccountSchema.validate(data)
+        if (error) {
+            sendError(ws, 'Bad data!')
+            return
         }
-        Account.findByIdAndDelete(account._id).exec()
-        User.findByIdAndDelete(ws.user).exec()
+
+        await Account.updateOne(
+            { _id: data.accountId },
+            { $pull: { followAccounts: data.accountFollow } },
+            { useFindAndModify: false }
+        )
+
+        await Account.updateOne(
+            { _id: data.accountFollow },
+            { $pull: { followingAccounts: data.accountId } },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+    } catch (ex) {
+        sendError(ws, 'Something failed.')
+    }
+}
+
+const followProgressSchema = Joi.object({
+    accountId: Joi.string().required(),
+    progressId: Joi.string().required(),
+}).unknown(true)
+
+module.exports.followProgress = async (data, ws) => {
+    try {
+        const { error } = followProgressSchema.validate(data)
+        if (error) {
+            sendError(ws, 'Bad data!')
+            return
+        }
+
+        await Account.updateOne(
+            { _id: data.accountId },
+            { $addToSet: { followProgresses: data.progressId } },
+            { useFindAndModify: false }
+        )
+
+        await Progress.updateOne(
+            { _id: data.progressId },
+            { $addToSet: { followingAccounts: data.accountId } },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+    } catch (ex) {
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.unfollowProgress = async (data, ws) => {
+    try {
+        const { error } = followProgressSchema.validate(data)
+        if (error) {
+            sendError(ws, 'Bad data!')
+            return
+        }
+
+        await Account.updateOne(
+            { _id: data.accountId },
+            { $pull: { followProgresses: data.progressId } },
+            { useFindAndModify: false }
+        )
+
+        await Progress.updateOne(
+            { _id: data.progressId },
+            { $pull: { followingAccounts: data.accountId } },
+            { useFindAndModify: false }
+        )
 
         sendSuccess(ws)
     } catch (ex) {

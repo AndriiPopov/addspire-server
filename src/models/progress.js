@@ -26,6 +26,7 @@ const progressSchema = new mongoose.Schema(
         group: String,
         name: { type: String, index: true },
         views: { type: Number },
+        followingAccounts: [String],
     },
     { minimize: false }
 )

@@ -41,6 +41,7 @@
         "jsonwebtoken": "^8.5.1",
         "lodash": "^4.17.15",
         "mailgun-js": "^0.22.0",
+        "moment": "^2.27.0",
         "mongoose": "^5.9.25",
         "mongoose-update-if-current": "^1.4.0",
         "mongoose-update-versioning": "^0.1.1",

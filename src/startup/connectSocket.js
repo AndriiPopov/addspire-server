@@ -15,7 +15,14 @@ const {
     changeLikesMessage,
     addPost,
 } = require('../wsActions/post')
-const { editAccount, deleteAccount } = require('../wsActions/account')
+const {
+    editAccount,
+    deleteAccount,
+    followAccount,
+    unfollowAccount,
+    followProgress,
+    unfollowProgress,
+} = require('../wsActions/account')
 const {
     saveWishlistItem,
     deleteWishlistItem,
@@ -158,6 +165,18 @@ const connectSocket = server => {
                             break
                         case 'setLastSeenNot':
                             setLastSeenNot(data, ws)
+                            break
+                        case 'followProgress':
+                            followProgress(data, ws)
+                            break
+                        case 'unfollowProgress':
+                            unfollowProgress(data, ws)
+                            break
+                        case 'followAccount':
+                            followAccount(data, ws)
+                            break
+                        case 'unfollowAccount':
+                            unfollowAccount(data, ws)
                             break
 
                         default:

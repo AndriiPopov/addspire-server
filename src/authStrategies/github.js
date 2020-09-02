@@ -7,7 +7,7 @@ const passportConfig = {
     clientSecret: process.env.GithubClientSecret,
     callbackURL:
         process.env.NODE_ENV === 'production'
-            ? 'https://addspiration.com/api/auth/github/redirect'
+            ? 'https://addspire.com/api/auth/github/redirect'
             : 'http://my.websiter.test:5000/api/auth/github/redirect',
     passReqToCallback: true,
 }

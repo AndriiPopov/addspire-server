@@ -4,8 +4,17 @@ const rewardsSchema = require('./reward')
 
 const stageSchema = new mongoose.Schema(
     {
-        milestoneId: { type: String, required: true },
+        stageId: String,
         approvedBy: [
+            {
+                accountId: String,
+                date: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
+        failBy: [
             {
                 accountId: String,
                 date: {
@@ -16,6 +25,12 @@ const stageSchema = new mongoose.Schema(
         ],
         paid: [rewardsSchema],
         status: String,
+        dismissed: Boolean,
+        old: Boolean,
+        year: Number,
+        month: Number,
+        week: Number,
+        day: Number,
     },
     { minimize: false, _id: false, id: false }
 )

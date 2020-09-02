@@ -3,6 +3,7 @@ const { mongoLength } = require('../../constants/fieldLength')
 const rewardsGroupSchema = require('./rewardsGroup')
 const milestoneSchema = require('./milestone')
 const milestonesValueSchema = require('./milestoneValue')
+const rewardsSchema = require('./reward')
 
 const goalSchema = new mongoose.Schema(
     {
@@ -31,15 +32,14 @@ const goalSchema = new mongoose.Schema(
             default: 'public',
         },
         experts: [String],
-        supporters: [String],
         users: [String],
-        rewardsGroups: [rewardsGroupSchema],
-        milestones: [milestoneSchema],
-        milestonesValues: [milestonesValueSchema],
-        newTabIndex: Number,
-        withMilestones: Boolean,
+        followers: [String],
+        rewards: [rewardsSchema],
+        currentId: { type: Number, default: 0 },
         post: [String],
         owner: String,
+        repeat: String,
+        days: [String],
     },
     { minimize: false, _id: false, id: false }
 )

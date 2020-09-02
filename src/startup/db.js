@@ -1,6 +1,7 @@
 const winston = require('winston')
 const mongoose = require('mongoose')
 const { System } = require('../models/system')
+const { updateStagesAuto } = require('../utils/updateStages')
 
 module.exports = function() {
     try {
@@ -22,6 +23,7 @@ module.exports = function() {
                 })
                 await system.save()
             }
+            updateStagesAuto()
         })
     } catch (ex) {}
 }

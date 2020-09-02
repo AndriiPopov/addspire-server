@@ -6,6 +6,7 @@ const { JoiLength } = require('../constants/fieldLength')
 const { sendSuccess, sendError } = require('./confirm')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
+const { followAccount } = require('./account')
 
 const searchFriendsSchema = Joi.object({
     search: Joi.string().max(JoiLength.name),
@@ -189,8 +190,17 @@ module.exports.acceptFriend = async (data, ws) => {
                 true
             )
 
-            friend.save()
-            account.save()
+            await friend.save()
+            await account.save()
+
+            followAccount(
+                { accountId: data.accountId, accountFollow: friendId },
+                ws
+            )
+            followAccount(
+                { accountId: friendId, accountFollow: data.accountId },
+                ws
+            )
 
             sendSuccess(ws)
         } else {

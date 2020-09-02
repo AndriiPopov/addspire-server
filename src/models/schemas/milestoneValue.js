@@ -27,7 +27,6 @@ const milestonesValueSchema = new mongoose.Schema(
             },
         ],
         experts: [String],
-        supporters: [String],
     },
     { minimize: false, _id: false, id: false }
 )

@@ -58,6 +58,9 @@ const accountSchema = new mongoose.Schema(
         notifications: [notificationSchema],
         myNotifications: [notificationSchema],
         lastSeenNot: { type: Number, default: 0 },
+        followAccounts: [String],
+        followingAccounts: [String],
+        followProgresses: [String],
     },
     { minimize: false }
 )

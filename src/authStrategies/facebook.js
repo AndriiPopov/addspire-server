@@ -5,7 +5,7 @@ const { User } = require('../models/user')
 const passportConfig = {
     clientID: process.env.FBClientID,
     clientSecret: process.env.FBClientSecret,
-    callbackURL: 'https://addspiration.com/api/auth/facebook/redirect',
+    callbackURL: 'https://addspire.com/api/auth/facebook/redirect',
 }
 
 passport.use(

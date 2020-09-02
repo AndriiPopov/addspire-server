@@ -15,6 +15,7 @@ const updateRewardIds = require('../utils/updateRewardIds')
 const { Group } = require('../models/group')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
+const { updateStages } = require('../utils/updateStages')
 
 module.exports.startProgress = async (data, ws) => {
     try {
@@ -25,7 +26,6 @@ module.exports.startProgress = async (data, ws) => {
             const allUsers = [
                 ...new Set([
                     ...(goal.experts || []),
-                    ...(goal.supporters || []),
                     accountId,
                     ...(goal.users || []),
                 ]),
@@ -36,6 +36,7 @@ module.exports.startProgress = async (data, ws) => {
                 goal,
                 admins: [accountId],
                 name: goal.name,
+                followingAccounts: allUsers,
             })
             let group
             if (!data.inGroup) {
@@ -49,6 +50,7 @@ module.exports.startProgress = async (data, ws) => {
             }
 
             progress.group = group ? group._id.toString() : data.inGroup
+            updateStages(progress)
             progress.save()
 
             const newNotificationId = await getNotificationId()
@@ -61,14 +63,18 @@ module.exports.startProgress = async (data, ws) => {
                 if (goal.experts && goal.experts.includes(user))
                     as = as + (as ? ', ' : '') + 'expert'
 
-                if (goal.supporters && goal.supporters.includes(user))
-                    as = as + (as ? ', ' : '') + 'supporter'
-
                 await Account.updateOne(
                     { _id: user },
                     {
                         $push: {
-                            progresses: progress._id.toString(),
+                            progresses: {
+                                $each: [progress._id.toString()],
+                                $position: 0,
+                            },
+                            followProgresses: {
+                                $each: [progress._id.toString()],
+                                $position: 0,
+                            },
                             notifications: {
                                 $each: [
                                     {
@@ -124,7 +130,7 @@ module.exports.requestProgress = async (data, ws) => {
 
 module.exports.changeStage = async (data, ws) => {
     try {
-        const progress = await Progress.findById(data.progressId).exec()
+        const progress = await Progress.findById(data.progressId)
         const { accountId } = data
 
         if (
@@ -133,287 +139,159 @@ module.exports.changeStage = async (data, ws) => {
                 progress.goal.users.includes(data.accountId) ||
                 progress.goal.experts.includes(data.accountId))
         ) {
-            if (data.milestoneId) {
-                if (
-                    data.milestoneId === 'start' ||
-                    progress.status === 'in progress'
-                ) {
-                    let stage = progress.stages.find(
-                        stage => stage.milestoneId === data.milestoneId
-                    )
-                    if (!stage) {
-                        stage = {
-                            milestoneId: data.milestoneId,
-                            approvedBy: [{ accountId: data.accountId }],
-                        }
-                        progress.stages.push(stage)
-                    }
-                    if (stage) {
-                        let newNotificationId = await getNotificationId()
-                        let milestone = progress.goal.milestones.find(
-                            item => item.key === stage.milestoneId
-                        )
+            const stage = progress.stages.find(
+                stage => stage.stageId === data.stageId
+            )
 
-                        let milestoneName = milestone
-                            ? milestone.name
-                            : 'milestone'
+            if (stage) {
+                let newNotificationId = await getNotificationId()
+                const not = {
+                    user: data.accountId,
 
-                        if (data.value) {
-                            const act = stage.approvedBy.find(
-                                act => act.accountId === data.accountId
-                            )
-                            if (!act) {
-                                stage.approvedBy.push({
-                                    accountId: data.accountId,
-                                })
-                            }
-                            addNotification(progress, {
-                                user: data.accountId,
-                                code: 'approve milestone',
-                                notId: newNotificationId,
-                                details: {
-                                    itemName: milestoneName,
-                                    progressId: progress._id,
-                                    progressName: progress.goal.name,
-                                },
-                            })
-                        } else {
-                            if (data.milestoneId !== 'start') {
-                                stage.approvedBy = stage.approvedBy.filter(
-                                    item => item.accountId !== data.accountId
-                                )
-                                addNotification(progress, {
-                                    user: data.accountId,
-                                    code: 'disapprove milestone',
-                                    notId: newNotificationId,
-                                    details: {
-                                        itemName: milestoneName,
-                                        progressId: progress._id,
-                                        progressName: progress.goal.name,
-                                    },
-                                })
-                            } else {
-                                ws.send(
-                                    JSON.stringify({
-                                        messageCode: 'errorMessage',
-                                        messageText:
-                                            'Start milestone cannot be disapproved.',
-                                    })
-                                )
-                                return
-                            }
-                        }
-                    }
-
-                    const finishStage = progress.stages.find(
-                        stage => stage.milestoneId === 'finish'
-                    )
-                    if (
-                        finishStage &&
-                        finishStage.approvedBy.find(
-                            item => item.accountId === progress.owner
-                        ) &&
-                        finishStage.status !== 'paid'
-                    ) {
-                        for (let stageIn of progress.stages) {
-                            if (
-                                !stageIn.approvedBy.find(
-                                    item => item.accountId === progress.owner
-                                )
-                            )
-                                stageIn.approvedBy.push({
-                                    accountId: progress.owner,
-                                })
-                        }
-                        newNotificationId = await getNotificationId()
-                        addNotification(progress, {
-                            user: data.accountId,
-                            code: 'finish progress',
-                            notId: newNotificationId,
-                            details: {
-                                progressId: progress._id,
-                                progressName: progress.goal.name,
-                            },
+                    notId: newNotificationId,
+                    details: {
+                        stageId: stage.stageId,
+                        year: stage.year,
+                        month: stage.month,
+                        week: stage.week,
+                        day: stage.day,
+                        progressId: progress._id,
+                        progressName: progress.goal.name,
+                    },
+                    code: 'stage progress',
+                }
+                stage.approvedBy = stage.approvedBy.filter(
+                    item => item.accountId !== data.accountId
+                )
+                stage.failBy = stage.failBy.filter(
+                    item => item.accountId !== data.accountId
+                )
+                if (progress.owner === data.accountId) stage.dismissed = false
+                switch (data.value) {
+                    case 'complete':
+                        stage.approvedBy.push({
+                            accountId: data.accountId,
                         })
-                    }
-                    // Pay and create transaction if unpaid
-                    for (let stageIn of progress.stages) {
-                        if (
-                            stageIn.status !== 'paid' &&
-                            stageIn.approvedBy.find(
-                                item => item.accountId === progress.owner
-                            ) &&
-                            (stageIn.milestoneId !== 'start' ||
-                                [progress.owner, ...progress.goal.users].reduce(
-                                    (res, user) =>
-                                        stageIn.approvedBy.find(
-                                            item => item.accountId === user
-                                        )
-                                            ? res
-                                            : false,
-                                    true
-                                ))
-                        ) {
-                            milestone = progress.goal.milestones.find(
-                                item => item.key === stage.milestoneId
-                            )
+                        not.code = 'stage approve'
+                        break
+                    case 'fail':
+                        stage.failBy.push({
+                            accountId: data.accountId,
+                        })
+                        not.code = 'stage fail'
+                        break
+                    case 'dismissed':
+                        if (progress.owner === data.accountId)
+                            stage.dismissed = true
+                        not.code = 'stage dismiss'
+                        break
+                    default:
+                        break
+                }
+                addNotification(progress, not)
 
-                            milestoneName = milestone
-                                ? milestone.name
-                                : 'milestone'
+                // Pay and create transaction if unpaid
 
-                            newNotificationId = await getNotificationId()
-                            addNotification(progress, {
-                                code: 'milestone finish',
-                                notId: newNotificationId,
-                                details: {
+                if (
+                    stage.status !== 'paid' &&
+                    stage.approvedBy.find(
+                        item => item.accountId === progress.owner
+                    )
+                ) {
+                    newNotificationId = await getNotificationId()
+                    addNotification(progress, {
+                        code: 'stage complete',
+                        notId: newNotificationId,
+                        details: {
+                            progressId: progress._id,
+                            progressName: progress.goal.name,
+                            stageId: stage.stageId,
+                            year: stage.year,
+                            month: stage.month,
+                            week: stage.week,
+                            day: stage.day,
+                        },
+                    })
+                    stage.status = 'paid'
+
+                    const rewards = progress.goal.rewards
+                    stage.paid = rewards
+
+                    if (rewards.length > 0) {
+                        for (let reward of rewards) {
+                            const owner = await Account.findById(reward.owner)
+                                .select('transactions wallet __v')
+                                .exec()
+                            const beniciaries =
+                                reward.for.length > 0
+                                    ? reward.for
+                                    : progress.goal.users
+                            for (let reciever of beniciaries) {
+                                const worker =
+                                    owner._id.toString() !== reciever.toString()
+                                        ? await Account.findById(reciever)
+                                              .select('transactions wallet __v')
+                                              .exec()
+                                        : owner
+                                const ownerIsWorker =
+                                    owner._id.toString() ===
+                                    worker._id.toString()
+
+                                let transaction = new Transaction({
+                                    from: owner._id,
+                                    to: worker._id,
+                                    item: reward,
+                                    progress: progress.goal.name,
                                     progressId: progress._id,
-                                    progressName: progress.goal.name,
-                                    itemName: milestoneName,
-                                },
-                            })
-                            stageIn.status = 'paid'
-                            const rewardsGroup = progress.goal.rewardsGroups.find(
-                                item => item.key === stageIn.milestoneId
-                            )
+                                    status: 'Confirmed',
+                                })
+                                transaction.save()
 
-                            if (rewardsGroup) {
-                                const rewards = rewardsGroup.rewards
-                                stageIn.paid = rewards
+                                owner.transactions.unshift(
+                                    transaction._id.toString()
+                                )
 
-                                if (rewards.length > 0) {
-                                    for (let reward of rewards) {
-                                        const owner = await Account.findById(
-                                            reward.owner
-                                        )
-                                            .select('transactions wallet __v')
-                                            .exec()
-                                        const beniciaries =
-                                            reward.for.length > 0
-                                                ? reward.for
-                                                : progress.goal.users
-                                        for (let reciever of beniciaries) {
-                                            const worker =
-                                                owner._id.toString() !==
-                                                reciever.toString()
-                                                    ? await Account.findById(
-                                                          reciever
-                                                      )
-                                                          .select(
-                                                              'transactions wallet __v'
-                                                          )
-                                                          .exec()
-                                                    : owner
-                                            const ownerIsWorker =
-                                                owner._id.toString() ===
-                                                worker._id.toString()
+                                if (!ownerIsWorker) {
+                                    worker.transactions.unshift(
+                                        transaction._id.toString()
+                                    )
+                                }
 
-                                            let transaction = new Transaction({
-                                                from: owner._id,
-                                                to: worker._id,
-                                                item: reward,
-                                                progress: progress.goal.name,
-                                                progressId: progress._id,
-                                                status: 'Confirmed',
-                                            })
-                                            transaction.save()
-
-                                            owner.transactions.unshift(
-                                                transaction._id.toString()
-                                            )
-
-                                            if (!ownerIsWorker) {
-                                                worker.transactions.unshift(
-                                                    transaction._id.toString()
-                                                )
-                                            }
-
-                                            if (reward.money) {
-                                                const existingCurrency = worker.wallet.find(
-                                                    item =>
-                                                        item.user ===
-                                                        progress.owner
-                                                )
-                                                if (existingCurrency) {
-                                                    existingCurrency.amount =
-                                                        existingCurrency.amount +
-                                                        reward.money
-                                                } else {
-                                                    worker.wallet.push({
-                                                        user: progress.owner,
-                                                        amount: reward.money,
-                                                    })
-                                                }
-                                            }
-                                            await owner.save()
-                                            if (!ownerIsWorker)
-                                                await worker.save()
-                                            newNotificationId = await getNotificationId()
-                                            addNotification(progress, {
-                                                user: reciever,
-                                                code: 'get reward',
-                                                notId: newNotificationId,
-                                                details: {
-                                                    progressId: progress._id,
-                                                    progressName:
-                                                        progress.goal.name,
-                                                    from: reward.owner,
-                                                    reward: {
-                                                        money: reward.money,
-                                                        simple: reward.simple,
-                                                        itemName:
-                                                            reward.itemName,
-                                                    },
-                                                },
-                                            })
-                                        }
+                                if (reward.money) {
+                                    const existingCurrency = worker.wallet.find(
+                                        item => item.user === progress.owner
+                                    )
+                                    if (existingCurrency) {
+                                        existingCurrency.amount =
+                                            existingCurrency.amount +
+                                            reward.money
+                                    } else {
+                                        worker.wallet.push({
+                                            user: progress.owner,
+                                            amount: reward.money,
+                                        })
                                     }
                                 }
+                                await owner.save()
+                                if (!ownerIsWorker) await worker.save()
+                                newNotificationId = await getNotificationId()
+                                addNotification(progress, {
+                                    user: reciever,
+                                    code: 'get reward',
+                                    notId: newNotificationId,
+                                    details: {
+                                        progressId: progress._id,
+                                        progressName: progress.goal.name,
+                                        from: reward.owner,
+                                        reward: {
+                                            money: reward.money,
+                                            simple: reward.simple,
+                                            itemName: reward.itemName,
+                                        },
+                                    },
+                                })
                             }
                         }
-                    }
-                }
-                const startStage = progress.stages.find(
-                    stage => stage.milestoneId === 'start'
-                )
-                const finishStage = progress.stages.find(
-                    stage => stage.milestoneId === 'finish'
-                )
-                if (!startStage) progress.status = 'not started'
-                else {
-                    const ownerIsReady = startStage.approvedBy.find(
-                        item => item.accountId === progress.owner
-                    )
-                    let workersAreReady = true
-                    for (let stageWorker of progress.goal.users) {
-                        if (
-                            !startStage.approvedBy.find(
-                                item => item.accountId === stageWorker
-                            )
-                        )
-                            workersAreReady = false
-                    }
-                    if (ownerIsReady && workersAreReady) {
-                        progress.status = 'in progress'
-                    } else {
-                        progress.status = 'not started'
-                    }
-                }
-                if (finishStage) {
-                    const ownerIsReady = finishStage.approvedBy.find(
-                        item => item.accountId === progress.owner
-                    )
-                    let workersAreReady = true
-                    for (let stageWorker of progress.goal.users) {
-                        if (
-                            !finishStage.approvedBy.find(
-                                item => item.accountId === stageWorker
-                            )
-                        )
-                            workersAreReady = false
-                    }
-                    if (ownerIsReady && workersAreReady) {
-                        progress.status = 'finished'
                     }
                 }
 
@@ -444,9 +322,7 @@ module.exports.leaveProgress = async (data, ws) => {
     try {
         const { accountId, progressId } = data
         const progress = await Progress.findById(progressId)
-            .select(
-                '__v owner worker goal.name goal.experts goal.supporters notifications'
-            )
+            .select('__v owner worker goal.name goal.experts notifications')
             .exec()
         const account = await Account.findById(accountId)
             .select('__v progresses')
@@ -461,7 +337,6 @@ module.exports.leaveProgress = async (data, ws) => {
         if (accountId === progress.owner) progress.owner = ''
         else if (accountId === progress.worker) progress.worker = ''
         progress.goal.experts.filter(item => item !== accountId)
-        progress.goal.supporters.filter(item => item !== accountId)
 
         const newNotificationId = await getNotificationId()
         addNotification(progress, {
@@ -520,6 +395,7 @@ module.exports.editGoalInProgress = async (data, ws) => {
         const { accountId, progressId } = data
         const progress = await Progress.findById(data.progressId)
         if (progress) {
+            const progressObj = progress.toObject()
             if (progress.owner === accountId) {
                 const oldProgress = progress.toObject()
                 progress.goal = {
@@ -532,7 +408,6 @@ module.exports.editGoalInProgress = async (data, ws) => {
                 const allOldAccounts = [
                     ...new Set([
                         ...oldProgress.goal.experts,
-                        ...oldProgress.goal.supporters,
                         ...oldProgress.goal.users,
                         oldProgress.owner,
                     ]),
@@ -541,7 +416,6 @@ module.exports.editGoalInProgress = async (data, ws) => {
                 const allNewAccounts = [
                     ...new Set([
                         ...progress.goal.experts,
-                        ...progress.goal.supporters,
                         ...progress.goal.users,
                         progress.owner,
                     ]),
@@ -555,6 +429,12 @@ module.exports.editGoalInProgress = async (data, ws) => {
                     x => !allOldAccounts.includes(x)
                 )
 
+                progress.followingAccounts = [
+                    ...new Set([
+                        ...progress.followingAccounts,
+                        ...addedAccounts,
+                    ]),
+                ]
                 const newNotificationId = await getNotificationId()
                 addNotification(progress, {
                     user: accountId,
@@ -623,6 +503,7 @@ module.exports.editGoalInProgress = async (data, ws) => {
                         account.save()
                     }
                 }
+                updateStages(progress, progressObj.goal)
 
                 progress.save()
                 ws.send(
@@ -714,46 +595,40 @@ module.exports.deleteReward = async (data, ws) => {
     try {
         const progress = await Progress.findById(data.progressId)
         if (progress) {
-            const rewardsGroup = progress.goal.rewardsGroups.find(
-                item => item.key === data.rewardKey
-            )
-
-            if (rewardsGroup) {
-                let reward = null
-                rewardsGroup.rewards = rewardsGroup.rewards.filter(item => {
-                    if (item.rewardId !== data.rewardId) {
-                        return true
-                    } else {
-                        reward = item
-                        return false
-                    }
-                })
-                updateRewardIds(progress.goal)
-                const newNotificationId = await getNotificationId()
-                addNotification(progress, {
-                    user: reward.owner,
-                    code: 'delete reward',
-                    notId: newNotificationId,
-                    details: {
-                        for: reward.for,
-                        progressId: progress._id,
-                        progressName: progress.goal.name,
-                        reward: {
-                            simple: reward.simple,
-                            money: reward.money,
-                            itemName: reward.itemName,
-                        },
+            let reward = null
+            progress.goal.rewards = progress.goal.rewards.filter(item => {
+                if (item.rewardId !== data.rewardId) {
+                    return true
+                } else {
+                    reward = item
+                    return false
+                }
+            })
+            updateRewardIds(progress.goal)
+            const newNotificationId = await getNotificationId()
+            addNotification(progress, {
+                user: reward.owner,
+                code: 'delete reward',
+                notId: newNotificationId,
+                details: {
+                    for: reward.for,
+                    progressId: progress._id,
+                    progressName: progress.goal.name,
+                    reward: {
+                        simple: reward.simple,
+                        money: reward.money,
+                        itemName: reward.itemName,
                     },
+                },
+            })
+            progress.save()
+            ws.send(
+                JSON.stringify({
+                    messageCode: 'successMessage',
+                    messageText: 'Changes are saved',
                 })
-                progress.save()
-                ws.send(
-                    JSON.stringify({
-                        messageCode: 'successMessage',
-                        messageText: 'Changes are saved',
-                    })
-                )
-                return
-            }
+            )
+            return
         }
         ws.send(
             JSON.stringify({
@@ -789,7 +664,6 @@ module.exports.createGroup = async (data, ws) => {
                     const allUsers = [
                         ...new Set([
                             ...(progress.goal.experts || []),
-                            ...(progress.goal.supporters || []),
                             progress.owner,
                             ...(progress.goal.users || []),
                         ]),
