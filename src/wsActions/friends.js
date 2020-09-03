@@ -22,7 +22,12 @@ module.exports.searchFriends = async (data, ws) => {
         }
 
         const id = data.search.toLowerCase()
-        const friend = await Account.findById(id)
+        const friend = await Account.find({
+            $or: [
+                { _id: new RegExp(id, 'gi') },
+                { name: new RegExp(id, 'gi') },
+            ],
+        })
             .select('image name')
             .lean()
         if (friend) {
