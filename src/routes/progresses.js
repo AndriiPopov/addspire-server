@@ -23,6 +23,7 @@ router.get('/:id', authNotForce, async (req, res, next) => {
                 progress.owner,
                 ...progress.goal.users,
                 ...progress.goal.experts,
+                ...progress.followingAccounts,
             ]
 
             accountIds = [...new Set(accountIds)]

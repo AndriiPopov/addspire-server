@@ -13,7 +13,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
     try {
         const profile = await Account.findById(req.params._id)
             .select(
-                'name image friends goals progresses perks wallet wishlist groups'
+                'name image friends goals progresses perks wallet wishlist groups followAccounts followingAccounts followProgresses'
             )
             .lean()
 
@@ -26,7 +26,14 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
         }
 
         const progressData = await Progress.find({
-            _id: { $in: profile.progresses },
+            _id: {
+                $in: [
+                    ...new Set([
+                        ...profile.progresses,
+                        ...profile.followProgresses,
+                    ]),
+                ],
+            },
         })
             .lean()
             .exec()
@@ -36,7 +43,13 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
             .lean()
             .exec()
 
-        let friends = profile.friends.map(item => item.friend)
+        let friends = [
+            ...new Set([
+                ...profile.friends.map(item => item.friend),
+                ...profile.followAccounts,
+                ...profile.followingAccounts,
+            ]),
+        ]
         friends = await Account.find({
             _id: { $in: friends },
         })

@@ -120,6 +120,29 @@ module.exports.startProgress = async (data, ws) => {
     }
 }
 
+module.exports.changeLikesProgress = async (data, ws) => {
+    try {
+        if (data.progressId && data.accountId) {
+            if (data.add) {
+                await Progress.updateOne(
+                    { _id: data.progressId },
+                    { $addToSet: { likes: data.accountId } },
+                    { useFindAndModify: false }
+                )
+            } else {
+                await Progress.updateOne(
+                    { _id: data.progressId },
+                    { $pull: { likes: data.accountId } },
+                    { useFindAndModify: false }
+                )
+            }
+        }
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}
+
 module.exports.requestProgress = async (data, ws) => {
     try {
         ws.progressId = data.progressId

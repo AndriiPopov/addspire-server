@@ -159,7 +159,7 @@ module.exports.updateStages = (progress, prevGoal) => {
 }
 
 module.exports.updateStagesAuto = () => {
-    setInterval(async () => {
+    const doUpdate = async () => {
         const progresses = await Progress.find()
         for (let progress of progresses) {
             if (
@@ -170,7 +170,6 @@ module.exports.updateStagesAuto = () => {
                 return
 
             let stages = [],
-                start,
                 needToSave
 
             stages = getStages(progress)
@@ -196,5 +195,7 @@ module.exports.updateStagesAuto = () => {
 
             if (needToSave) progress.save()
         }
-    }, 43200000)
+    }
+    setTimeout(doUpdate, 60000)
+    setInterval(doUpdate, 43200000)
 }
