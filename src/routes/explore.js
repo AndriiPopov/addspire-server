@@ -54,6 +54,7 @@ const findPopularSchema = Joi.object({
 }).unknown(true)
 
 router.post('/popular', async (req, res, next) => {
+    console.log('reere')
     try {
         const { error } = findPopularSchema.validate(req.body)
 
@@ -66,7 +67,7 @@ router.post('/popular', async (req, res, next) => {
         const progresses = await Progress.find()
             .sort('views')
             .skip(req.body.skip)
-            .limit(4)
+            .limit(20)
             .select('__v owner name goal.images goal.users')
             .lean()
             .exec()
