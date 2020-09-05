@@ -7,7 +7,6 @@ const findMessage = require('../utils/findMessage')
 const { sendError } = require('./confirm')
 const { Post } = require('../models/post')
 const { Progress } = require('../models/progress')
-const { Group } = require('../models/group')
 const addNotification = require('../utils/addNotification')
 
 const sendMessageSchema = Joi.object({
@@ -161,9 +160,6 @@ const addPostSchema = Joi.object({
     parentId: Joi.string()
         .max(JoiLength.progressId)
         .required(),
-    parentType: Joi.string()
-        .valid('progress', 'group')
-        .required(),
     accountId: Joi.string()
         .max(JoiLength.name)
         .required(),
@@ -180,14 +176,9 @@ module.exports.addPost = async (data, ws) => {
             sendError(ws, 'Bad data!')
             return
         }
-        const parent =
-            data.parentType === 'progress'
-                ? await Progress.findById(data.parentId)
-                      .select('posts notifications __v')
-                      .exec()
-                : await Group.findById(data.parentId)
-                      .select('posts notifications __v')
-                      .exec()
+        const parent = await Progress.findById(data.parentId)
+            .select('posts notifications __v')
+            .exec()
 
         const account = await Account.findById(data.accountId)
             .select('followPosts __v')

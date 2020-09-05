@@ -13,11 +13,8 @@ const shop = require('../routes/shop')
 const wishlist = require('../routes/wishlist')
 const auth = require('../routes/auth')
 const user = require('../routes/user')
-// const sendMail = require('../routes/sendMail')
 const blog = require('../routes/blog')
 const error = require('../middleware/error')
-// const graphlHTTP = require('express-graphql')
-// const schema = require('../graphql/schema')
 const authtest = require('../routes/authtest')
 
 const sslRedirect = require('heroku-ssl-redirect')
@@ -37,13 +34,7 @@ module.exports = function(app) {
     app.use(sslRedirect())
 
     app.use(express.json())
-    // app.use(
-    //     '/api/graphql',
-    //     graphlHTTP({
-    //         schema: schema,
-    //         graphiql: true,
-    //     })
-    // )
+
     app.use(express.static(path.join(__dirname, '/../../client')))
 
     app.use('/api/goals', goals)
@@ -59,8 +50,6 @@ module.exports = function(app) {
     app.use('/api/auth', auth)
     app.use('/api/user', user)
     app.use('/api/sign-s3', awsSignS3)
-    // app.use('/api/sendmail', sendMail)
-    // app.use('/api/', sendMail)
     app.use('/api/blog', blog)
 
     app.use('/api/authtest', authtest)

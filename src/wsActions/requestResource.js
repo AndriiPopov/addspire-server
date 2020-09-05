@@ -4,7 +4,6 @@ const { Account } = require('../models/account')
 const { Progress } = require('../models/progress')
 const { Transaction } = require('../models/transaction')
 const { Post } = require('../models/post')
-const { Group } = require('../models/group')
 
 // const validateSchema = Joi.object({
 //     ids: Joi.array().items(Joi.string().optional()),
@@ -54,13 +53,7 @@ module.exports.requestResource = async (data, ws) => {
                         .lean()
                         .exec()
                     break
-                case 'group':
-                    result = await Group.find({
-                        _id: { $in: data.ids },
-                    })
-                        .lean()
-                        .exec()
-                    break
+
                 case 'friendData':
                     result = await Account.find({
                         _id: { $in: data.ids },
@@ -79,15 +72,7 @@ module.exports.requestResource = async (data, ws) => {
                         .exec()
 
                     break
-                case 'groupData':
-                    result = await Group.find({
-                        _id: { $in: data.ids },
-                    })
-                        .select('notifications __v name active')
-                        .lean()
-                        .exec()
 
-                    break
                 case 'progressData':
                     result = await Progress.find({
                         _id: { $in: data.ids },

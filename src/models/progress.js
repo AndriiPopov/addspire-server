@@ -23,7 +23,6 @@ const progressSchema = new mongoose.Schema(
         admins: [String],
         settings: {},
         notifications: [notificationSchema],
-        group: String,
         name: { type: String, index: true },
         views: { type: Number },
         likes: [String],

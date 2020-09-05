@@ -1,6 +1,6 @@
 var moment = require('moment') // require
 
-const { isEqual } = require('lodash')
+const isEqual = require('lodash.isequal')
 const { Progress } = require('../models/progress')
 moment().format()
 

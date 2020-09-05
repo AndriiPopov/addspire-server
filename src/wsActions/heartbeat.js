@@ -7,12 +7,10 @@ module.exports.heartbeat = async (ws, data) => {
                 'account',
                 'progress',
                 'post',
-                'group',
                 'transactionData',
                 'friendData',
                 'progressData',
                 'postData',
-                'groupData',
             ]) {
                 for (let item of data.notNeededResources[type]) {
                     delete ws.resources[type][item]

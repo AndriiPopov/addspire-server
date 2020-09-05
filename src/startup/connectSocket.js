@@ -8,7 +8,6 @@ const {
     saveReward,
     deleteReward,
     startProgress,
-    createGroup,
     changeLikesProgress,
 } = require('../wsActions/progress')
 const {
@@ -36,7 +35,6 @@ const {
     acceptFriend,
     unfriend,
 } = require('../wsActions/friends')
-const { saveGoal, deleteGoal } = require('../wsActions/goals')
 const {
     cancelTransaction,
     confirmTransaction,
@@ -60,12 +58,10 @@ const connectSocket = server => {
                 account: {},
                 progress: {},
                 post: {},
-                group: {},
                 transactionData: {},
                 friendData: {},
                 progressData: {},
                 postData: {},
-                groupData: {},
             }
             ws.isAlive = true
             ws.createdTime = Date.now()
@@ -154,15 +150,6 @@ const connectSocket = server => {
                             break
                         case 'deleteReward':
                             deleteReward(data, ws)
-                            break
-                        case 'saveGoal':
-                            saveGoal(data, ws)
-                            break
-                        case 'deleteGoal':
-                            deleteGoal(data, ws)
-                            break
-                        case 'createGroup':
-                            createGroup(data, ws)
                             break
                         case 'setLastSeenNot':
                             setLastSeenNot(data, ws)

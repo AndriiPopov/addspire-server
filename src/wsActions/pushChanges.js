@@ -4,7 +4,6 @@ const { Progress } = require('../models/progress')
 const { Transaction } = require('../models/transaction')
 const WebSocket = require('ws')
 const { Post } = require('../models/post')
-const { Group } = require('../models/group')
 
 module.exports.pushChanges = wss => {
     try {
@@ -19,7 +18,6 @@ module.exports.pushChanges = wss => {
                                 //         'friendData',
                                 //         'progressData',
                                 //         'postData',
-                                //         'groupData',
                                 //     ].includes(key) ||
                                 //     !data.updateDescription.updatedFields
                                 //         .notifications
@@ -70,8 +68,6 @@ module.exports.pushChanges = wss => {
                         sendData(['progress', 'progressData'])
                     } else if (type === 'post') {
                         sendData(['post', 'postData'])
-                    } else if (type === 'group') {
-                        sendData(['group', 'groupData'])
                     }
                 }
             } catch (ex) {}
@@ -118,9 +114,6 @@ module.exports.pushChanges = wss => {
         const postChangeStream = Post.watch().on('change', data => {
             pushChange(data, 'post')
         })
-        const groupChangeStream = Group.watch().on('change', data => {
-            pushChange(data, 'group')
-        })
 
         function resumeStream(changeStreamCursor, forceResume = false) {
             let resumeToken
@@ -153,6 +146,5 @@ module.exports.pushChanges = wss => {
         resumeStream(accountChangeStream, true)
         resumeStream(transactionChangeStream, true)
         resumeStream(postChangeStream, true)
-        resumeStream(groupChangeStream, true)
     } catch (ex) {}
 }

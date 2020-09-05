@@ -5,7 +5,6 @@ const { mongoLength } = require('../constants/fieldLength')
 const { postSchema } = require('./post')
 const notificationSchema = require('./schemas/notification')
 const milestoneSchema = require('./schemas/milestone')
-const goalSchema = require('./schemas/goal')
 const perkSchema = require('./schemas/perk')
 const wishlistItemSchema = require('./schemas/wishlistItem')
 const moneySchema = require('./schemas/money')
@@ -32,9 +31,6 @@ const accountSchema = new mongoose.Schema(
         },
         image: { type: Number, default: 0 },
         settings: {},
-        isTeam: Boolean,
-        goals: [wishlistItemSchema],
-        groups: [String],
         progresses: [String],
         perks: [perkSchema],
         wishlist: [wishlistItemSchema],

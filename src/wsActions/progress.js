@@ -4,15 +4,10 @@ const { Transaction } = require('../models/transaction')
 const Joi = require('@hapi/joi')
 const { JoiLength } = require('../constants/fieldLength')
 
-const diffpatcher = require('jsondiffpatch/dist/jsondiffpatch.umd.js').create({
-    propertyFilter: (name, context) => name !== '__patch__',
-})
-
 const findMessage = require('../utils/findMessage')
 const { sendError, sendSuccess } = require('./confirm')
 const { Post } = require('../models/post')
 const updateRewardIds = require('../utils/updateRewardIds')
-const { Group } = require('../models/group')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
 const { updateStages } = require('../utils/updateStages')
@@ -38,18 +33,7 @@ module.exports.startProgress = async (data, ws) => {
                 name: goal.name,
                 followingAccounts: allUsers,
             })
-            let group
-            if (!data.inGroup) {
-                group = new Group({
-                    admins: [accountId],
-                    users: allUsers,
-                })
 
-                group.progresses = [progress._id.toString()]
-                group.save()
-            }
-
-            progress.group = group ? group._id.toString() : data.inGroup
             updateStages(progress)
             progress.save()
 
@@ -652,70 +636,6 @@ module.exports.deleteReward = async (data, ws) => {
                 })
             )
             return
-        }
-        ws.send(
-            JSON.stringify({
-                messageCode: 'errorMessage',
-                messageText: 'Something failed...',
-            })
-        )
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
-    }
-}
-
-module.exports.createGroup = async (data, ws) => {
-    try {
-        const progress = await Progress.findById(data.progressId)
-            .select('group goal name')
-            .lean()
-            .exec()
-
-        if (progress) {
-            const group = await Group.findById(progress.group)
-            if (group) {
-                if (group.active) {
-                    ws.send(
-                        JSON.stringify({
-                            messageCode: 'successMessage',
-                            messageText: 'The progress is already in a group',
-                        })
-                    )
-                    return
-                } else {
-                    const allUsers = [
-                        ...new Set([
-                            ...(progress.goal.experts || []),
-                            progress.owner,
-                            ...(progress.goal.users || []),
-                        ]),
-                    ]
-                    group.admins = progress.admins
-                    group.users = allUsers
-                    group.images = progress.goal.images
-                    group.progresses = [progress._id.toString()]
-                    group.description = progress.goal.description
-                    group.name = progress.goal.name
-                    group.active = true
-                    group.save()
-
-                    await Account.updateMany(
-                        { _id: { $in: allUsers } },
-                        {
-                            $push: { groups: group._id.toString() },
-                        }
-                    )
-
-                    ws.send(
-                        JSON.stringify({
-                            messageCode: 'successMessage',
-                            messageText: 'Changes are saved',
-                        })
-                    )
-                    return
-                }
-            }
         }
         ws.send(
             JSON.stringify({
