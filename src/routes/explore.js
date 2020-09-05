@@ -54,7 +54,6 @@ const findPopularSchema = Joi.object({
 }).unknown(true)
 
 router.post('/popular', async (req, res, next) => {
-    console.log('reere')
     try {
         const { error } = findPopularSchema.validate(req.body)
 
@@ -85,7 +84,7 @@ router.post('/popular', async (req, res, next) => {
             progresses,
             friends,
             success: true,
-            noMore: progresses.length < 4,
+            noMore: progresses.length < 20,
         })
     } catch (ex) {}
 })

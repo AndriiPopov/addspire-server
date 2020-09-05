@@ -11,7 +11,6 @@ router.post('/', async (req, res) => {
                 url: req.body.url,
             })
             .then(response => {
-                console.log(response.data)
                 res.status(200).send({
                     body: response.data.bodyComp,
                     title: response.data.title,
