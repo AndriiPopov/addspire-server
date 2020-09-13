@@ -97,9 +97,6 @@ router.post('/delete', auth, async (req, res, next) => {
                 if (progress.owner === account._id) progress.owner = ''
                 if (progress.worker === account._id) progress.worker = ''
 
-                progress.goal.experts = progress.goal.experts.filter(
-                    item => item !== account._id
-                )
                 progress.save()
             }
             Account.findByIdAndDelete(account._id).exec()

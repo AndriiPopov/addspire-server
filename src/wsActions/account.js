@@ -121,7 +121,6 @@ module.exports.deleteAccount = async (data, ws) => {
                 $pull: {
                     followingAccounts: data.accountId,
                     'goal.users': data.accountId,
-                    'goal.experts': data.accountId,
                 },
                 $push: {
                     notifications: {

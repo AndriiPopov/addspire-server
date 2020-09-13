@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const { mongoLength } = require('../../constants/fieldLength')
-const rewardsGroupSchema = require('./rewardsGroup')
 const milestoneSchema = require('./milestone')
 const milestonesValueSchema = require('./milestoneValue')
 const rewardsSchema = require('./reward')
@@ -31,7 +30,6 @@ const goalSchema = new mongoose.Schema(
             required: true,
             default: 'public',
         },
-        experts: [String],
         users: [String],
         followers: [String],
         rewards: [rewardsSchema],
