@@ -2,17 +2,16 @@ const passport = require('passport')
 const passportGoogle = require('passport-google-oauth').OAuth2Strategy
 const { User } = require('../models/user')
 
-const passportConfig = {
-    clientID: process.env.GoogleClientID,
-    clientSecret: process.env.GoogleClientSecret,
-    callbackURL: 'https://addspire.com/api/appauth/google/redirect',
-}
-
 passport.use(
     'googleapp',
     new passportGoogle(
-        passportConfig,
+        {
+            clientID: process.env.GoogleClientID,
+            clientSecret: process.env.GoogleClientSecret,
+            callbackURL: 'https://addspire.com/api/appauth/google/redirect',
+        },
         async (req, accessToken, refreshToken, profile, done) => {
+            console.log('inn app google')
             try {
                 let user = await User.findOne({
                     userid: profile.id,

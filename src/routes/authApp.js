@@ -1,10 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const passport = require('passport')
-require('../authStrategies/google')
-require('../authStrategies/facebook')
-require('../authStrategies/twitter')
-require('../authStrategies/github')
+require('../authStrategiesApp/google')
+require('../authStrategiesApp/facebook')
+require('../authStrategiesApp/twitter')
+require('../authStrategiesApp/github')
 
 // GOOGLE
 router.get(
