@@ -5,10 +5,11 @@ const { User } = require('../models/user')
 const passportConfig = {
     clientID: process.env.GoogleClientID,
     clientSecret: process.env.GoogleClientSecret,
-    callbackURL: 'https://addspire.com/api/authApp/google/redirect',
+    callbackURL: 'https://addspire.com/api/appauth/google/redirect',
 }
 
 passport.use(
+    'googleapp',
     new passportGoogle(
         passportConfig,
         async (req, accessToken, refreshToken, profile, done) => {

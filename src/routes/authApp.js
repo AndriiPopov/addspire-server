@@ -10,7 +10,7 @@ require('../authStrategies/github')
 router.get(
     '/google/start',
 
-    passport.authenticate('google', {
+    passport.authenticate('googleapp', {
         session: false,
         scope: ['openid', 'profile', 'email'],
     })
@@ -18,7 +18,7 @@ router.get(
 
 router.get(
     '/google/redirect',
-    passport.authenticate('google', { session: false }),
+    passport.authenticate('googleapp', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
 
