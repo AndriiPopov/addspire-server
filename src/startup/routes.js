@@ -48,8 +48,8 @@ module.exports = function(app) {
     app.use('/api/wishlist', wishlist)
     app.use('/api/explore', explore)
 
-    app.use('/api/appauth', authApp)
     app.use('/api/auth', auth)
+    app.use('/api/appauth', authApp)
     app.use('/api/user', user)
     app.use('/api/sign-s3', awsSignS3)
     app.use('/api/blog', blog)
