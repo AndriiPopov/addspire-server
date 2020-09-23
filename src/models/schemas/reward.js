@@ -6,7 +6,6 @@ const rewardsSchema = new mongoose.Schema(
         mode: {
             type: String,
             enum: ['simple', 'money', 'item'],
-            required: true,
         },
         simple: { type: String, maxlength: mongoLength.description },
         money: Number,

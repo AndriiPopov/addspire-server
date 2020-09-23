@@ -122,7 +122,7 @@ router.get(
         }).redirect(
             process.env.NODE_ENV === 'production'
                 ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000/login'
+                : 'exp://192.168.0.105:19000?t=' + token
         )
     }
 )

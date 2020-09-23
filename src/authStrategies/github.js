@@ -8,7 +8,7 @@ const passportConfig = {
     callbackURL:
         process.env.NODE_ENV === 'production'
             ? 'https://addspire.com/api/auth/github/redirect'
-            : 'http://my.websiter.test:5000/api/auth/github/redirect',
+            : 'http://192.168.0.105:5000/api/auth/github/redirect',
     passReqToCallback: true,
 }
 
