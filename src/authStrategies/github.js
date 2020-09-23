@@ -8,14 +8,14 @@ const passportConfig = {
     callbackURL:
         process.env.NODE_ENV === 'production'
             ? 'https://addspire.com/api/auth/github/redirect'
-            : 'http://websiter.test:5000/api/auth/github/redirect',
+            : 'http://my.websiter.test:5000/api/auth/github/redirect',
     passReqToCallback: true,
 }
-// console.log(passportConfig)
+
 passport.use(
     new passportGithub(
         passportConfig,
-        async (accessToken, refreshToken, profile, done) => {
+        async (req, accessToken, refreshToken, profile, done) => {
             try {
                 let user = await User.findOne({
                     userid: profile.id,

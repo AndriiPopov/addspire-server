@@ -1,10 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const passport = require('passport')
-require('../authStrategiesApp/google')
-require('../authStrategiesApp/facebook')
-require('../authStrategiesApp/twitter')
-require('../authStrategiesApp/github')
+require('../authStrategies/google')
+require('../authStrategies/facebook')
+require('../authStrategies/twitter')
+require('../authStrategies/github')
 
 // GOOGLE
 router.get(
@@ -87,14 +87,14 @@ router.get(
 router.get(
     '/github/start',
 
-    passport.authenticate('github', {
+    passport.authenticate('githubApp', {
         session: false,
     })
 )
 
 router.get(
     '/github/redirect',
-    passport.authenticate('github', { session: false }),
+    passport.authenticate('githubApp', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
 

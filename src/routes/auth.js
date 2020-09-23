@@ -27,7 +27,6 @@ router.get(
     passport.authenticate('google', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
-
         res.cookie('auth_token', token, {
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
         }).redirect(
@@ -46,7 +45,6 @@ router.get(
         res.cookie('redirectto', req.query.redirect, {
             expires: new Date(new Date().getTime() + 60 * 1000),
         })
-        res.app = req.query.app ? true : false
         next()
     },
     passport.authenticate('facebook', {
@@ -103,7 +101,6 @@ router.get(
 router.get(
     '/github/start',
     function(req, res, next) {
-        console.log('adasdhasljdhaskjh')
         res.cookie('rememberme', req.query.rememberme)
         res.cookie('redirectto', req.query.redirect, {
             expires: new Date(new Date().getTime() + 60 * 1000),
@@ -125,7 +122,7 @@ router.get(
         }).redirect(
             process.env.NODE_ENV === 'production'
                 ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000'
+                : 'http://my.websiter.test:3000/login'
         )
     }
 )
