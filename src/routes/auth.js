@@ -14,13 +14,6 @@ router.get(
         res.cookie('redirectto', req.query.redirect, {
             expires: new Date(new Date().getTime() + 60 * 1000),
         })
-        res.cookie('app', req.query.app, {
-            expires: new Date(new Date().getTime() + 60 * 1000),
-        })
-        res.cookie('ttteessstttt', 'sdfsdfsfs', {
-            expires: new Date(new Date().getTime() + 60 * 1000),
-        })
-        res.app = req.query.app ? true : false
         next()
     },
     passport.authenticate('google', {
@@ -34,8 +27,7 @@ router.get(
     passport.authenticate('google', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
-        // console.log(res.headers['set-cookie'])
-        console.log(res.app)
+
         res.cookie('auth_token', token, {
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
         }).redirect(
@@ -111,11 +103,11 @@ router.get(
 router.get(
     '/github/start',
     function(req, res, next) {
+        console.log('adasdhasljdhaskjh')
         res.cookie('rememberme', req.query.rememberme)
         res.cookie('redirectto', req.query.redirect, {
             expires: new Date(new Date().getTime() + 60 * 1000),
         })
-        res.app = req.query.app ? true : false
         next()
     },
     passport.authenticate('github', {
@@ -132,8 +124,8 @@ router.get(
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
         }).redirect(
             process.env.NODE_ENV === 'production'
-                ? 'exp://192.168.0.105:19000?t=' + token
-                : 'exp://192.168.0.105:19000?t=' + token
+                ? 'https://addspire.com'
+                : 'http://my.websiter.test:3000'
         )
     }
 )
