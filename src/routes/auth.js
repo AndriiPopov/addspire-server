@@ -34,7 +34,7 @@ router.get(
     passport.authenticate('google', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
-        console.log(res.headers['set-cookie'])
+        // console.log(res.headers['set-cookie'])
         console.log(res.app)
         res.cookie('auth_token', token, {
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
