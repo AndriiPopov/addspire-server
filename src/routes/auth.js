@@ -121,7 +121,7 @@ router.get(
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
         }).redirect(
             process.env.NODE_ENV === 'production'
-                ? 'https://addspire.com'
+                ? 'exp://192.168.0.105:19000?t=' + token
                 : 'exp://192.168.0.105:19000?t=' + token
         )
     }
