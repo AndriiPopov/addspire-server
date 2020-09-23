@@ -14,6 +14,13 @@ router.get(
         res.cookie('redirectto', req.query.redirect, {
             expires: new Date(new Date().getTime() + 60 * 1000),
         })
+        res.cookie('app', req.query.app, {
+            expires: new Date(new Date().getTime() + 60 * 1000),
+        })
+        res.cookie('ttteessstttt', 'sdfsdfsfs', {
+            expires: new Date(new Date().getTime() + 60 * 1000),
+        })
+        res.app = req.query.app ? true : false
         next()
     },
     passport.authenticate('google', {
@@ -27,6 +34,8 @@ router.get(
     passport.authenticate('google', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
+        console.log(response.headers['set-cookie'])
+        console.log(res.app)
         res.cookie('auth_token', token, {
             expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
         }).redirect(
@@ -45,6 +54,7 @@ router.get(
         res.cookie('redirectto', req.query.redirect, {
             expires: new Date(new Date().getTime() + 60 * 1000),
         })
+        res.app = req.query.app ? true : false
         next()
     },
     passport.authenticate('facebook', {
@@ -105,6 +115,7 @@ router.get(
         res.cookie('redirectto', req.query.redirect, {
             expires: new Date(new Date().getTime() + 60 * 1000),
         })
+        res.app = req.query.app ? true : false
         next()
     },
     passport.authenticate('github', {
