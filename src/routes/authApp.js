@@ -26,7 +26,7 @@ router.get(
         const token = req.user.generateAuthToken()
 
         res.redirect(
-            process.env.NODE_ENV === 'production'
+            process.env.NODE_ENV !== 'production'
                 ? 'exp://192.168.0.105:19000?t=' + token
                 : 'addspire://?t=' + token
         )
@@ -49,7 +49,7 @@ router.get(
         const token = req.user.generateAuthToken()
 
         res.redirect(
-            process.env.NODE_ENV === 'production'
+            process.env.NODE_ENV !== 'production'
                 ? 'exp://192.168.0.105:19000?t=' + token
                 : 'addspire://?t=' + token
         )
@@ -102,7 +102,7 @@ router.get(
         const token = req.user.generateAuthToken()
 
         res.redirect(
-            process.env.NODE_ENV === 'production'
+            process.env.NODE_ENV !== 'production'
                 ? 'exp://192.168.0.105:19000?t=' + token
                 : 'addspire://?t=' + token
         )
