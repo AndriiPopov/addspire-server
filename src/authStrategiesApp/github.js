@@ -5,20 +5,17 @@ const { User } = require('../models/user')
 const passportConfig = {
     clientID: process.env.GithubClientID,
     clientSecret: process.env.GithubClientSecret,
-
+    callbackURL:
+        process.env.NODE_ENV === 'production'
+            ? 'https://addspire.com/api/authApp/github/redirect'
+            : 'http://192.168.0.105:5000/api/authApp/github/redirect',
     passReqToCallback: true,
 }
 
 passport.use(
-    'githubApp',
+    'githubapp',
     new passportGithub(
-        {
-            ...passportConfig,
-            callbackURL:
-                process.env.NODE_ENV === 'production'
-                    ? 'https://addspire.com/api/authApp/github/redirect'
-                    : 'http://192.168.0.105:5000/api/authApp/github/redirect',
-        },
+        passportConfig,
         async (req, accessToken, refreshToken, profile, done) => {
             try {
                 let user = await User.findOne({

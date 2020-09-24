@@ -9,6 +9,7 @@ const passportConfig = {
 }
 
 passport.use(
+    'facebookapp',
     new FacebookStrategy(
         passportConfig,
         async (accessToken, refreshToken, profile, done) => {

@@ -9,6 +9,7 @@ const passportConfig = {
 }
 
 passport.use(
+    'twitterapp',
     new TwitterStrategy(
         passportConfig,
         async (accessToken, refreshToken, profile, done) => {

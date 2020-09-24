@@ -32,7 +32,7 @@ router.get(
         }).redirect(
             process.env.NODE_ENV === 'production'
                 ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000/login'
+                : 'http://my.websiter.test:3000'
         )
     }
 )
@@ -62,7 +62,7 @@ router.get(
         }).redirect(
             process.env.NODE_ENV === 'production'
                 ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000/login'
+                : 'http://my.websiter.test:3000'
         )
     }
 )
@@ -122,7 +122,7 @@ router.get(
         }).redirect(
             process.env.NODE_ENV === 'production'
                 ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000/login'
+                : 'http://my.websiter.test:3000'
         )
     }
 )

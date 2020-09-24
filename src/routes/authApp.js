@@ -28,7 +28,7 @@ router.get(
         res.redirect(
             process.env.NODE_ENV === 'production'
                 ? 'exp://192.168.0.105:19000?t=' + token
-                : 'exp://192.168.0.105:19000?t=' + token
+                : 'addspire://?t=' + token
         )
     }
 )
@@ -37,21 +37,21 @@ router.get(
 router.get(
     '/facebook/start',
 
-    passport.authenticate('facebook', {
+    passport.authenticate('facebookapp', {
         session: false,
     })
 )
 
 router.get(
     '/facebook/redirect',
-    passport.authenticate('facebook', { session: false }),
+    passport.authenticate('facebookapp', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
 
         res.redirect(
             process.env.NODE_ENV === 'production'
                 ? 'exp://192.168.0.105:19000?t=' + token
-                : 'exp://192.168.0.105:19000?t=' + token
+                : 'addspire://?t=' + token
         )
     }
 )
@@ -90,21 +90,21 @@ router.get(
 router.get(
     '/github/start',
 
-    passport.authenticate('githubApp', {
+    passport.authenticate('githubapp', {
         session: false,
     })
 )
 
 router.get(
     '/github/redirect',
-    passport.authenticate('githubApp', { session: false }),
+    passport.authenticate('githubapp', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
 
         res.redirect(
             process.env.NODE_ENV === 'production'
                 ? 'exp://192.168.0.105:19000?t=' + token
-                : 'exp://192.168.0.105:19000?t=' + token
+                : 'addspire://?t=' + token
         )
     }
 )
