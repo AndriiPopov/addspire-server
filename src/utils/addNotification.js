@@ -1,5 +1,5 @@
-const { System } = require('./models/system')
 var moment = require('moment')
+const { System } = require('../models/system')
 moment().format()
 
 let notifications = []
