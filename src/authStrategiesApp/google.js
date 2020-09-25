@@ -13,7 +13,6 @@ passport.use(
     new passportGoogle(
         passportConfig,
         async (req, accessToken, refreshToken, profile, done) => {
-            console.log('inn app google')
             try {
                 let user = await User.findOne({
                     userid: profile.id,

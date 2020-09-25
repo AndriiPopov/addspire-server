@@ -16,6 +16,7 @@ const authApp = require('../routes/authApp')
 const user = require('../routes/user')
 const blog = require('../routes/blog')
 const error = require('../middleware/error')
+const notificationToken = require('../routes/notificationToken')
 const authtest = require('../routes/authtest')
 
 const sslRedirect = require('heroku-ssl-redirect')
@@ -53,6 +54,7 @@ module.exports = function(app) {
     app.use('/api/user', user)
     app.use('/api/sign-s3', awsSignS3)
     app.use('/api/blog', blog)
+    app.use('/api/notification-token', notificationToken)
 
     app.use('/api/authtest', authtest)
     app.get('*', (req, res) => {

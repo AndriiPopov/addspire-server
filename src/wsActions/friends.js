@@ -109,6 +109,9 @@ module.exports.addFriend = async (data, ws) => {
                     user: data.accountId,
                     code: 'friend request',
                     notId: newNotificationId,
+                    details: {
+                        owner: friend._id,
+                    },
                 },
                 true
             )

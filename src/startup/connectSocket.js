@@ -69,7 +69,6 @@ const connectSocket = server => {
             ws.on('message', async message => {
                 try {
                     const data = JSON.parse(message)
-                    console.log(data)
                     switch (data.messageCode) {
                         case 'heartbeat':
                             heartbeat(ws, data)

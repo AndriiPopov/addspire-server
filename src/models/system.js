@@ -6,6 +6,7 @@ const systemSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    notifications: [],
 })
 
 const System = mongoose.model('System', systemSchema)
