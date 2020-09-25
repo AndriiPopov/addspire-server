@@ -58,7 +58,7 @@ const getMessageDetails = async (not, type) => {
         if (message.to.length > 0) return { message, account }
     }
 }
-const init = async () => {
+const initSend = async () => {
     let system = await System.findOne({ name: 'system' })
     if (!system) {
         return
@@ -377,6 +377,6 @@ const init = async () => {
 //         (minutes >= 21 && minutes < 29) ||
 //         (minutes >= 41 && minutes < 49)
 //     )
-//         init()
+//         initSend()
 // }, 300000)
-setInterval(init, 60000)
+setInterval(initSend, 60000)
