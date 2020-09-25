@@ -101,11 +101,11 @@ const initSend = async () => {
         system.markModified('notifications')
         await system.save()
         const rawMessages = []
-
+        let details
         for (let not of notifications) {
             switch (not.code) {
                 case 'change name':
-                    let details = await getMessageDetails(not, 'account')
+                    details = await getMessageDetails(not, 'account')
                     if (details) {
                         rawMessages.push({
                             ...details.message,
