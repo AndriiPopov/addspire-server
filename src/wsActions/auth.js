@@ -35,7 +35,6 @@ const authenticate = async (data, ws) => {
 
 module.exports.auth = async (ws, data) => {
     try {
-        console.log(data)
         let user = await authenticate(data, ws)
         if (user) {
             ws.user = user
