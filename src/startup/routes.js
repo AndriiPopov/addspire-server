@@ -16,7 +16,7 @@ const authApp = require('../routes/authApp')
 const user = require('../routes/user')
 const blog = require('../routes/blog')
 const error = require('../middleware/error')
-const notificationToken = require('../routes/notificationToken')
+const notificationToken = require('../routes/notification')
 const authtest = require('../routes/authtest')
 
 const sslRedirect = require('heroku-ssl-redirect')
