@@ -357,6 +357,8 @@ const initSend = async () => {
                         chunk
                     )
                     console.log(receipts)
+                    console.log('tickets')
+                    console.log(tickets)
 
                     for (let receiptId in receipts) {
                         let { status, message, details } = receipts[receiptId]
