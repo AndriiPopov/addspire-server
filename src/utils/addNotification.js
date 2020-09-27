@@ -329,6 +329,8 @@ const initSend = async () => {
                     let ticketChunk = await expo.sendPushNotificationsAsync(
                         chunk
                     )
+                    console.log('error in push')
+                    console.log(chunk)
                     console.log(ticketChunk)
                     tickets.push(...ticketChunk)
                 } catch (error) {
