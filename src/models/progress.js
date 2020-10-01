@@ -34,6 +34,7 @@ const progressSchema = new mongoose.Schema(
 //     this.increment()
 //     return next()
 // })
+progressSchema.index({ 'goal.position': '2dsphere' })
 progressSchema.plugin(updateIfCurrentPlugin)
 
 progressSchema.pre(

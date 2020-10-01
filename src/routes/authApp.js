@@ -9,10 +9,7 @@ require('../authStrategiesApp/github')
 // GOOGLE
 router.get(
     '/google/start',
-    function(req, res, next) {
-        console.log('ggol start')
-        next()
-    },
+
     passport.authenticate('googleapp', {
         session: false,
         scope: ['openid', 'profile', 'email'],

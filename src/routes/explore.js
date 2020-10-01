@@ -14,22 +14,43 @@ const findProgressesSchema = Joi.object({
 
 router.post('/search', async (req, res, next) => {
     try {
-        const { error } = findProgressesSchema.validate(req.body)
+        // const { error } = findProgressesSchema.validate(req.body)
 
-        if (error) {
-            console.log(error)
-            resSendError(res, 'Bad data!')
-            return
-        }
+        // if (error) {
+        //     console.log(error)
+        //     resSendError(res, 'Bad data!')
+        //     return
+        // }
 
-        const progresses = await Progress.find({
-            name: new RegExp(req.body.value, 'gi'),
-        })
-            .skip(req.body.skip)
-            .limit(20)
-            .select('__v owner name goal.images goal.users')
-            .lean()
-            .exec()
+        const search = req.body.value
+        const progresses = search.withMap
+            ? await Progress.find({
+                  'goal.position': {
+                      $geoWithin: {
+                          $centerSphere: [
+                              [search.position[1], search.position[0]],
+                              search.distance /
+                                  (search.units === 'mi' ? 3963 : 6377),
+                          ],
+                      },
+                  },
+                  ...(search.value
+                      ? { name: new RegExp(search.value, 'gi') }
+                      : {}),
+              })
+                  .skip(req.body.skip)
+                  .limit(20)
+                  .select('__v owner name goal.images goal.users')
+                  .lean()
+                  .exec()
+            : await Progress.find({
+                  name: new RegExp(search.value, 'gi'),
+              })
+                  .skip(req.body.skip)
+                  .limit(20)
+                  .select('__v owner name goal.images goal.users')
+                  .lean()
+                  .exec()
 
         let friends = progresses.map(item => item.owner)
 

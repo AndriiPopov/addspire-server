@@ -38,6 +38,8 @@ const goalSchema = new mongoose.Schema(
         owner: String,
         repeat: String,
         days: [String],
+        position: {},
+        nomap: Boolean,
     },
     { minimize: false, _id: false, id: false }
 )
