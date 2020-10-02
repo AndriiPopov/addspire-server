@@ -23,6 +23,7 @@ router.post('/search', async (req, res, next) => {
         // }
 
         const search = req.body.value
+        console.log(search)
         const progresses = search.withMap
             ? await Progress.find({
                   'goal.position': {
