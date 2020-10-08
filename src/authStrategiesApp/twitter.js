@@ -3,8 +3,8 @@ const TwitterStrategy = require('passport-twitter').Strategy
 const { User } = require('../models/user')
 
 const passportConfig = {
-    consumerKey: process.env.TwitterClientID,
-    consumerSecret: process.env.TwitterClientSecret,
+    consumerKey: process.env.TwitterClientID || '1',
+    consumerSecret: process.env.TwitterClientSecret || '1',
     callbackURL: 'https://api.websiter.dev/api/authApp/twitter/redirect',
 }
 

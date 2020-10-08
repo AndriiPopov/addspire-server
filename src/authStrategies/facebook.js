@@ -3,8 +3,8 @@ const FacebookStrategy = require('passport-facebook').Strategy
 const { User } = require('../models/user')
 
 const passportConfig = {
-    clientID: process.env.FBClientID,
-    clientSecret: process.env.FBClientSecret,
+    clientID: process.env.FBClientID || '1',
+    clientSecret: process.env.FBClientSecret || '1',
     callbackURL: 'https://addspire.com/api/auth/facebook/redirect',
 }
 

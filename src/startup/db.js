@@ -8,7 +8,6 @@ module.exports = function() {
     try {
         const db = process.env.websiter_db
         mongoose.set('useFindAndModify', false)
-
         mongoose.connect(db, { poolSize: 50 }).then(async () => {
             // Account.updateMany({}, { tokens: [] }, { multi: true }, function(
             //     err,

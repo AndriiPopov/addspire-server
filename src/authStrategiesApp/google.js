@@ -3,8 +3,8 @@ const passportGoogle = require('passport-google-oauth').OAuth2Strategy
 const { User } = require('../models/user')
 
 const passportConfig = {
-    clientID: process.env.GoogleClientID,
-    clientSecret: process.env.GoogleClientSecret,
+    clientID: process.env.GoogleClientID || '1',
+    clientSecret: process.env.GoogleClientSecret || '1',
     callbackURL: 'https://addspire.com/api/appauth/google/redirect',
 }
 
