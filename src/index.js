@@ -12,6 +12,7 @@ const cors = require('cors')
 const connectSocket = require('./startup/connectSocket')
 
 const app = express()
+prod(app)
 app.use(cors())
 app.options('*', cors())
 
@@ -24,8 +25,6 @@ routes(app)
 db()
 // sedtTimeout(oneOffTask, 3000)
 validation()
-
-prod(app)
 
 app.use(express.static('./public'))
 
