@@ -22,7 +22,10 @@ module.exports.startProgress = async (data, ws) => {
             let progress = new Progress({
                 status: 'not started',
                 owner: accountId,
-                goal,
+                goal: {
+                    ...goal,
+                    rewards: goal.rewards || [],
+                },
                 admins: [accountId],
                 name: goal.name,
                 followingAccounts: allUsers,

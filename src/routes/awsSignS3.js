@@ -33,7 +33,6 @@ router.post('/', auth, async (req, res) => {
             account.currentId = account.currentId + 1
             account.save()
         }
-        console.log(AWS_S3_KEY)
         const s3 = new aws.S3({
             accessKeyId: AWS_S3_KEY,
             secretAccessKey: AWS_S3_SECRET,
