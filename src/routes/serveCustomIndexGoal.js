@@ -42,7 +42,7 @@ router.get('/:id', async (req, res, next) => {
                     progress.goal.images.length > 0 &&
                     progress.goal.images[0]) ||
                     'https://addspire.com/logo.jpg'}" />
-                <meta property="og:type" content="website" />
+                <meta property="ogd:type" content="website" />
                 `
                     )
                 )
