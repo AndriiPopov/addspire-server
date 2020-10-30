@@ -55,8 +55,7 @@ router.get('/:id', async (req, res, next) => {
                     account.image
                 ) || 'https://addspire.com/logo.jpg'}" />
                 <meta property="og:type" content="website" />
-                <meta property="og:image:width" content="968">
-                <meta property="og:image:height" content="504">
+                
                 <meta name="twitter:card" content="summary_large_image">
                 <meta name="twitter:title" content="${
                     account.name
