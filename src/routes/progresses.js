@@ -10,7 +10,6 @@ const { Post } = require('../models/post')
 const router = express.Router()
 
 router.get('/:id', authNotForce, async (req, res, next) => {
-    console.log('prreret')
     try {
         const progress = await Progress.findOneAndUpdate(
             { _id: req.params.id },

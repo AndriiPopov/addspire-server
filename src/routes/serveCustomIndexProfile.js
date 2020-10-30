@@ -43,18 +43,35 @@ router.get('/:id', async (req, res, next) => {
                     indexData.replace(
                         '<head>',
                         `
-                <meta property=”og:url” content="https://addspire.com/profile/${
+                <meta property="og:url" content="https://addspire.com/profile/${
                     account._id
                 }" />
-                <meta property=”og:title” content="${
+                <meta property="og:title" content="${
                     account.name
-                } account on Addspire.com." />
-                <meta property=”og:type” content=”website” />
-                <meta property=”og:description” content=”Addspire.com is a social network for sharing and supporting ideas, promises and resolutions.” />
-                <meta property=”og:image” content=”${getAvatar(
+                } goal on Addspire.com." />
+                <meta property="og:description" content="Addspire.com is a social network for sharing and supporting ideas, promises and resolutions." />
+                <meta property="og:image" content="${getAvatar(
                     account._id,
                     account.image
-                ) || 'https://addspire.com/logo.jpg'}” />
+                ) || 'https://addspire.com/logo.jpg'}" />
+                <meta property="og:type" content="website" />
+                <meta property="og:image:width" content="968">
+                <meta property="og:image:height" content="504">
+                <meta name="twitter:card" content="summary_large_image">
+                <meta name="twitter:title" content="${
+                    account.name
+                } goal on Addspire.com.">
+                <meta name="twitter:description" content="Addspire.com is a social network for sharing and supporting ideas, promises and resolutions.">
+                <meta name="twitter:image:src" content="${getAvatar(
+                    account._id,
+                    account.image
+                ) || 'https://addspire.com/logo.jpg'}">
+                <meta name="twitter:url" content="https://addspire.com/profile/${
+                    account._id
+                }">
+                <meta name="twitter:domain" content="addspire.com">
+                <meta name="twitter:site" content="@">
+                <meta name="twitter:creator" content="@...">
                 `
                     )
                 )

@@ -42,7 +42,7 @@ router.get('/:id', async (req, res, next) => {
                     progress.goal.images.length > 0 &&
                     progress.goal.images[0]) ||
                     'https://addspire.com/logo.jpg'}" />
-                <meta property="ogd:type" content="website" />
+                <meta property="og:type" content="website" />
                 <meta property="og:image:width" content="968">
                 <meta property="og:image:height" content="504">
                 <meta name="twitter:card" content="summary_large_image">

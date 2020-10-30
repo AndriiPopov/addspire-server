@@ -24,7 +24,7 @@ const progressSchema = new mongoose.Schema(
         settings: {},
         notifications: [notificationSchema],
         name: { type: String, index: true },
-        views: { type: Number },
+        views: { type: Number, default: 0 },
         likes: [String],
         followingAccounts: [String],
     },

@@ -77,7 +77,9 @@ module.exports.requestResource = async (data, ws) => {
                     result = await Progress.find({
                         _id: { $in: data.ids },
                     })
-                        .select('worker owner goal notifications __v name')
+                        .select(
+                            'worker owner goal notifications __v name views'
+                        )
                         .lean()
                         .exec()
 
