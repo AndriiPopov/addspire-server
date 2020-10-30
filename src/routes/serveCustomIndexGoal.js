@@ -29,21 +29,18 @@ router.get('/:id', async (req, res, next) => {
                 res.send(
                     indexData.replace(
                         '<head>',
-                        `
-                <meta property=”og:url” content="https://addspire.com/goals/${
-                    progress._id
-                }" />
-                <meta property=”og:title” content="${
-                    progress.goal.name
-                } goal on Addspire.com - a social network for sharing and supporting ideas, promises and resolutions." />
-                <meta property=”og:type” content=”website” />
-                <meta property=”og:description” content=”${progress.goal
-                    .descriptionText || ''}” />
-                <meta property=”og:image” content=”${(progress.goal.images &&
-                    progress.goal.images.length > 0 &&
-                    progress.goal.images[0]) ||
-                    'https://addspire.com/logo.jpg'}” />
-                `
+                        '<meta property=”og:url” content="https://addspire.com/goals/' +
+                            progress._id +
+                            '" /> <meta property=”og:title” content="' +
+                            progress.goal.name +
+                            ' goal on Addspire.com - a social network for sharing and supporting ideas, promises and resolutions." />                <meta property=”og:type” content=”website” /><meta property=”og:description” content="' +
+                            (progress.goal.descriptionText || '') +
+                            '” /> <meta property=”og:image” content=' +
+                            ((progress.goal.images &&
+                                progress.goal.images.length > 0 &&
+                                progress.goal.images[0]) ||
+                                'https://addspire.com/logo.jpg') +
+                            '” />'
                     )
                 )
         } else {
