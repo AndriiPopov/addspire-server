@@ -222,10 +222,7 @@ module.exports.changeStage = async (data, ws) => {
                             const owner = await Account.findById(reward.owner)
                                 .select('transactions wallet __v')
                                 .exec()
-                            const beniciaries =
-                                reward.for.length > 0
-                                    ? reward.for
-                                    : progress.goal.users
+                            const beniciaries = progress.goal.users
                             for (let reciever of beniciaries) {
                                 const worker =
                                     owner._id.toString() !== reciever.toString()
@@ -243,7 +240,7 @@ module.exports.changeStage = async (data, ws) => {
                                     item: reward,
                                     progress: progress.goal.name,
                                     progressId: progress._id,
-                                    status: 'Confirmed',
+                                    status: 'not confirmed',
                                 })
                                 transaction.save()
 
@@ -295,7 +292,8 @@ module.exports.changeStage = async (data, ws) => {
                     }
                 }
 
-                progress.save()
+                await progress.save()
+
                 ws.send(
                     JSON.stringify({
                         messageCode: 'successMessage',
@@ -313,7 +311,6 @@ module.exports.changeStage = async (data, ws) => {
             })
         )
     } catch (ex) {
-        console.log(ex)
         sendError(ws)
     }
 }

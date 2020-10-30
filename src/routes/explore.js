@@ -23,7 +23,6 @@ router.post('/search', async (req, res, next) => {
         // }
 
         const search = req.body.value
-        console.log(search)
         const progresses = search.withMap
             ? await Progress.find({
                   'goal.position': {
@@ -39,17 +38,19 @@ router.post('/search', async (req, res, next) => {
                       ? { name: new RegExp(search.value, 'gi') }
                       : {}),
               })
+                  .sort('views')
                   .skip(req.body.skip)
                   .limit(20)
-                  .select('__v owner name goal.images goal.users')
+                  .select('__v owner name goal.images goal.users views')
                   .lean()
                   .exec()
             : await Progress.find({
                   name: new RegExp(search.value, 'gi'),
               })
+                  .sort('views')
                   .skip(req.body.skip)
                   .limit(20)
-                  .select('__v owner name goal.images goal.users')
+                  .select('__v owner name goal.images goal.users views')
                   .lean()
                   .exec()
 
@@ -89,7 +90,7 @@ router.post('/popular', async (req, res, next) => {
             .sort('views')
             .skip(req.body.skip)
             .limit(20)
-            .select('__v owner name goal.images goal.users')
+            .select('__v owner name goal.images goal.users views')
             .lean()
             .exec()
 

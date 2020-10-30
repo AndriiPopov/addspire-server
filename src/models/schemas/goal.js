@@ -17,6 +17,11 @@ const goalSchema = new mongoose.Schema(
             default: '',
             maxlength: mongoLength.description,
         },
+        descriptionText: {
+            type: String,
+            default: '',
+            maxlength: mongoLength.description,
+        },
         images: [
             {
                 type: String,
@@ -31,7 +36,7 @@ const goalSchema = new mongoose.Schema(
             default: 'public',
         },
         users: [String],
-        followers: [String],
+        followingAccounts: [String],
         rewards: [rewardsSchema],
         currentId: { type: Number, default: 0 },
         post: [String],

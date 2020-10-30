@@ -14,6 +14,7 @@ const {
     sendMessage,
     changeLikesMessage,
     addPost,
+    editPost,
 } = require('../wsActions/post')
 const {
     editAccount,
@@ -84,6 +85,9 @@ const connectSocket = server => {
                             break
                         case 'addPost':
                             addPost(data, ws)
+                            break
+                        case 'editPost':
+                            editPost(data, ws)
                             break
                         case 'changeStage':
                             changeStage(data, ws)

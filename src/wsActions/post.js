@@ -239,3 +239,53 @@ module.exports.addPost = async (data, ws) => {
         sendError(ws)
     }
 }
+
+const editPostSchema = Joi.object({
+    postId: Joi.string()
+        .max(JoiLength.progressId)
+        .required(),
+    accountId: Joi.string()
+        .max(JoiLength.name)
+        .required(),
+    messageValue: Joi.string()
+        .max(JoiLength.description)
+        .allow(''),
+}).unknown(true)
+
+module.exports.editPost = async (data, ws) => {
+    try {
+        const { error } = editPostSchema.validate(data)
+        if (error) {
+            console.log(error)
+            sendError(ws, 'Bad data!')
+            return
+        }
+        const post = await Post.findById(data.postId)
+            .select('startMessage notifications __v')
+            .exec()
+
+        if (!post || data.accountId !== post.startMessage.author) {
+            sendError(ws, 'Bad data!')
+            return
+        }
+
+        post.startMessage.text = data.messageValue
+        post.startMessage.image = data.images
+
+        addNotification(post, {
+            user: data.accountId,
+            code: 'edit post',
+        })
+
+        await post.save()
+
+        ws.send(
+            JSON.stringify({
+                messageCode: 'postEdited',
+            })
+        )
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}

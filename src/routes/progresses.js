@@ -10,6 +10,7 @@ const { Post } = require('../models/post')
 const router = express.Router()
 
 router.get('/:id', authNotForce, async (req, res, next) => {
+    console.log('prreret')
     try {
         const progress = await Progress.findOneAndUpdate(
             { _id: req.params.id },
@@ -23,6 +24,7 @@ router.get('/:id', authNotForce, async (req, res, next) => {
                 progress.owner,
                 ...progress.goal.users,
                 ...progress.followingAccounts,
+                ...progress.likes,
             ]
 
             accountIds = [...new Set(accountIds)]

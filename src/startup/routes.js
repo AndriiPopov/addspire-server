@@ -18,7 +18,8 @@ const blog = require('../routes/blog')
 const error = require('../middleware/error')
 const notificationToken = require('../routes/notification')
 const authtest = require('../routes/authtest')
-
+const serveCustomIndexProfile = require('../routes/serveCustomIndexProfile')
+const serveCustomIndexGoal = require('../routes/serveCustomIndexGoal')
 const sslRedirect = require('heroku-ssl-redirect')
 
 module.exports = function(app) {
@@ -39,8 +40,7 @@ module.exports = function(app) {
 
     app.use(express.static(path.join(__dirname, '/../../client')))
 
-    app.use('/api/goals', goals)
-    app.use('/api/inspirations', progresses)
+    app.use('/api/goals', progresses)
     app.use('/api/activate-account', activateAccount)
     app.use('/api/account', account)
     app.use('/api/friends', friends)
@@ -55,6 +55,8 @@ module.exports = function(app) {
     app.use('/api/sign-s3', awsSignS3)
     app.use('/api/blog', blog)
     app.use('/api/notification-token', notificationToken)
+    app.use('/profile', serveCustomIndexProfile)
+    app.use('/goals', serveCustomIndexGoal)
 
     app.use('/api/authtest', authtest)
     app.get('*', (req, res) => {
