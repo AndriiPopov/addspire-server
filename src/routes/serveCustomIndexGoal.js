@@ -43,6 +43,23 @@ router.get('/:id', async (req, res, next) => {
                     progress.goal.images[0]) ||
                     'https://addspire.com/logo.jpg'}" />
                 <meta property="ogd:type" content="website" />
+                <meta property="og:image:width" content="968">
+                <meta property="og:image:height" content="504">
+                <meta name="twitter:card" content="summary_large_image">
+                <meta name="twitter:title" content="${progress.goal.name}">
+                <meta name="twitter:description" content="${progress.goal
+                    .descriptionText || ''}">
+                <meta name="twitter:image:src" content="${(progress.goal
+                    .images &&
+                    progress.goal.images.length > 0 &&
+                    progress.goal.images[0]) ||
+                    'https://addspire.com/logo.jpg'}">
+                <meta name="twitter:url" content="https://addspire.com/goals/${
+                    progress._id
+                }">
+                <meta name="twitter:domain" content="addspire.com">
+                <meta name="twitter:site" content="@">
+                <meta name="twitter:creator" content="@...">
                 `
                     )
                 )
