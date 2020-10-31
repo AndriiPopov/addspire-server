@@ -58,6 +58,7 @@ const accountSchema = new mongoose.Schema(
         followingAccounts: [String],
         followProgresses: [String],
         tokens: [String],
+        recentProgresses: [String],
     },
     { minimize: false }
 )

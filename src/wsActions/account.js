@@ -56,6 +56,53 @@ module.exports.editAccount = async (data, ws) => {
     }
 }
 
+const addRecentProgressSchema = Joi.object({
+    accountId: Joi.string()
+        .max(JoiLength.name)
+        .required(),
+
+    progressId: Joi.string().required(),
+}).unknown(true)
+
+module.exports.addRecentProgress = async (data, ws) => {
+    try {
+        const { error } = addRecentProgressSchema.validate(data)
+        if (error) {
+            console.log(error)
+            sendError(ws, 'Bad data!')
+            return
+        }
+
+        await Account.findOneAndUpdate(
+            { _id: data.accountId },
+            {
+                $pull: {
+                    recentProgresses: data.progressId,
+                },
+            },
+            { useFindAndModify: false }
+        )
+        await Account.findOneAndUpdate(
+            { _id: data.accountId },
+            {
+                $push: {
+                    recentProgresses: {
+                        $each: [data.progressId],
+                        $position: 0,
+                        $slice: 20,
+                    },
+                },
+            },
+            { useFindAndModify: false }
+        )
+
+        // sendSuccess(ws)
+    } catch (ex) {
+        console.log(ex)
+        // sendError(ws, 'Something failed.')
+    }
+}
+
 const deleteAccountSchema = Joi.object({
     accountId: Joi.string().required(),
     messageCode: Joi.string().required(),

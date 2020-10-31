@@ -23,6 +23,7 @@ const {
     unfollowAccount,
     followProgress,
     unfollowProgress,
+    addRecentProgress,
 } = require('../wsActions/account')
 const {
     saveWishlistItem,
@@ -112,6 +113,9 @@ const connectSocket = server => {
                             break
                         case 'deleteAccount':
                             deleteAccount(data, ws)
+                            break
+                        case 'addRecentProgress':
+                            addRecentProgress(data, ws)
                             break
                         case 'saveWishlistItem':
                             saveWishlistItem(data, ws)
