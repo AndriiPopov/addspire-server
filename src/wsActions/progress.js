@@ -32,7 +32,7 @@ module.exports.startProgress = async (data, ws) => {
             })
 
             updateStages(progress)
-            progress.save()
+            await progress.save()
 
             const newNotificationId = await getNotificationId()
             for (let user of allUsers) {
@@ -492,7 +492,8 @@ module.exports.editGoalInProgress = async (data, ws) => {
                     }
                 }
                 updateStages(progress, progressObj.goal)
-
+                progress.markModified('goal.rewards')
+                progress.markModified('goal.description')
                 progress.save()
                 ws.send(
                     JSON.stringify({
@@ -552,6 +553,7 @@ module.exports.saveReward = async (data, ws) => {
                     },
                 },
             })
+            progress.markModified('goal.rewards')
             progress.save()
             ws.send(
                 JSON.stringify({
@@ -603,6 +605,7 @@ module.exports.deleteReward = async (data, ws) => {
                     },
                 },
             })
+            progress.markModified('goal.rewards')
             progress.save()
             ws.send(
                 JSON.stringify({

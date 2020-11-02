@@ -12,11 +12,7 @@ const goalSchema = new mongoose.Schema(
             default: 'New goal',
             maxlength: mongoLength.name,
         },
-        description: {
-            type: String,
-            default: '',
-            maxlength: mongoLength.description,
-        },
+        description: {},
         descriptionText: {
             type: String,
             default: '',

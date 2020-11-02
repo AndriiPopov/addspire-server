@@ -10,7 +10,7 @@ const rewardsSchema = new mongoose.Schema(
         simple: { type: String, maxlength: mongoLength.description },
         money: Number,
         itemName: { type: String, maxlength: mongoLength.name },
-        itemDescription: { type: String, maxlength: mongoLength.description },
+        itemDescription: {},
         itemImages: [String],
         owner: String,
         for: [String],

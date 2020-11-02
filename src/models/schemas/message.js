@@ -4,7 +4,7 @@ const { mongoLength } = require('../../constants/fieldLength')
 const messageSchema = new mongoose.Schema(
     {
         author: String,
-        text: { type: String, maxlength: mongoLength.message },
+        text: {},
         messageType: String,
         details: {},
         action: String,

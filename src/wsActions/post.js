@@ -16,9 +16,7 @@ const sendMessageSchema = Joi.object({
     accountId: Joi.string()
         .max(JoiLength.name)
         .required(),
-    messageValue: Joi.string()
-        .max(JoiLength.description)
-        .allow(''),
+    messageValue: Joi.any(),
 }).unknown(true)
 
 module.exports.sendMessage = async (data, ws) => {
@@ -163,9 +161,7 @@ const addPostSchema = Joi.object({
     accountId: Joi.string()
         .max(JoiLength.name)
         .required(),
-    messageValue: Joi.string()
-        .max(JoiLength.description)
-        .allow(''),
+    messageValue: Joi.any(),
 }).unknown(true)
 
 module.exports.addPost = async (data, ws) => {
@@ -247,9 +243,7 @@ const editPostSchema = Joi.object({
     accountId: Joi.string()
         .max(JoiLength.name)
         .required(),
-    messageValue: Joi.string()
-        .max(JoiLength.description)
-        .allow(''),
+    messageValue: Joi.any(),
 }).unknown(true)
 
 module.exports.editPost = async (data, ws) => {
@@ -276,7 +270,7 @@ module.exports.editPost = async (data, ws) => {
             user: data.accountId,
             code: 'edit post',
         })
-
+        post.markModified('startMessage.text')
         await post.save()
 
         ws.send(
