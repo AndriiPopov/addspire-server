@@ -26,6 +26,7 @@ routes(app)
 db()
 // sedtTimeout(oneOffTask, 3000)
 validation()
+pingBlog()
 
 app.use(express.static('./public'))
 
@@ -34,6 +35,5 @@ const server = app.listen(port, () =>
     winston.info(`Listening on port ${port}...`)
 )
 connectSocket(server)
-pingBlog()
 
 module.exports = server
