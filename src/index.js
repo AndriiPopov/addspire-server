@@ -1,6 +1,7 @@
 const winston = require('winston')
 const express = require('express')
 const logging = require('./startup/logging')
+const pingBlog = require('./startup/pingBlog')
 const routes = require('./startup/routes')
 const db = require('./startup/db')
 const validation = require('./startup/validation')
@@ -33,5 +34,6 @@ const server = app.listen(port, () =>
     winston.info(`Listening on port ${port}...`)
 )
 connectSocket(server)
+pingBlog()
 
 module.exports = server

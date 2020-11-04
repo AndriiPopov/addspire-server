@@ -44,6 +44,7 @@
         "passport-github": "^1.1.0",
         "passport-google-oauth": "^2.0.0",
         "passport-twitter": "^1.0.4",
+        "ping": "^0.3.0",
         "rate-limiter-flexible": "^2.0.0",
         "react": "^16.13.1",
         "react-dom": "^16.13.1",
