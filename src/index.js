@@ -1,7 +1,6 @@
 const winston = require('winston')
 const express = require('express')
 const logging = require('./startup/logging')
-const pingBlog = require('./startup/pingBlog')
 const routes = require('./startup/routes')
 const db = require('./startup/db')
 const validation = require('./startup/validation')
@@ -26,7 +25,6 @@ routes(app)
 db()
 // sedtTimeout(oneOffTask, 3000)
 validation()
-pingBlog()
 
 app.use(express.static('./public'))
 
