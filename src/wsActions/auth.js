@@ -39,6 +39,11 @@ module.exports.auth = async (ws, data) => {
         if (user) {
             ws.user = user
             ws.resources = data.resourcesToMonitor
+            ws.send(
+                JSON.stringify({
+                    messageCode: 'authSuccess',
+                })
+            )
         } else {
             sendError(ws, 'Login error.4', true)
         }
