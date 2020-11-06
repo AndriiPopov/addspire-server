@@ -38,7 +38,7 @@
         "jsonwebtoken": "^8.5.1",
         "lodash.isequal": "^4.5.0",
         "moment": "^2.27.0",
-        "mongoose": "^5.9.25",
+        "mongoose": "^5.10.13",
         "mongoose-update-if-current": "^1.4.0",
         "passport": "^0.4.1",
         "passport-facebook": "^3.0.0",

@@ -1,6 +1,3 @@
-const auth = require('../middleware/auth')
-const authNotForce = require('../middleware/authNotForce')
-
 const { Progress } = require('../models/progress')
 const { Account } = require('../models/account')
 const express = require('express')
@@ -9,7 +6,7 @@ const { Post } = require('../models/post')
 
 const router = express.Router()
 
-router.get('/:id', authNotForce, async (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
     try {
         console.log('start')
 
