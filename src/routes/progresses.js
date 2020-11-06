@@ -11,14 +11,18 @@ const router = express.Router()
 
 router.get('/:id', authNotForce, async (req, res, next) => {
     try {
+        console.log('start')
+
         const progress = await Progress.findOneAndUpdate(
             { _id: req.params.id },
             { $inc: { views: 1 } }
         )
             .lean()
             .exec()
-
+        console.log(progress)
         if (progress) {
+            console.log('go further')
+
             let accountIds = [
                 progress.owner,
                 ...progress.goal.users,
@@ -46,12 +50,15 @@ router.get('/:id', authNotForce, async (req, res, next) => {
                 success: true,
             })
             return
-        }
+        } else console.log('send fail')
         res.send({
             success: false,
         })
     } catch (ex) {
         console.log(ex)
+        res.send({
+            success: false,
+        })
     }
 })
 
