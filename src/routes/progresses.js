@@ -34,7 +34,7 @@ router.get('/:id', authNotForce, async (req, res, next) => {
                 .lean()
                 .exec()
 
-            const post = await Post.find({
+            const posts = await Post.find({
                 _id: { $in: progress.posts },
             })
                 .lean()
@@ -42,7 +42,7 @@ router.get('/:id', authNotForce, async (req, res, next) => {
             res.send({
                 progress,
                 friendData: friends,
-                post,
+                posts,
                 success: true,
             })
             return
