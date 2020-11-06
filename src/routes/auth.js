@@ -5,6 +5,7 @@ require('../authStrategies/google')
 require('../authStrategies/facebook')
 require('../authStrategies/twitter')
 require('../authStrategies/github')
+require('../authStrategies/instagram')
 
 // GOOGLE
 router.get(
@@ -25,6 +26,37 @@ router.get(
 router.get(
     '/google/redirect',
     passport.authenticate('google', { session: false }),
+    async (req, res) => {
+        const token = req.user.generateAuthToken()
+        res.cookie('auth_token', token, {
+            expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
+        }).redirect(
+            process.env.NODE_ENV === 'production'
+                ? 'https://addspire.com'
+                : 'http://my.websiter.test:3000'
+        )
+    }
+)
+
+// Instagram
+router.get(
+    '/instagram/start',
+    function(req, res, next) {
+        res.cookie('rememberme', req.query.rememberme)
+        res.cookie('redirectto', req.query.redirect, {
+            expires: new Date(new Date().getTime() + 60 * 1000),
+        })
+        next()
+    },
+    passport.authenticate('instagram', {
+        session: false,
+        scope: ['openid', 'profile', 'email'],
+    })
+)
+
+router.get(
+    '/instagram/redirect',
+    passport.authenticate('instagram', { session: false }),
     async (req, res) => {
         const token = req.user.generateAuthToken()
         res.cookie('auth_token', token, {

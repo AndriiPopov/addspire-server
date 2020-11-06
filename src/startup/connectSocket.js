@@ -9,6 +9,7 @@ const {
     deleteReward,
     startProgress,
     changeLikesProgress,
+    // deleteProgress,
 } = require('../wsActions/progress')
 const {
     sendMessage,
@@ -177,6 +178,9 @@ const connectSocket = server => {
                         case 'changeLikesProgress':
                             changeLikesProgress(data, ws)
                             break
+                        // case 'deleteProgress':
+                        //     deleteProgress(data, ws)
+                        //     break
                         default:
                             break
                     }
