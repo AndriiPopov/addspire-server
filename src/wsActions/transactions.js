@@ -74,7 +74,6 @@ module.exports.confirmTransaction = async (data, ws) => {
             sendError(ws, 'Bad data!')
             return
         }
-        console.log('here')
         const transaction = await Transaction.findOneAndUpdate(
             { _id: data.id },
             { status: 'Confirmed' }

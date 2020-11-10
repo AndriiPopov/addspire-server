@@ -187,6 +187,11 @@ module.exports.deleteAccount = async (data, ws) => {
         await User.findByIdAndDelete(ws.user).exec()
 
         sendSuccess(ws)
+        ws.send(
+            JSON.stringify({
+                messageCode: 'logout',
+            })
+        )
     } catch (ex) {
         sendError(ws, 'Something failed.')
     }

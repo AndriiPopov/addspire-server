@@ -86,6 +86,12 @@ module.exports.startProgress = async (data, ws) => {
             }
 
             sendSuccess(ws, 'progress created')
+            ws.send(
+                JSON.stringify({
+                    messageCode: 'goTo',
+                    messageText: '/goals/' + progress._id,
+                })
+            )
         } else sendError(ws, 'Bad data!')
     } catch (ex) {
         console.log(ex)
