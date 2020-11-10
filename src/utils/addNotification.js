@@ -72,7 +72,7 @@ const getMessageDetails = async (not, type) => {
                 .exec()
             if (friend) message.to = friend.tokens
         }
-        if (type === 'inspiration' || type === 'accountinspiration') {
+        if (type === 'inspiration') {
             const inspiration = await Progress.findById(not.details.progressId)
                 .select('followingAccounts')
                 .lean()

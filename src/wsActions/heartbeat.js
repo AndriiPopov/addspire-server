@@ -8,9 +8,11 @@ module.exports.heartbeat = async (ws, data) => {
                 'progress',
                 'post',
                 'transactionData',
+                'reward',
                 'friendData',
                 'progressData',
                 'postData',
+                'rewardData',
             ]) {
                 for (let item of data.notNeededResources[type]) {
                     delete ws.resources[type][item]

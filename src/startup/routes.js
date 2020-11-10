@@ -1,7 +1,7 @@
 const express = require('express')
 const path = require('path')
-const goals = require('../routes/goals')
 const progresses = require('../routes/progresses')
+const rewards = require('../routes/rewards')
 const activateAccount = require('../routes/activateAccount')
 const account = require('../routes/account')
 const awsSignS3 = require('../routes/awsSignS3')
@@ -10,7 +10,6 @@ const friends = require('../routes/friends')
 const explore = require('../routes/explore')
 const profile = require('../routes/profile')
 const shop = require('../routes/shop')
-const wishlist = require('../routes/wishlist')
 const auth = require('../routes/auth')
 const authApp = require('../routes/authApp')
 const user = require('../routes/user')
@@ -20,6 +19,7 @@ const notificationToken = require('../routes/notification')
 const authtest = require('../routes/authtest')
 const serveCustomIndexProfile = require('../routes/serveCustomIndexProfile')
 const serveCustomIndexGoal = require('../routes/serveCustomIndexGoal')
+const serveCustomIndexReward = require('../routes/serveCustomIndexReward')
 const sslRedirect = require('heroku-ssl-redirect')
 
 module.exports = function(app) {
@@ -41,12 +41,13 @@ module.exports = function(app) {
     app.use(express.static(path.join(__dirname, '/../../client')))
 
     app.use('/api/goals', progresses)
+    app.use('/api/rewards', rewards)
+    app.use('/api/wishlist', rewards)
     app.use('/api/activate-account', activateAccount)
     app.use('/api/account', account)
     app.use('/api/friends', friends)
     app.use('/api/profile', profile)
     app.use('/api/shop', shop)
-    app.use('/api/wishlist', wishlist)
     app.use('/api/explore', explore)
 
     app.use('/api/auth', auth)
@@ -57,6 +58,8 @@ module.exports = function(app) {
     app.use('/api/notification-token', notificationToken)
     app.use('/profile', serveCustomIndexProfile)
     app.use('/goals', serveCustomIndexGoal)
+    app.use('/rewards', serveCustomIndexReward)
+    app.use('/wishlist', serveCustomIndexReward)
 
     app.use('/api/authtest', authtest)
     app.get('*', (req, res) => {

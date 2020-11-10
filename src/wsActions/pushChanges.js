@@ -4,6 +4,7 @@ const { Progress } = require('../models/progress')
 const { Transaction } = require('../models/transaction')
 const WebSocket = require('ws')
 const { Post } = require('../models/post')
+const { Reward } = require('../models/reward')
 
 module.exports.pushChanges = wss => {
     try {
@@ -68,6 +69,8 @@ module.exports.pushChanges = wss => {
                         sendData(['progress', 'progressData'])
                     } else if (type === 'post') {
                         sendData(['post', 'postData'])
+                    } else if (type === 'reward') {
+                        sendData(['reward', 'rewardData'])
                     }
                 }
             } catch (ex) {}
@@ -95,6 +98,9 @@ module.exports.pushChanges = wss => {
         try {
             Transaction.watch()
         } catch (ex) {}
+        try {
+            Reward.watch()
+        } catch (ex) {}
 
         const userChangeStream = User.watch().on('change', data => {
             pushChange(data, 'user')
@@ -113,6 +119,10 @@ module.exports.pushChanges = wss => {
         )
         const postChangeStream = Post.watch().on('change', data => {
             pushChange(data, 'post')
+        })
+
+        const rewardChangeStream = Reward.watch().on('change', data => {
+            pushChange(data, 'reward')
         })
 
         function resumeStream(changeStreamCursor, forceResume = false) {
@@ -146,5 +156,6 @@ module.exports.pushChanges = wss => {
         resumeStream(accountChangeStream, true)
         resumeStream(transactionChangeStream, true)
         resumeStream(postChangeStream, true)
+        resumeStream(rewardChangeStream, true)
     } catch (ex) {}
 }

@@ -7,7 +7,7 @@ moment().format()
 const getStages = progress => {
     let stages = [],
         start
-    switch (progress.goal.repeat) {
+    switch (progress.repeat) {
         case 'no':
             progress.currentId = progress.currentId + 1
             stages.push({
@@ -77,7 +77,7 @@ const getStages = progress => {
             }
             break
         case 'weekday':
-            if (!progress.goal.days || progress.goal.days.length === 0) {
+            if (!progress.days || progress.days.length === 0) {
                 progress.currentId = progress.currentId + 1
                 stages.push({
                     stageId: 'stage_' + progress.currentId,
@@ -86,9 +86,7 @@ const getStages = progress => {
                     status: 'Due',
                 })
             } else {
-                const days = progress.goal.days
-                    .sort()
-                    .map(item => parseInt(item))
+                const days = progress.days.sort().map(item => parseInt(item))
 
                 const getDayBack = (lastDay, forward, firstDay) => {
                     if (!lastDay) lastDay = moment()
@@ -149,8 +147,8 @@ module.exports.updateStages = (progress, prevGoal) => {
 
     if (
         !prevGoal ||
-        prevGoal.repeat !== progress.goal.repeat ||
-        !isEqual(prevGoal.days, progress.goal.days)
+        prevGoal.repeat !== progress.repeat ||
+        !isEqual(prevGoal.days, progress.days)
     ) {
         progress.stages.map(item => ({ ...item, old: true }))
         stages = getStages(progress)
@@ -163,9 +161,8 @@ module.exports.updateStagesAuto = () => {
         const progresses = await Progress.find()
         for (let progress of progresses) {
             if (
-                progress.goal.repeat === 'no' ||
-                (progress.goal.repeat === 'weekday' &&
-                    progress.goal.days.length === 0)
+                progress.repeat === 'no' ||
+                (progress.repeat === 'weekday' && progress.days.length === 0)
             )
                 return
 

@@ -90,7 +90,7 @@ router.post('/delete', auth, async (req, res, next) => {
             progresses = await Progress.find({
                 _id: { $in: progresses },
             })
-                .select('worker owner goal __v')
+                .select('worker owner __v')
                 .exec()
 
             for (let progress of progresses) {

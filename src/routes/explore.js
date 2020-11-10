@@ -25,7 +25,7 @@ router.post('/search', async (req, res, next) => {
         const search = req.body.value
         const progresses = search.withMap
             ? await Progress.find({
-                  'goal.position': {
+                  position: {
                       $geoWithin: {
                           $centerSphere: [
                               [search.position[1], search.position[0]],
@@ -41,7 +41,7 @@ router.post('/search', async (req, res, next) => {
                   .sort('views')
                   .skip(req.body.skip)
                   .limit(20)
-                  .select('__v owner name goal.images goal.users views')
+                  .select('__v owner name images users views')
                   .lean()
                   .exec()
             : await Progress.find({
@@ -50,7 +50,7 @@ router.post('/search', async (req, res, next) => {
                   .sort('views')
                   .skip(req.body.skip)
                   .limit(20)
-                  .select('__v owner name goal.images goal.users views')
+                  .select('__v owner name images users views')
                   .lean()
                   .exec()
 
@@ -90,7 +90,7 @@ router.post('/popular', async (req, res, next) => {
             .sort('views')
             .skip(req.body.skip)
             .limit(20)
-            .select('__v owner name goal.images goal.users views')
+            .select('__v owner name images users views')
             .lean()
             .exec()
 

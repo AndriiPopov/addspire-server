@@ -9,14 +9,12 @@ module.exports = function() {
         const db = process.env.websiter_db
         mongoose.set('useFindAndModify', false)
         mongoose.connect(db, { poolSize: 100 }).then(async () => {
-            // Account.updateMany(
-            //     {},
-            //     { recentProgresses: [] },
-            //     { multi: true },
-            //     function(err, numberAffected) {
-            //         console.log(numberAffected)
-            //     }
-            // )
+            // Account.updateMany({}, { rewards: [] }, { multi: true }, function(
+            //     err,
+            //     numberAffected
+            // ) {
+            //     console.log(numberAffected)
+            // })
             // System.updateMany(
             //     {},
             //     { notifications: [] },

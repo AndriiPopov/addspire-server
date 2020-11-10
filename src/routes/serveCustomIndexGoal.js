@@ -21,10 +21,9 @@ router.get('/:id', async (req, res, next) => {
     try {
         if (indexData) {
             const progress = await Progress.findById(req.params.id)
-                .select('goal.name goal.images goal.descriptionText')
+                .select('name images descriptionText')
                 .lean()
                 .exec()
-            console.log(progress)
             if (progress)
                 res.send(
                     indexData.replace(
@@ -34,24 +33,23 @@ router.get('/:id', async (req, res, next) => {
                     progress._id
                 }" />
                 <meta property="og:title" content="${
-                    progress.goal.name
+                    progress.name
                 } goal on Addspire.com - a social network for sharing and supporting ideas, promises and resolutions." />
-                <meta property="og:description" content="${progress.goal
-                    .descriptionText || ''}" />
-                <meta property="og:image" content="${(progress.goal.images &&
-                    progress.goal.images.length > 0 &&
-                    progress.goal.images[0]) ||
+                <meta property="og:description" content="${progress.descriptionText ||
+                    ''}" />
+                <meta property="og:image" content="${(progress.images &&
+                    progress.images.length > 0 &&
+                    progress.images[0]) ||
                     'https://addspire.com/logo.jpg'}" />
                 <meta property="og:type" content="website" />
                 
                 <meta name="twitter:card" content="summary_large_image">
-                <meta name="twitter:title" content="${progress.goal.name}">
-                <meta name="twitter:description" content="${progress.goal
-                    .descriptionText || ''}">
-                <meta name="twitter:image:src" content="${(progress.goal
-                    .images &&
-                    progress.goal.images.length > 0 &&
-                    progress.goal.images[0]) ||
+                <meta name="twitter:title" content="${progress.name}">
+                <meta name="twitter:description" content="${progress.descriptionText ||
+                    ''}">
+                <meta name="twitter:image:src" content="${(progress.images &&
+                    progress.images.length > 0 &&
+                    progress.images[0]) ||
                     'https://addspire.com/logo.jpg'}">
                 <meta name="twitter:url" content="https://addspire.com/goals/${
                     progress._id

@@ -1,5 +1,6 @@
 const { Account } = require('../models/account')
 const Joi = require('@hapi/joi')
+Joi.objectId = require('joi-objectid')(Joi)
 const { JoiLength } = require('../constants/fieldLength')
 
 const getAccount = require('../utils/getAccount')
@@ -60,16 +61,13 @@ const addRecentProgressSchema = Joi.object({
     accountId: Joi.string()
         .max(JoiLength.name)
         .required(),
-
-    progressId: Joi.string().required(),
+    progressId: Joi.objectId().required(),
 }).unknown(true)
 
 module.exports.addRecentProgress = async (data, ws) => {
     try {
         const { error } = addRecentProgressSchema.validate(data)
         if (error) {
-            console.log(error)
-            sendError(ws, 'Bad data!')
             return
         }
 
@@ -167,7 +165,7 @@ module.exports.deleteAccount = async (data, ws) => {
             {
                 $pull: {
                     followingAccounts: data.accountId,
-                    'goal.users': data.accountId,
+                    users: data.accountId,
                 },
                 $push: {
                     notifications: {

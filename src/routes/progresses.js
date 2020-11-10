@@ -8,24 +8,29 @@ const router = express.Router()
 
 router.get('/:id', async (req, res, next) => {
     try {
-        console.log('start')
-
         const progress = await Progress.findOneAndUpdate(
             { _id: req.params.id },
             { $inc: { views: 1 } }
         )
             .lean()
             .exec()
-        console.log(progress)
         if (progress) {
-            console.log('go further')
+            const posts = await Post.find({
+                _id: { $in: progress.posts },
+            })
+                .lean()
+                .exec()
 
             let accountIds = [
                 progress.owner,
-                ...progress.goal.users,
+                ...progress.users,
                 ...progress.followingAccounts,
                 ...progress.likes,
             ]
+
+            for (let post of posts) {
+                accountIds = [...accountIds, ...post.users]
+            }
 
             accountIds = [...new Set(accountIds)]
             const friends = await Account.find({
@@ -35,11 +40,6 @@ router.get('/:id', async (req, res, next) => {
                 .lean()
                 .exec()
 
-            const posts = await Post.find({
-                _id: { $in: progress.posts },
-            })
-                .lean()
-                .exec()
             res.send({
                 progress,
                 friendData: friends,

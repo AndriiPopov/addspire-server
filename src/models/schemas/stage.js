@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const { mongoLength } = require('../../constants/fieldLength')
-const rewardsSchema = require('./reward')
 
 const stageSchema = new mongoose.Schema(
     {
@@ -23,7 +22,7 @@ const stageSchema = new mongoose.Schema(
                 },
             },
         ],
-        paid: [rewardsSchema],
+        paid: [String],
         status: String,
         dismissed: Boolean,
         old: Boolean,

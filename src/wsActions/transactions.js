@@ -74,7 +74,7 @@ module.exports.confirmTransaction = async (data, ws) => {
             sendError(ws, 'Bad data!')
             return
         }
-
+        console.log('here')
         const transaction = await Transaction.findOneAndUpdate(
             { _id: data.id },
             { status: 'Confirmed' }
@@ -83,9 +83,12 @@ module.exports.confirmTransaction = async (data, ws) => {
         const buyer = await Account.findById(transaction.to)
             .select('myNotifications notifications __v')
             .exec()
-        const seller = await Account.findById(transaction.from)
-            .select('myNotifications notifications __v')
-            .exec()
+        const seller =
+            transaction.to !== transaction.from
+                ? await Account.findById(transaction.from)
+                      .select('myNotifications notifications __v')
+                      .exec()
+                : buyer
         if (seller && buyer) {
             const newNotificationId = await getNotificationId()
             const notification = {
@@ -93,18 +96,18 @@ module.exports.confirmTransaction = async (data, ws) => {
                 code: 'confirm transaction',
                 notId: newNotificationId,
                 details: {
-                    itemName: transaction.item.itemName,
-                    itemId: transaction.item.itemId,
-                    price: transaction.amount,
+                    itemName: transaction.rewardName,
+                    itemId: transaction.reward,
                     buyer: buyer._id,
                 },
             }
 
             addNotification(seller, notification, true, true)
-            addNotification(buyer, notification, true, true)
+            if (transaction.to !== transaction.from)
+                addNotification(buyer, notification, true, true)
 
-            buyer.save()
-            seller.save()
+            await buyer.save()
+            if (transaction.to !== transaction.from) await seller.save()
         }
         sendSuccess(ws)
     } catch (ex) {

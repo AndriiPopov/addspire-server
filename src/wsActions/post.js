@@ -92,7 +92,7 @@ module.exports.sendMessage = async (data, ws) => {
             account.followPosts.push(post._id.toString())
             account.save()
         }
-
+        if (!post.users.includes(account._id)) post.users.push(account._id)
         post.save()
         ws.send(
             JSON.stringify({
@@ -146,6 +146,7 @@ module.exports.changeLikesMessage = async (data, ws) => {
                 account.followPosts.push(post._id.toString())
                 account.save()
             }
+            if (!post.users.includes(account._id)) post.users.push(account._id)
             post.save()
         }
     } catch (ex) {

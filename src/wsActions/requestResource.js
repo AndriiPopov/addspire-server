@@ -4,6 +4,7 @@ const { Account } = require('../models/account')
 const { Progress } = require('../models/progress')
 const { Transaction } = require('../models/transaction')
 const { Post } = require('../models/post')
+const { Reward } = require('../models/reward')
 
 // const validateSchema = Joi.object({
 //     ids: Joi.array().items(Joi.string().optional()),
@@ -54,6 +55,14 @@ module.exports.requestResource = async (data, ws) => {
                         .exec()
                     break
 
+                case 'reward':
+                    result = await Reward.find({
+                        _id: { $in: data.ids },
+                    })
+                        .lean()
+                        .exec()
+                    break
+
                 case 'friendData':
                     result = await Account.find({
                         _id: { $in: data.ids },
@@ -78,7 +87,7 @@ module.exports.requestResource = async (data, ws) => {
                         _id: { $in: data.ids },
                     })
                         .select(
-                            'worker owner goal notifications __v name views'
+                            'worker owner notifications __v name views images'
                         )
                         .lean()
                         .exec()
@@ -90,6 +99,37 @@ module.exports.requestResource = async (data, ws) => {
                     })
                         .lean()
                         .exec()
+
+                    break
+                case 'rewardData':
+                    result = await Reward.find({
+                        _id: { $in: data.ids },
+                    })
+                        .select('name owner images post likes wish __v')
+                        .lean()
+                        .exec()
+
+                    // const posts = await Post.find({
+                    //     _id: { $in: rewards.map(item => item.post) },
+                    // })
+                    //     .select('startMessage.likes __v')
+                    //     .lean()
+                    //     .exec()
+
+                    // result = rewards.map(reward => {
+                    //     const post = posts.find(
+                    //         item => item._id === reward.post
+                    //     )
+
+                    //     return {
+                    //         ...reward,
+                    //         likes:
+                    //             (post &&
+                    //                 post.startMessage &&
+                    //                 post.startMessage.likes) ||
+                    //             0,
+                    //     }
+                    // })
 
                     break
                 default:

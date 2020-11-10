@@ -3,7 +3,6 @@ const mongoose = require('mongoose')
 const { mongoLength } = require('../constants/fieldLength')
 const notificationSchema = require('./schemas/notification')
 const stageSchema = require('./schemas/stage')
-const goalSchema = require('./schemas/goal')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
 const types = mongoose.Schema.Types
@@ -14,7 +13,6 @@ const progressSchema = new mongoose.Schema(
         owner: String,
         stages: [stageSchema],
         status: String,
-        goal: goalSchema,
         currentId: {
             type: Number,
             default: 0,
@@ -23,10 +21,41 @@ const progressSchema = new mongoose.Schema(
         admins: [String],
         settings: {},
         notifications: [notificationSchema],
-        name: { type: String, index: true },
         views: { type: Number, default: 0 },
         likes: [String],
         followingAccounts: [String],
+        name: {
+            type: String,
+            required: true,
+            default: 'New goal',
+            maxlength: mongoLength.name,
+        },
+        description: {},
+        descriptionText: {
+            type: String,
+            default: '',
+            maxlength: mongoLength.description,
+        },
+        images: [
+            {
+                type: String,
+                default: '',
+                maxlength: 500,
+            },
+        ],
+        privacy: {
+            type: String,
+            enum: ['public', 'private'],
+            required: true,
+            default: 'public',
+        },
+        users: [String],
+        rewards: [String],
+        repeat: String,
+        days: [String],
+        position: {},
+        nomap: Boolean,
+        category: [String],
     },
     { minimize: false }
 )
@@ -34,7 +63,7 @@ const progressSchema = new mongoose.Schema(
 //     this.increment()
 //     return next()
 // })
-progressSchema.index({ 'goal.position': '2dsphere' })
+progressSchema.index({ position: '2dsphere' })
 progressSchema.plugin(updateIfCurrentPlugin)
 
 progressSchema.pre(

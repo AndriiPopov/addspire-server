@@ -3,14 +3,22 @@ const {
     requestProgress,
     changeStage,
     getFriendsData,
-    editGoalInProgress,
+    editProgress,
     leaveProgress,
-    saveReward,
-    deleteReward,
+
     startProgress,
     changeLikesProgress,
     // deleteProgress,
+    deleteRewardFromProgress,
+    addRewardToProgress,
 } = require('../wsActions/progress')
+
+const {
+    saveReward,
+    deleteReward,
+    changeLikesReward,
+} = require('../wsActions/reward')
+
 const {
     sendMessage,
     changeLikesMessage,
@@ -61,10 +69,12 @@ const connectSocket = server => {
                 account: {},
                 progress: {},
                 post: {},
+                reward: {},
                 transactionData: {},
                 friendData: {},
                 progressData: {},
                 postData: {},
+                rewardData: {},
             }
             ws.isAlive = true
             ws.createdTime = Date.now()
@@ -106,8 +116,8 @@ const connectSocket = server => {
                         case 'getFriendsData':
                             getFriendsData(data, ws)
                             break
-                        case 'editGoalInProgress':
-                            editGoalInProgress(data, ws)
+                        case 'editProgress':
+                            editProgress(data, ws)
                             break
                         case 'editAccount':
                             editAccount(data, ws)
@@ -160,6 +170,9 @@ const connectSocket = server => {
                         case 'deleteReward':
                             deleteReward(data, ws)
                             break
+                        case 'changeLikesReward':
+                            changeLikesReward(data, ws)
+                            break
                         case 'setLastSeenNot':
                             setLastSeenNot(data, ws)
                             break
@@ -178,6 +191,13 @@ const connectSocket = server => {
                         case 'changeLikesProgress':
                             changeLikesProgress(data, ws)
                             break
+                        case 'deleteRewardFromProgress':
+                            deleteRewardFromProgress(data, ws)
+                            break
+                        case 'addRewardToProgress':
+                            addRewardToProgress(data, ws)
+                            break
+
                         // case 'deleteProgress':
                         //     deleteProgress(data, ws)
                         //     break

@@ -4,10 +4,7 @@ const { mongoLength } = require('../constants/fieldLength')
 
 const { postSchema } = require('./post')
 const notificationSchema = require('./schemas/notification')
-const milestoneSchema = require('./schemas/milestone')
 const perkSchema = require('./schemas/perk')
-const wishlistItemSchema = require('./schemas/wishlistItem')
-const moneySchema = require('./schemas/money')
 const friendSchema = require('./schemas/friend')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
@@ -33,8 +30,6 @@ const accountSchema = new mongoose.Schema(
         settings: {},
         progresses: [String],
         perks: [perkSchema],
-        wishlist: [wishlistItemSchema],
-        wallet: [moneySchema],
         transactions: [String],
         friends: [friendSchema],
         followPosts: [String],
@@ -59,6 +54,10 @@ const accountSchema = new mongoose.Schema(
         followProgresses: [String],
         tokens: [String],
         recentProgresses: [String],
+        rewards: [String],
+        language: { type: String, default: 'en' },
+        description: {},
+        descriptionText: String,
     },
     { minimize: false }
 )
