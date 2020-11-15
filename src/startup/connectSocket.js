@@ -68,12 +68,12 @@ const connectSocket = server => {
             process.env.REDIS_URL || ''
         )
         const scan = promisify(client.scan).bind(client)
-        const scanAll = async pattern => {
+        const scanAll = async () => {
             const found = []
             let cursor = '0'
 
             do {
-                const reply = await scan(cursor, 'MATCH', pattern)
+                const reply = await scan(cursor)
 
                 cursor = reply[0]
                 found.push(...reply[1])
