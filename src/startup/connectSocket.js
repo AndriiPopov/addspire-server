@@ -237,8 +237,8 @@ const connectSocket = server => {
             ws.on('close', async () => {})
         })
 
-        const interval = setInterval(() => {
-            const onlineUsers = scanAll()
+        const interval = setInterval(async () => {
+            const onlineUsers = await scanAll()
             wss.clients.forEach(async ws => {
                 if (ws.isAlive === false) {
                     return ws.terminate()
