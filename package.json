@@ -49,6 +49,7 @@
         "rate-limiter-flexible": "^2.0.0",
         "react": "^16.13.1",
         "react-dom": "^16.13.1",
+        "redis": "^3.0.2",
         "winston": "^3.2.1",
         "winston-mongodb": "^3.0.2",
         "ws": "^7.3.1"

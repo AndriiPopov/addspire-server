@@ -56,13 +56,30 @@ const { heartbeat } = require('../wsActions/heartbeat')
 const { requestResource } = require('../wsActions/requestResource')
 const { Server } = require('ws')
 const { sendError } = require('../wsActions/confirm')
+const { promisify } = require('util')
 
+const scanAll = async client => {
+    const found = []
+    let cursor = '0'
+
+    do {
+        const reply = await promisify(client.scan)
+
+        cursor = reply[0]
+        found.push(...reply[1])
+    } while (cursor !== '0')
+
+    return new Set(found)
+}
 const connectSocket = server => {
     try {
         const wss = new Server({ server })
 
         setTimeout(() => pushChanges(wss), 4000)
 
+        const client = require('redis').createClient(
+            process.env.REDIS_URL || ''
+        )
         wss.on('connection', function connection(ws) {
             ws.resources = {
                 user: {},
@@ -84,7 +101,7 @@ const connectSocket = server => {
                     const data = JSON.parse(message)
                     switch (data.messageCode) {
                         case 'heartbeat':
-                            heartbeat(ws, data)
+                            heartbeat(ws, data, client)
                             break
                         case 'auth':
                             auth(ws, data)
@@ -197,7 +214,10 @@ const connectSocket = server => {
                         case 'addRewardToProgress':
                             addRewardToProgress(data, ws)
                             break
-
+                        case 'currentAccount':
+                            ws.account = data.id
+                            client.set(data.id, true, 'EX', 40)
+                            break
                         // case 'deleteProgress':
                         //     deleteProgress(data, ws)
                         //     break
@@ -217,15 +237,24 @@ const connectSocket = server => {
         })
 
         const interval = setInterval(() => {
+            const onlineUsers = scanAll(client)
             wss.clients.forEach(async ws => {
                 if (ws.isAlive === false) {
                     return ws.terminate()
                 }
                 ws.isAlive = false
+                const clientOnlineUsers = []
+                for (let key in ws.resources.account) {
+                    if (onlineUsers.has(kay)) clientOnlineUsers.push(key)
+                }
+                for (let key in ws.resources.friendData) {
+                    if (onlineUsers.has(kay)) clientOnlineUsers.push(key)
+                }
                 ws.send(
                     JSON.stringify({
                         messageCode: 'heartbeat',
                         versions: ws.resources,
+                        onlineUsers: clientOnlineUsers,
                     })
                 )
             })

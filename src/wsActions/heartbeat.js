@@ -1,6 +1,8 @@
-module.exports.heartbeat = async (ws, data) => {
+module.exports.heartbeat = async (ws, data, client) => {
     try {
         ws.isAlive = true
+        client.set(ws.account, true, 'EX', 40)
+
         if (data.notNeededResources) {
             for (let type of [
                 'user',
