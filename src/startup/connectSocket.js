@@ -79,7 +79,7 @@ const connectSocket = server => {
                 found.push(...reply[1])
             } while (cursor !== '0')
 
-            return found
+            return new Set(found)
         }
         wss.on('connection', function connection(ws) {
             ws.resources = {
