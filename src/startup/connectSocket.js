@@ -58,19 +58,6 @@ const { Server } = require('ws')
 const { sendError } = require('../wsActions/confirm')
 const { promisify } = require('util')
 
-const scanAll = async client => {
-    const found = []
-    let cursor = '0'
-
-    do {
-        const reply = await promisify(client.scan)
-
-        cursor = reply[0]
-        found.push(...reply[1])
-    } while (cursor !== '0')
-
-    return new Set(found)
-}
 const connectSocket = server => {
     try {
         const wss = new Server({ server })
@@ -80,6 +67,20 @@ const connectSocket = server => {
         const client = require('redis').createClient(
             process.env.REDIS_URL || ''
         )
+        const scan = promisify(client.scan).bind(client)
+        const scanAll = async pattern => {
+            const found = []
+            let cursor = '0'
+
+            do {
+                const reply = await scan(cursor, 'MATCH', pattern)
+
+                cursor = reply[0]
+                found.push(...reply[1])
+            } while (cursor !== '0')
+
+            return found
+        }
         wss.on('connection', function connection(ws) {
             ws.resources = {
                 user: {},
@@ -237,7 +238,7 @@ const connectSocket = server => {
         })
 
         const interval = setInterval(() => {
-            const onlineUsers = scanAll(client)
+            const onlineUsers = scanAll()
             wss.clients.forEach(async ws => {
                 if (ws.isAlive === false) {
                     return ws.terminate()
@@ -245,10 +246,10 @@ const connectSocket = server => {
                 ws.isAlive = false
                 const clientOnlineUsers = []
                 for (let key in ws.resources.account) {
-                    if (onlineUsers.has(kay)) clientOnlineUsers.push(key)
+                    if (onlineUsers.has(key)) clientOnlineUsers.push(key)
                 }
                 for (let key in ws.resources.friendData) {
-                    if (onlineUsers.has(kay)) clientOnlineUsers.push(key)
+                    if (onlineUsers.has(key)) clientOnlineUsers.push(key)
                 }
                 ws.send(
                     JSON.stringify({
