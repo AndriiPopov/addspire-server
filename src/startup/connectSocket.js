@@ -65,7 +65,7 @@ const connectSocket = server => {
         setTimeout(() => pushChanges(wss), 4000)
 
         const client = require('redis').createClient(
-            process.env.REDIS_URL || ''
+            process.env.REDIS_URL || undefined
         )
         const scan = promisify(client.scan).bind(client)
         const scanAll = async () => {
