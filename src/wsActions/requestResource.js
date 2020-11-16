@@ -11,13 +11,14 @@ const { Reward } = require('../models/reward')
 //     type: Joi.string().valid('user', 'website', 'resource'),
 // }).unknown()
 
-module.exports.requestResource = async (data, ws) => {
+module.exports.requestResource = async (data, ws, client) => {
     try {
         // const { error } = validateSchema.validate(data)
         // if (error) return
 
         //Compare and send not found resources!!!!!!!!
         let result
+        const onlineUsers = []
         if (data.type && data.ids && data.ids.length > 0) {
             switch (data.type) {
                 case 'user':
@@ -34,6 +35,9 @@ module.exports.requestResource = async (data, ws) => {
                     })
                         .lean()
                         .exec()
+                    for (let user of data.ids)
+                        if (client.get(user)) onlineUsers.push(user)
+
                     break
                 case 'progress':
                     result = [
@@ -70,6 +74,8 @@ module.exports.requestResource = async (data, ws) => {
                         .select('name image notifications __v')
                         .lean()
                         .exec()
+                    for (let user of data.ids)
+                        if (client.get(user)) onlineUsers.push(user)
 
                     break
                 case 'postData':
@@ -145,6 +151,7 @@ module.exports.requestResource = async (data, ws) => {
                         messageCode: 'addResource',
                         type: data.type,
                         resources: result,
+                        newOnlineUsers: onlineUsers,
                     })
                 )
             } else {

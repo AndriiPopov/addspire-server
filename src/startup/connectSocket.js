@@ -108,7 +108,7 @@ const connectSocket = server => {
                             auth(ws, data)
                             break
                         case 'requestResource':
-                            requestResource(data, ws)
+                            requestResource(data, ws, client)
                             break
                         case 'sendMessage':
                             sendMessage(data, ws)
