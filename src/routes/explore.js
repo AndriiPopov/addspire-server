@@ -23,36 +23,39 @@ router.post('/search', async (req, res, next) => {
         // }
 
         const search = req.body.value
-        const progresses = search.withMap
-            ? await Progress.find({
-                  position: {
-                      $geoWithin: {
-                          $centerSphere: [
-                              [search.position[1], search.position[0]],
-                              search.distance /
-                                  (search.units === 'mi' ? 3963 : 6377),
-                          ],
-                      },
-                  },
-                  ...(search.value
-                      ? { name: new RegExp(search.value, 'gi') }
-                      : {}),
-              })
-                  .sort('views')
-                  .skip(req.body.skip)
-                  .limit(20)
-                  .select('__v owner name images users views')
-                  .lean()
-                  .exec()
-            : await Progress.find({
-                  name: new RegExp(search.value, 'gi'),
-              })
-                  .sort('views')
-                  .skip(req.body.skip)
-                  .limit(20)
-                  .select('__v owner name images users views')
-                  .lean()
-                  .exec()
+
+        const query = {}
+        let isSearch
+        if (search.withMap) {
+            query.position = {
+                $geoWithin: {
+                    $centerSphere: [
+                        [search.position[1], search.position[0]],
+                        search.distance / (search.units === 'mi' ? 3963 : 6377),
+                    ],
+                },
+            }
+            isSearch = true
+        }
+        if (search.value) {
+            query.name = new RegExp(search.value, 'gi')
+            isSearch = true
+        }
+        if (search.categories.length > 0) {
+            query.category = {
+                $elemMatch: {
+                    $in: search.categories,
+                },
+            }
+            isSearch = true
+        }
+        const progresses = await Progress.find(isSearch ? query : undefined)
+            .sort('views')
+            .skip(req.body.skip)
+            .limit(20)
+            .select('__v owner name images users views')
+            .lean()
+            .exec()
 
         let friends = progresses.map(item => item.owner)
 

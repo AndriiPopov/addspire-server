@@ -45,6 +45,7 @@ const {
     addFriend,
     acceptFriend,
     unfriend,
+    shareWithFriends,
 } = require('../wsActions/friends')
 const {
     cancelTransaction,
@@ -178,6 +179,9 @@ const connectSocket = server => {
                             break
                         case 'unfriend':
                             unfriend(data, ws)
+                            break
+                        case 'shareWithFriends':
+                            shareWithFriends(data, ws)
                             break
                         case 'startProgress':
                             startProgress(data, ws)

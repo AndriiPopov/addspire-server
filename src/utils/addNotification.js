@@ -1,12 +1,10 @@
 const mongoose = require('mongoose')
 
 const { Expo } = require('expo-server-sdk')
-var moment = require('moment')
 const { System } = require('../models/system')
 const { Account } = require('../models/account')
 const { Progress } = require('../models/progress')
 let expo = new Expo()
-moment().format()
 
 let notifications = []
 module.exports = (el, notification, myNot, bothNot) => {

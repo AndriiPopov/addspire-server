@@ -302,3 +302,46 @@ module.exports.unfriend = async (data, ws) => {
         sendError(ws, 'Something failed.')
     }
 }
+
+module.exports.shareWithFriends = async (data, ws) => {
+    try {
+        // const { error } = changeFriendshipSchema.validate(data)
+        // if (error) {
+        //     console.log(error)
+        //     sendError(ws, 'Bad data!')
+        //     return
+        // }
+
+        if (!data.accountId || !data.url || !data.friends) {
+            console.log(error)
+            sendError(ws, 'Bad data!')
+            return
+        }
+
+        for (let id of data.friends) {
+            const account = await Account.findById(id)
+                .select('myNotifications __v')
+                .exec()
+            if (account) {
+                const newNotificationId = await getNotificationId()
+                if (data.item)
+                    addNotification(
+                        account,
+                        {
+                            user: data.accountId,
+                            code: 'shared',
+                            notId: newNotificationId,
+                            details: { ...data.item, url: data.url },
+                        },
+                        true
+                    )
+
+                account.save()
+            }
+        }
+        sendSuccess(ws)
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Something failed.')
+    }
+}

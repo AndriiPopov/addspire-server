@@ -389,10 +389,11 @@ module.exports.editProgress = async (data, ws) => {
             const progressObj = progress.toObject()
             if (progress.owner === accountId) {
                 const oldProgress = progress.toObject()
-                progress = {
-                    ...oldProgress,
-                    ...data.value,
-                }
+                Object.assign(progress, data.value)
+                // progress = {
+                //     ...oldProgress,
+                //     ...data.value,
+                // }
 
                 const allOldAccounts = [
                     ...new Set([...oldProgress.users, oldProgress.owner]),

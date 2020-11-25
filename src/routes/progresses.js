@@ -59,4 +59,39 @@ router.get('/:id', async (req, res, next) => {
     }
 })
 
+router.post('/similar', async (req, res, next) => {
+    try {
+        const search = req.body.search
+        const progresses = await Progress.find({
+            category: {
+                $elemMatch: {
+                    $in: search.categories,
+                },
+            },
+            _id: { $ne: search.currentId },
+            position: {
+                $near: {
+                    $geometry: search.position,
+                },
+            },
+        })
+            .sort('views')
+            .limit(10)
+            .select('name images')
+            .lean()
+            .exec()
+
+        res.send({
+            progresses,
+
+            success: true,
+        })
+    } catch (ex) {
+        console.log(ex)
+        res.send({
+            success: false,
+        })
+    }
+})
+
 module.exports = router
