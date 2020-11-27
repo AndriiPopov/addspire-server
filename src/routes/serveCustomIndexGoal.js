@@ -60,6 +60,7 @@ router.get('/:id', async (req, res, next) => {
                 `
                     )
                 )
+            else res.send(indexData)
         } else {
             getIndexData()
         }
