@@ -14,6 +14,7 @@ const auth = require('../routes/auth')
 const authApp = require('../routes/authApp')
 const user = require('../routes/user')
 const blog = require('../routes/blog')
+const sitemap = require('../routes/sitemap')
 const error = require('../middleware/error')
 const notificationToken = require('../routes/notification')
 const authtest = require('../routes/authtest')
@@ -60,6 +61,7 @@ module.exports = function(app) {
     app.use('/goals', serveCustomIndexGoal)
     app.use('/rewards', serveCustomIndexReward)
     app.use('/wishlist', serveCustomIndexReward)
+    app.use('/sitemap.xml', sitemap)
 
     app.use('/api/authtest', authtest)
     app.get('*', (req, res) => {

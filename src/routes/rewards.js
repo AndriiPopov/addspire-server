@@ -32,9 +32,10 @@ router.get('/:id', async (req, res, next) => {
                 })
                 return
             }
-        } else console.log('send fail')
+        }
         res.send({
             success: false,
+            home: true,
         })
     } catch (ex) {
         console.log(ex)

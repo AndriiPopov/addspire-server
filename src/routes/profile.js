@@ -19,8 +19,9 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
 
         if (!profile) {
             res.send({
-                account,
                 success: false,
+                home: true,
+                account,
             })
             return
         }
