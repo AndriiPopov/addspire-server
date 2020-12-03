@@ -33,51 +33,51 @@ module.exports.saveReward = async (data, ws) => {
                         .lean()
                         .exec()
                     if (reward) {
-                        const newNotificationIdPost = await getNotificationId()
+                        // const newNotificationIdPost = await getNotificationId()
 
-                        await Post.findOneAndUpdate(
-                            { _id: reward.post },
-                            {
-                                $set: {
-                                    startMessage: {
-                                        author: account._id,
-                                        text: newData.description,
-                                        action: reward.wish
-                                            ? 'edit wishlist item'
-                                            : 'edit reward',
-                                        image: newData.images,
-                                        messageId: '0',
-                                        messageType: reward.wish
-                                            ? 'wishlist'
-                                            : 'reward',
-                                        details: {
-                                            owner: account._id,
-                                            name: newData.name,
-                                            itemId: reward._id,
-                                        },
-                                    },
-                                },
-                                $push: {
-                                    notifications: {
-                                        $each: [
-                                            {
-                                                user: account._id,
-                                                code: reward.wish
-                                                    ? 'edit wishlist item'
-                                                    : 'edit reward',
-                                                notId: newNotificationIdPost,
-                                                details: {
-                                                    itemId: reward._id,
-                                                },
-                                            },
-                                        ],
-                                        $position: 0,
-                                        $slice: 20,
-                                    },
-                                },
-                            },
-                            { useFindAndModify: false }
-                        )
+                        // await Post.findOneAndUpdate(
+                        //     { _id: reward.post },
+                        //     {
+                        //         $set: {
+                        //             startMessage: {
+                        //                 author: account._id,
+                        //                 text: newData.description,
+                        //                 action: reward.wish
+                        //                     ? 'edit wishlist item'
+                        //                     : 'edit reward',
+                        //                 image: newData.images,
+                        //                 messageId: '0',
+                        //                 messageType: reward.wish
+                        //                     ? 'wishlist'
+                        //                     : 'reward',
+                        //                 details: {
+                        //                     owner: account._id,
+                        //                     name: newData.name,
+                        //                     itemId: reward._id,
+                        //                 },
+                        //             },
+                        //         },
+                        //         $push: {
+                        //             notifications: {
+                        //                 $each: [
+                        //                     {
+                        //                         user: account._id,
+                        //                         code: reward.wish
+                        //                             ? 'edit wishlist item'
+                        //                             : 'edit reward',
+                        //                         notId: newNotificationIdPost,
+                        //                         details: {
+                        //                             itemId: reward._id,
+                        //                         },
+                        //                     },
+                        //                 ],
+                        //                 $position: 0,
+                        //                 $slice: 20,
+                        //             },
+                        //         },
+                        //     },
+                        //     { useFindAndModify: false }
+                        // )
                         addNotification(account, {
                             user: account._id,
                             code: reward.wish
@@ -96,30 +96,30 @@ module.exports.saveReward = async (data, ws) => {
                         wish: data.wish || false,
                         owner: account._id,
                     })
-                    const post = new Post({
-                        users: [data.accountId],
-                        parent: {
-                            parentId: reward._id,
-                            parentType: reward.wish ? 'wishlist' : 'reward',
-                        },
-                        startMessage: {
-                            author: data.accountId,
-                            text: newData.description,
-                            action: reward.wish
-                                ? 'add wishlist item'
-                                : 'add reward',
-                            image: newData.images,
-                            messageId: '0',
-                            messageType: reward.wish ? 'wishlist' : 'reward',
-                            details: {
-                                owner: data.accountId,
-                                name: newData.name,
-                                itemId: reward._id,
-                            },
-                        },
-                    })
-                    await post.save()
-                    reward.post = post._id
+                    // const post = new Post({
+                    //     users: [data.accountId],
+                    //     parent: {
+                    //         parentId: reward._id,
+                    //         parentType: reward.wish ? 'wishlist' : 'reward',
+                    //     },
+                    //     startMessage: {
+                    //         author: data.accountId,
+                    //         text: newData.description,
+                    //         action: reward.wish
+                    //             ? 'add wishlist item'
+                    //             : 'add reward',
+                    //         image: newData.images,
+                    //         messageId: '0',
+                    //         messageType: reward.wish ? 'wishlist' : 'reward',
+                    //         details: {
+                    //             owner: data.accountId,
+                    //             name: newData.name,
+                    //             itemId: reward._id,
+                    //         },
+                    //     },
+                    // })
+                    // await post.save()
+                    // reward.post = post._id
                     await reward.save()
 
                     account.myPosts.push(post._id.toString())

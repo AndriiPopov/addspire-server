@@ -10,7 +10,7 @@ const rateLimiterMiddleware = require('./middleware/rateLimiter')
 const oneOffTask = require('./startup/oneOffTask')
 const cors = require('cors')
 const connectSocket = require('./startup/connectSocket')
-
+require('./startup/redis')
 const app = express()
 prod(app)
 app.use(cors())

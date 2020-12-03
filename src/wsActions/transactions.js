@@ -26,7 +26,7 @@ module.exports.cancelTransaction = async (data, ws) => {
 
         const transaction = await Transaction.findOneAndUpdate(
             { _id: data.id },
-            { status: 'Cancelled' }
+            { status: 'cancelled' }
         )
         const buyer = await Account.findById(transaction.to)
             .select('wallet myNotifications notifications __v')
@@ -68,46 +68,69 @@ module.exports.cancelTransaction = async (data, ws) => {
 
 module.exports.confirmTransaction = async (data, ws) => {
     try {
-        const { error } = transactionSchema.validate(data)
-        if (error) {
-            console.log(error)
-            sendError(ws, 'Bad data!')
-            return
-        }
+        // const { error } = transactionSchema.validate(data)
+        // if (error) {
+        //     console.log(error)
+        //     sendError(ws, 'Bad data!')
+        //     return
+        // }
         const transaction = await Transaction.findOneAndUpdate(
             { _id: data.id },
-            { status: 'Confirmed' }
+            { status: data.status }
         )
 
-        const buyer = await Account.findById(transaction.to)
-            .select('myNotifications notifications __v')
-            .exec()
-        const seller =
-            transaction.to !== transaction.from
-                ? await Account.findById(transaction.from)
-                      .select('myNotifications notifications __v')
-                      .exec()
-                : buyer
-        if (seller && buyer) {
-            const newNotificationId = await getNotificationId()
-            const notification = {
-                user: seller._id,
-                code: 'confirm transaction',
-                notId: newNotificationId,
-                details: {
-                    itemName: transaction.rewardName,
-                    itemId: transaction.reward,
-                    buyer: buyer._id,
+        // const buyer = await Account.findById(transaction.to)
+        //     .select('myNotifications notifications __v')
+        //     .exec()
+        // const seller =
+        //     transaction.to !== transaction.from
+        //         ? await Account.findById(transaction.from)
+        //               .select('myNotifications notifications __v')
+        //               .exec()
+        //         : buyer
+        // if (seller && buyer) {
+        //     const newNotificationId = await getNotificationId()
+        //     const notification = {
+        //         user: seller._id,
+        //         code: 'confirm transaction',
+        //         notId: newNotificationId,
+        //         details: {
+        //             itemName: transaction.rewardName,
+        //             itemId: transaction.reward,
+        //             buyer: buyer._id,
+        //         },
+        //     }
+
+        //     addNotification(seller, notification, true, true)
+        //     if (transaction.to !== transaction.from)
+        //         addNotification(buyer, notification, true, true)
+
+        //     await buyer.save()
+        //     if (transaction.to !== transaction.from) await seller.save()
+        // }
+        sendSuccess(ws)
+    } catch (ex) {
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.deleteTransaction = async (data, ws) => {
+    try {
+        // const { error } = transactionSchema.validate(data)
+        // if (error) {
+        //     console.log(error)
+        //     sendError(ws, 'Bad data!')
+        //     return
+        // }
+        await Account.updateOne(
+            { _id: data.accountId },
+            {
+                $pull: {
+                    transactions: data.id,
                 },
             }
+        )
 
-            addNotification(seller, notification, true, true)
-            if (transaction.to !== transaction.from)
-                addNotification(buyer, notification, true, true)
-
-            await buyer.save()
-            if (transaction.to !== transaction.from) await seller.save()
-        }
         sendSuccess(ws)
     } catch (ex) {
         sendError(ws, 'Something failed.')

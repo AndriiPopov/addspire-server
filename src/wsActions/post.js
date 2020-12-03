@@ -8,6 +8,8 @@ const { sendError } = require('./confirm')
 const { Post } = require('../models/post')
 const { Progress } = require('../models/progress')
 const addNotification = require('../utils/addNotification')
+const { Reward } = require('../models/reward')
+const { Activity } = require('../models/activity')
 
 const sendMessageSchema = Joi.object({
     postId: Joi.string()
@@ -169,11 +171,17 @@ module.exports.addPost = async (data, ws) => {
     try {
         const { error } = addPostSchema.validate(data)
         if (error) {
-            console.log(error)
             sendError(ws, 'Bad data!')
             return
         }
-        const parent = await Progress.findById(data.parentId)
+        const model =
+            data.parentType === 'goal'
+                ? Progress
+                : data.parentType === 'reward'
+                ? Reward
+                : Activity
+        const parent = await model
+            .findById(data.parentId)
             .select('posts notifications __v')
             .exec()
 
@@ -284,3 +292,85 @@ module.exports.editPost = async (data, ws) => {
         sendError(ws)
     }
 }
+
+const deletePostSchema = Joi.object({
+    postId: Joi.string()
+        .max(JoiLength.progressId)
+        .required(),
+    accountId: Joi.string()
+        .max(JoiLength.name)
+        .required(),
+}).unknown(true)
+
+module.exports.deletePost = async (data, ws) => {
+    try {
+        const { error } = deletePostSchema.validate(data)
+        if (error) {
+            console.log(error)
+            sendError(ws, 'Bad data!')
+            return
+        }
+        const { postId } = data
+        const post = await Post.findOneAndDelete(
+            { _id: postId },
+            {
+                projection: {
+                    users: 1,
+                    parent: 1,
+                },
+            }
+        )
+
+        if (post) {
+            await Account.updateMany(
+                {
+                    _id: {
+                        $in: post.users,
+                    },
+                },
+                {
+                    $pull: {
+                        posts: postId,
+                    },
+                },
+                { useFindAndModify: false }
+            )
+
+            const model =
+                post.parent.parentType === 'goal'
+                    ? Progress
+                    : post.parent.parentType === 'reward'
+                    ? Reward
+                    : Activity
+            await model.updateOne(
+                {
+                    _id: post.parent.parentId,
+                },
+                {
+                    $pull: {
+                        posts: postId,
+                    },
+                },
+                { useFindAndModify: false }
+            )
+        }
+
+        ws.send(
+            JSON.stringify({
+                messageCode: 'postDeleted',
+            })
+        )
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}
+
+const deleteMessageSchema = Joi.object({
+    postId: Joi.string()
+        .max(JoiLength.progressId)
+        .required(),
+    accountId: Joi.string()
+        .max(JoiLength.name)
+        .required(),
+}).unknown(true)

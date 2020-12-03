@@ -7,6 +7,7 @@ const { Readable } = require('stream')
 const { Progress } = require('../models/progress')
 const { Reward } = require('../models/reward')
 const axios = require('axios')
+const { Activity } = require('../models/activity')
 const router = express.Router()
 
 let sitemap
@@ -34,10 +35,11 @@ router.get('/', async (req, res) => {
         if (ids) for (let id of ids) smStream.write({ url: '/profile/' + id })
         ids = await Progress.distinct('_id')
         if (ids) for (let id of ids) smStream.write({ url: '/goals/' + id })
-        ids = await Reward.distinct('_id', { wish: false })
+        ids = await Reward.distinct('_id')
         if (ids) for (let id of ids) smStream.write({ url: '/rewards/' + id })
-        ids = await Reward.distinct('_id', { wish: true })
-        if (ids) for (let id of ids) smStream.write({ url: '/wishlist/' + id })
+        ids = await Activity.distinct('_id', { wish: true })
+        if (ids)
+            for (let id of ids) smStream.write({ url: '/activities/' + id })
         const articles = await axios.post(
             'https://addspire-blog.herokuapp.com/graphql',
             {

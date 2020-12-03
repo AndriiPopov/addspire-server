@@ -30,6 +30,7 @@ const stageSchema = new mongoose.Schema(
         month: Number,
         week: Number,
         day: Number,
+        repeat: String,
     },
     { minimize: false, _id: false, id: false }
 )

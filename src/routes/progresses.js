@@ -3,7 +3,9 @@ const { Account } = require('../models/account')
 const express = require('express')
 const getAccount = require('../utils/getAccount')
 const { Post } = require('../models/post')
-
+const { Activity } = require('../models/activity')
+const { Reward } = require('../models/reward')
+const { mget } = require('../startup/redis')
 const router = express.Router()
 
 router.get('/:id', async (req, res, next) => {
@@ -16,14 +18,15 @@ router.get('/:id', async (req, res, next) => {
             .exec()
         if (progress) {
             const posts = await Post.find({
-                _id: { $in: progress.posts },
+                _id: {
+                    $in: progress.posts,
+                },
             })
                 .lean()
                 .exec()
 
             let accountIds = [
                 progress.owner,
-                ...progress.users,
                 ...progress.followingAccounts,
                 ...progress.likes,
             ]
@@ -32,18 +35,50 @@ router.get('/:id', async (req, res, next) => {
                 accountIds = [...accountIds, ...post.users]
             }
 
+            const activityData = await Activity.find({
+                _id: {
+                    $in: progress.activities,
+                },
+            })
+                .select('name images stages owner users')
+                .lean()
+                .exec()
+
+            for (let activity of activityData) {
+                accountIds = [...accountIds, ...activity.users, activity.owner]
+            }
+
             accountIds = [...new Set(accountIds)]
             const friends = await Account.find({
-                _id: { $in: accountIds },
+                _id: {
+                    $in: accountIds,
+                },
             })
                 .select('name image notifications')
                 .lean()
                 .exec()
 
+            const onlineUsersKeys = await mget(accountIds)
+            const onlineUsers = accountIds.filter(
+                (item, index) => onlineUsersKeys[index]
+            )
+
+            const rewardData = await Reward.find({
+                _id: {
+                    $in: progress.rewards.map(reward => reward.reward),
+                },
+            })
+                .select('name images')
+                .lean()
+                .exec()
+
             res.send({
-                progress,
+                resource: progress,
                 friendData: friends,
+                activityData,
+                rewardData,
                 posts,
+                onlineUsers,
                 success: true,
             })
             return
@@ -51,41 +86,6 @@ router.get('/:id', async (req, res, next) => {
         res.send({
             success: false,
             home: true,
-        })
-    } catch (ex) {
-        console.log(ex)
-        res.send({
-            success: false,
-        })
-    }
-})
-
-router.post('/similar', async (req, res, next) => {
-    try {
-        const search = req.body.search
-        const progresses = await Progress.find({
-            category: {
-                $elemMatch: {
-                    $in: search.categories,
-                },
-            },
-            _id: { $ne: search.currentId },
-            position: {
-                $near: {
-                    $geometry: search.position,
-                },
-            },
-        })
-            .sort('views')
-            .limit(10)
-            .select('name images')
-            .lean()
-            .exec()
-
-        res.send({
-            progresses,
-
-            success: true,
         })
     } catch (ex) {
         console.log(ex)

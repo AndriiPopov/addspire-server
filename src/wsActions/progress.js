@@ -8,6 +8,7 @@ const findMessage = require('../utils/findMessage')
 const { sendError, sendSuccess } = require('./confirm')
 const { Post } = require('../models/post')
 const { Reward } = require('../models/reward')
+const { Activity } = require('../models/activity')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
 const { updateStages } = require('../utils/updateStages')
@@ -125,186 +126,6 @@ module.exports.changeLikesProgress = async (data, ws) => {
 module.exports.requestProgress = async (data, ws) => {
     try {
         ws.progressId = data.progressId
-    } catch (ex) {
-        sendError(ws)
-    }
-}
-
-module.exports.changeStage = async (data, ws) => {
-    try {
-        const progress = await Progress.findById(data.progressId)
-        const { accountId } = data
-
-        if (
-            progress &&
-            (data.accountId === progress.owner ||
-                progress.users.includes(data.accountId))
-        ) {
-            const stage = progress.stages.find(
-                stage => stage.stageId === data.stageId
-            )
-
-            if (stage) {
-                let newNotificationId = await getNotificationId()
-                const not = {
-                    user: data.accountId,
-
-                    notId: newNotificationId,
-                    details: {
-                        stageId: stage.stageId,
-                        year: stage.year,
-                        month: stage.month,
-                        week: stage.week,
-                        day: stage.day,
-                        progressId: progress._id,
-                        progressName: progress.name,
-                    },
-                    code: 'stage progress',
-                }
-                stage.approvedBy = stage.approvedBy.filter(
-                    item => item.accountId !== data.accountId
-                )
-                stage.failBy = stage.failBy.filter(
-                    item => item.accountId !== data.accountId
-                )
-                if (progress.owner === data.accountId) stage.dismissed = false
-                switch (data.value) {
-                    case 'complete':
-                        stage.approvedBy.push({
-                            accountId: data.accountId,
-                        })
-                        not.code = 'stage approve'
-                        break
-                    case 'fail':
-                        stage.failBy.push({
-                            accountId: data.accountId,
-                        })
-                        not.code = 'stage fail'
-                        break
-                    case 'dismissed':
-                        if (progress.owner === data.accountId)
-                            stage.dismissed = true
-                        not.code = 'stage dismiss'
-                        break
-                    default:
-                        break
-                }
-                addNotification(progress, not)
-
-                // Pay and create transaction if unpaid
-
-                if (
-                    stage.status !== 'paid' &&
-                    stage.approvedBy.find(
-                        item => item.accountId === progress.owner
-                    )
-                ) {
-                    newNotificationId = await getNotificationId()
-                    addNotification(progress, {
-                        code: 'stage complete',
-                        notId: newNotificationId,
-                        details: {
-                            progressId: progress._id,
-                            progressName: progress.name,
-                            stageId: stage.stageId,
-                            year: stage.year,
-                            month: stage.month,
-                            week: stage.week,
-                            day: stage.day,
-                        },
-                    })
-                    stage.status = 'paid'
-
-                    const rewards = progress.rewards
-                    stage.paid = rewards
-
-                    if (rewards.length > 0) {
-                        for (let reward of rewards) {
-                            const rewardObject = await Reward.findById(reward)
-                                .select('name owner')
-                                .lean()
-                                .exec()
-                            if (rewardObject) {
-                                const owner = await Account.findById(
-                                    rewardObject.owner
-                                )
-                                    .select('transactions __v')
-                                    .exec()
-                                const beniciaries = progress.users
-                                for (let reciever of beniciaries) {
-                                    const worker =
-                                        owner._id.toString() !==
-                                        reciever.toString()
-                                            ? await Account.findById(reciever)
-                                                  .select('transactions __v')
-                                                  .exec()
-                                            : owner
-                                    const ownerIsWorker =
-                                        owner._id.toString() ===
-                                        worker._id.toString()
-
-                                    let transaction = new Transaction({
-                                        from: owner._id,
-                                        to: worker._id,
-                                        item: reward,
-                                        progress: progress.name,
-                                        progressId: progress._id,
-                                        status: 'not confirmed',
-                                        reward,
-                                        rewardName: rewardObject.name,
-                                    })
-                                    transaction.save()
-
-                                    owner.transactions.unshift(
-                                        transaction._id.toString()
-                                    )
-
-                                    if (!ownerIsWorker) {
-                                        worker.transactions.unshift(
-                                            transaction._id.toString()
-                                        )
-                                    }
-
-                                    await owner.save()
-                                    if (!ownerIsWorker) await worker.save()
-                                    newNotificationId = await getNotificationId()
-                                    addNotification(progress, {
-                                        user: reciever,
-                                        code: 'get reward',
-                                        notId: newNotificationId,
-                                        details: {
-                                            progressId: progress._id,
-                                            progressName: progress.name,
-                                            from: reward.owner,
-                                            reward: {
-                                                itemName: reward.name,
-                                            },
-                                        },
-                                    })
-                                }
-                            }
-                        }
-                    }
-                }
-
-                await progress.save()
-
-                ws.send(
-                    JSON.stringify({
-                        messageCode: 'successMessage',
-                        messageText: 'Changes are saved',
-                    })
-                )
-                return
-            }
-        }
-
-        ws.send(
-            JSON.stringify({
-                messageCode: 'errorMessage',
-                messageText: 'Something failed.',
-            })
-        )
     } catch (ex) {
         sendError(ws)
     }
@@ -511,64 +332,6 @@ module.exports.editProgress = async (data, ws) => {
     }
 }
 
-module.exports.saveReward = async (data, ws) => {
-    try {
-        const progress = await Progress.findById(data.progressId)
-        if (progress) {
-            let reward
-            if (data.reward.rewardId) {
-                reward = progress.rewards.find(
-                    item => item.rewardId === data.reward.rewardId
-                )
-                if (reward) {
-                    reward = Object.assign(reward, data.reward)
-                }
-            }
-            if (!reward) {
-                progress.rewards.push({
-                    ...data.reward,
-                    owner: data.accountId,
-                })
-            }
-
-            const newNotificationId = await getNotificationId()
-            addNotification(progress, {
-                user: data.reward.owner,
-                code: 'add reward',
-                notId: newNotificationId,
-                details: {
-                    for: data.reward.for,
-                    progressId: progress._id,
-                    progressName: progress.name,
-                    reward: {
-                        simple: data.reward.simple,
-                        money: data.reward.money,
-                        itemName: data.reward.itemName,
-                    },
-                },
-            })
-            progress.markModified('rewards')
-            progress.save()
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'successMessage',
-                    messageText: 'Changes are saved',
-                })
-            )
-            return
-        }
-        ws.send(
-            JSON.stringify({
-                messageCode: 'errorMessage',
-                messageText: 'Something failed...',
-            })
-        )
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
-    }
-}
-
 module.exports.deleteRewardFromProgress = async (data, ws) => {
     try {
         const progress = await Progress.findById(data.progressId)
@@ -594,6 +357,32 @@ module.exports.deleteRewardFromProgress = async (data, ws) => {
     }
 }
 
+module.exports.deleteActivityFromProgress = async (data, ws) => {
+    try {
+        await Progress.updateOne(
+            { _id: data.progressId },
+            { $pull: { activities: data.activityId } },
+            { useFindAndModify: false }
+        )
+
+        await Activity.updateOne(
+            { _id: data.activityId },
+            { $pull: { goals: data.progressId } },
+            { useFindAndModify: false }
+        )
+
+        ws.send(
+            JSON.stringify({
+                messageCode: 'successMessage',
+                messageText: 'Changes are saved',
+            })
+        )
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}
+
 module.exports.addRewardToProgress = async (data, ws) => {
     try {
         await Progress.updateOne(
@@ -609,6 +398,175 @@ module.exports.addRewardToProgress = async (data, ws) => {
             })
         )
         return
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}
+
+module.exports.addActivityToProgress = async (data, ws) => {
+    try {
+        await Progress.updateOne(
+            { _id: data.progressId },
+            { $addToSet: { activities: data.activityId } },
+            { useFindAndModify: false }
+        )
+
+        await Activity.updateOne(
+            { _id: data.activityId },
+            { $addToSet: { goals: data.progressId } },
+            { useFindAndModify: false }
+        )
+
+        ws.send(
+            JSON.stringify({
+                messageCode: 'successMessage',
+                messageText: 'Changes are saved',
+            })
+        )
+        return
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}
+
+module.exports.saveRewardInProgress = async (data, ws) => {
+    try {
+        const progress = await Progress.findById(data.goalId)
+            .select('__v rewards currentId')
+            .exec()
+        if (
+            data.value.activities.length === 1 &&
+            data.value.rewards.length > 0 &&
+            progress
+        ) {
+            if (data.rewardId === 'new') {
+                for (let reward of data.value.rewards) {
+                    progress.rewards.push({
+                        ...data.value,
+                        reward,
+                        rewardId: 'reward_' + progress.currentId++,
+                        owner: data.accountId,
+                    })
+                }
+            } else {
+                for (let reward in progress.rewards) {
+                    if (progress.rewards[reward].rewardId === data.rewardId) {
+                        progress.rewards[reward] = Object.assign(
+                            progress.rewards[reward],
+                            data.value
+                        )
+                        break
+                    }
+                }
+            }
+            await progress.save()
+            ws.send(
+                JSON.stringify({
+                    messageCode: 'successMessage',
+                    messageText: 'Changes are saved',
+                })
+            )
+        }
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}
+
+module.exports.deleteRewardInProgress = async (data, ws) => {
+    try {
+        const progress = await Progress.findById(data.goalId)
+            .select('__v rewards')
+            .exec()
+
+        if (progress) {
+            progress.rewards = progress.rewards.filter(
+                item => item.rewardId !== data.rewardId
+            )
+            await progress.save()
+            ws.send(
+                JSON.stringify({
+                    messageCode: 'successMessage',
+                    messageText: 'Changes are saved',
+                })
+            )
+        }
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}
+
+module.exports.sendReward = async (data, ws) => {
+    try {
+        const progress = await Progress.findById(data.progressId)
+            .select('rewards name owner notifications __v')
+            .exec()
+        if (progress) {
+            const rewardObj = progress.rewards.find(
+                item => item.rewardId === data.rewardId
+            )
+            if (rewardObj) {
+                const rewardObject = await Reward.findById(rewardObj.reward)
+                    .select('name owner images')
+                    .lean()
+                    .exec()
+                if (rewardObject) {
+                    const owner = await Account.findById(rewardObject.owner)
+                        .select('transactions __v')
+                        .exec()
+                    const reciever = progress.owner
+
+                    const worker =
+                        owner._id.toString() !== reciever.toString()
+                            ? await Account.findById(reciever)
+                                  .select('transactions __v')
+                                  .exec()
+                            : owner
+                    const ownerIsWorker =
+                        owner._id.toString() === worker._id.toString()
+
+                    let transaction = new Transaction({
+                        from: owner._id,
+                        to: worker._id,
+                        progress: progress.name,
+                        progressId: progress._id,
+                        status: 'pending',
+                        reward: rewardObj.reward,
+                        rewardName: rewardObject.name,
+                        rewardImages: rewardObject.images,
+                    })
+
+                    transaction.save()
+
+                    owner.transactions.unshift(transaction._id.toString())
+
+                    if (!ownerIsWorker) {
+                        worker.transactions.unshift(transaction._id.toString())
+                    }
+
+                    await owner.save()
+                    if (!ownerIsWorker) await worker.save()
+                    newNotificationId = await getNotificationId()
+                    addNotification(progress, {
+                        user: reciever,
+                        code: 'get reward',
+                        notId: newNotificationId,
+                        details: {
+                            progressId: progress._id,
+                            progressName: progress.name,
+                            from: rewardObject.owner,
+                            reward: {
+                                itemName: rewardObject.name,
+                            },
+                        },
+                    })
+                    await progress.save()
+                }
+            }
+        }
     } catch (ex) {
         console.log(ex)
         sendError(ws)

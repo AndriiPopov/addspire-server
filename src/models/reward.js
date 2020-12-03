@@ -4,6 +4,7 @@ const { mongoLength } = require('../constants/fieldLength')
 
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
+const notificationSchema = require('./schemas/notification')
 
 const types = mongoose.Types
 
@@ -15,12 +16,19 @@ const rewardSchema = new mongoose.Schema(
         images: [String],
         owner: String,
         progresses: [String],
-        post: String,
+        posts: [String],
         likes: [String],
+        followingAccounts: [String],
         wish: Boolean,
+        views: { type: Number, default: 0 },
+        category: [String],
+        notifications: [notificationSchema],
+        position: {},
+        nomap: Boolean,
     },
     { minimize: false }
 )
+rewardSchema.index({ position: '2dsphere' })
 
 rewardSchema.plugin(updateIfCurrentPlugin)
 

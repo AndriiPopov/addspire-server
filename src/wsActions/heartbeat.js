@@ -1,3 +1,5 @@
+const { redisClient: client } = require('../startup/redis')
+
 module.exports.heartbeat = async (ws, data, client) => {
     try {
         ws.isAlive = true
@@ -11,10 +13,12 @@ module.exports.heartbeat = async (ws, data, client) => {
                 'post',
                 'transactionData',
                 'reward',
+                'activity',
                 'friendData',
                 'progressData',
                 'postData',
                 'rewardData',
+                'activityData',
             ]) {
                 for (let item of data.notNeededResources[type]) {
                     delete ws.resources[type][item]

@@ -1,17 +1,24 @@
 const { auth } = require('../wsActions/auth')
 const {
     requestProgress,
-    changeStage,
     getFriendsData,
     editProgress,
-    leaveProgress,
-
     startProgress,
-    changeLikesProgress,
-    // deleteProgress,
     deleteRewardFromProgress,
     addRewardToProgress,
+    deleteActivityFromProgress,
+    addActivityToProgress,
+    saveRewardInProgress,
+    deleteRewardInProgress,
+    sendReward,
 } = require('../wsActions/progress')
+
+const {
+    saveResource,
+    deleteResource,
+    changeLikesResource,
+    leaveResource,
+} = require('../wsActions/resource')
 
 const {
     saveReward,
@@ -20,19 +27,28 @@ const {
 } = require('../wsActions/reward')
 
 const {
+    saveActivity,
+    deleteActivity,
+    changeLikesActivity,
+    changeStage,
+} = require('../wsActions/activity')
+
+const {
     sendMessage,
     changeLikesMessage,
     addPost,
     editPost,
+    deletePost,
+    // deleteMessage,
 } = require('../wsActions/post')
 const {
     editAccount,
     deleteAccount,
     followAccount,
     unfollowAccount,
-    followProgress,
-    unfollowProgress,
-    addRecentProgress,
+    followResource,
+    unfollowResource,
+    addRecent,
 } = require('../wsActions/account')
 const {
     saveWishlistItem,
@@ -50,6 +66,7 @@ const {
 const {
     cancelTransaction,
     confirmTransaction,
+    deleteTransaction,
 } = require('../wsActions/transactions')
 
 const { pushChanges } = require('../wsActions/pushChanges')
@@ -57,7 +74,7 @@ const { heartbeat } = require('../wsActions/heartbeat')
 const { requestResource } = require('../wsActions/requestResource')
 const { Server } = require('ws')
 const { sendError } = require('../wsActions/confirm')
-const { promisify } = require('util')
+const { scanAll, redisClient: client } = require('./redis')
 
 const connectSocket = server => {
     try {
@@ -65,23 +82,6 @@ const connectSocket = server => {
 
         setTimeout(() => pushChanges(wss), 4000)
 
-        const client = require('redis').createClient(
-            process.env.REDIS_URL || undefined
-        )
-        const scan = promisify(client.scan).bind(client)
-        const scanAll = async () => {
-            const found = []
-            let cursor = '0'
-
-            do {
-                const reply = await scan(cursor)
-
-                cursor = reply[0]
-                found.push(...reply[1])
-            } while (cursor !== '0')
-
-            return new Set(found)
-        }
         wss.on('connection', function connection(ws) {
             ws.resources = {
                 user: {},
@@ -89,11 +89,12 @@ const connectSocket = server => {
                 progress: {},
                 post: {},
                 reward: {},
+                activity: {},
                 transactionData: {},
                 friendData: {},
                 progressData: {},
                 postData: {},
-                rewardData: {},
+                activityData: {},
             }
             ws.isAlive = true
             ws.createdTime = Date.now()
@@ -103,13 +104,13 @@ const connectSocket = server => {
                     const data = JSON.parse(message)
                     switch (data.messageCode) {
                         case 'heartbeat':
-                            heartbeat(ws, data, client)
+                            heartbeat(ws, data)
                             break
                         case 'auth':
                             auth(ws, data)
                             break
                         case 'requestResource':
-                            requestResource(data, ws, client)
+                            requestResource(data, ws)
                             break
                         case 'sendMessage':
                             sendMessage(data, ws)
@@ -120,11 +121,17 @@ const connectSocket = server => {
                         case 'editPost':
                             editPost(data, ws)
                             break
+                        case 'deletePost':
+                            deletePost(data, ws)
+                            break
+                        // case 'deleteMessage':
+                        //     deleteMessage(data, ws)
+                        //     break
                         case 'changeStage':
                             changeStage(data, ws)
                             break
-                        case 'leaveProgress':
-                            leaveProgress(data, ws)
+                        case 'leaveResource':
+                            leaveResource(data, ws)
                             break
                         case 'likeMessage':
                         case 'removeLikeMessage':
@@ -135,18 +142,14 @@ const connectSocket = server => {
                         case 'getFriendsData':
                             getFriendsData(data, ws)
                             break
-                        case 'editProgress':
-                            editProgress(data, ws)
-                            break
+
                         case 'editAccount':
                             editAccount(data, ws)
                             break
                         case 'deleteAccount':
                             deleteAccount(data, ws)
                             break
-                        case 'addRecentProgress':
-                            addRecentProgress(data, ws)
-                            break
+
                         case 'saveWishlistItem':
                             saveWishlistItem(data, ws)
                             break
@@ -183,26 +186,15 @@ const connectSocket = server => {
                         case 'shareWithFriends':
                             shareWithFriends(data, ws)
                             break
-                        case 'startProgress':
-                            startProgress(data, ws)
-                            break
-                        case 'saveReward':
-                            saveReward(data, ws)
-                            break
-                        case 'deleteReward':
-                            deleteReward(data, ws)
-                            break
-                        case 'changeLikesReward':
-                            changeLikesReward(data, ws)
-                            break
+
                         case 'setLastSeenNot':
                             setLastSeenNot(data, ws)
                             break
-                        case 'followProgress':
-                            followProgress(data, ws)
+                        case 'followResource':
+                            followResource(data, ws)
                             break
-                        case 'unfollowProgress':
-                            unfollowProgress(data, ws)
+                        case 'unfollowResource':
+                            unfollowResource(data, ws)
                             break
                         case 'followAccount':
                             followAccount(data, ws)
@@ -210,8 +202,8 @@ const connectSocket = server => {
                         case 'unfollowAccount':
                             unfollowAccount(data, ws)
                             break
-                        case 'changeLikesProgress':
-                            changeLikesProgress(data, ws)
+                        case 'changeLikesResource':
+                            changeLikesResource(data, ws)
                             break
                         case 'deleteRewardFromProgress':
                             deleteRewardFromProgress(data, ws)
@@ -219,13 +211,34 @@ const connectSocket = server => {
                         case 'addRewardToProgress':
                             addRewardToProgress(data, ws)
                             break
+                        case 'deleteActivityFromProgress':
+                            deleteActivityFromProgress(data, ws)
+                            break
+                        case 'addActivityToProgress':
+                            addActivityToProgress(data, ws)
+                            break
+                        case 'saveRewardInProgress':
+                            saveRewardInProgress(data, ws)
+                            break
+                        case 'deleteRewardInProgress':
+                            deleteRewardInProgress(data, ws)
+                            break
+                        case 'sendReward':
+                            sendReward(data, ws)
+                            break
                         case 'currentAccount':
                             ws.account = data.id
                             client.set(data.id, true, 'EX', 40)
                             break
-                        // case 'deleteProgress':
-                        //     deleteProgress(data, ws)
-                        //     break
+                        case 'saveResource':
+                            saveResource(data, ws)
+                            break
+                        case 'deleteResource':
+                            deleteResource(data, ws)
+                            break
+                        case 'deleteTransaction':
+                            deleteTransaction(data, ws)
+                            break
                         default:
                             break
                     }
@@ -264,7 +277,9 @@ const connectSocket = server => {
                 )
             })
         }, 30000)
-    } catch (ex) {}
+    } catch (ex) {
+        console.log(ex)
+    }
 }
 
 module.exports = connectSocket

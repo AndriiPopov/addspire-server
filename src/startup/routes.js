@@ -2,11 +2,13 @@ const express = require('express')
 const path = require('path')
 const progresses = require('../routes/progresses')
 const rewards = require('../routes/rewards')
+const activities = require('../routes/activities')
 const activateAccount = require('../routes/activateAccount')
 const account = require('../routes/account')
 const awsSignS3 = require('../routes/awsSignS3')
 
 const friends = require('../routes/friends')
+const similar = require('../routes/similar')
 const explore = require('../routes/explore')
 const profile = require('../routes/profile')
 const shop = require('../routes/shop')
@@ -21,6 +23,7 @@ const authtest = require('../routes/authtest')
 const serveCustomIndexProfile = require('../routes/serveCustomIndexProfile')
 const serveCustomIndexGoal = require('../routes/serveCustomIndexGoal')
 const serveCustomIndexReward = require('../routes/serveCustomIndexReward')
+const serveCustomIndexActivity = require('../routes/serveCustomIndexActivity')
 const sslRedirect = require('heroku-ssl-redirect')
 
 module.exports = function(app) {
@@ -43,6 +46,7 @@ module.exports = function(app) {
 
     app.use('/api/goals', progresses)
     app.use('/api/rewards', rewards)
+    app.use('/api/activities', activities)
     app.use('/api/wishlist', rewards)
     app.use('/api/activate-account', activateAccount)
     app.use('/api/account', account)
@@ -50,6 +54,7 @@ module.exports = function(app) {
     app.use('/api/profile', profile)
     app.use('/api/shop', shop)
     app.use('/api/explore', explore)
+    app.use('/api/similar', similar)
 
     app.use('/api/auth', auth)
     app.use('/api/appauth', authApp)
@@ -60,6 +65,7 @@ module.exports = function(app) {
     app.use('/profile', serveCustomIndexProfile)
     app.use('/goals', serveCustomIndexGoal)
     app.use('/rewards', serveCustomIndexReward)
+    app.use('/activities', serveCustomIndexActivity)
     app.use('/wishlist', serveCustomIndexReward)
     app.use('/sitemap.xml', sitemap)
 

@@ -135,7 +135,7 @@ const initSend = async () => {
                     break
                 case 'friend add':
                     details = await getMessageDetails(not, 'account')
-                    let friend = await Account.findById(item.details.friend)
+                    let friend = await Account.findById(details.friend)
                         .select('name')
                         .lean()
                         .exec()
@@ -150,7 +150,7 @@ const initSend = async () => {
                     break
                 case 'unfriend':
                     details = await getMessageDetails(not, 'account')
-                    friend = await Account.findById(item.details.friend)
+                    friend = await Account.findById(details.friend)
                         .select('name')
                         .lean()
                         .exec()
@@ -189,7 +189,7 @@ const initSend = async () => {
                                 details.account.name
                             } started participating in inspiration ${
                                 not.details.itemName
-                            } as ${item.details.as}.`,
+                            } as ${details.as}.`,
                         })
                     }
                     break
@@ -202,11 +202,11 @@ const initSend = async () => {
                         rawMessages.push({
                             ...details.message,
                             body: `${details.account.name} ${
-                                item.code === 'stage approve'
+                                code === 'stage approve'
                                     ? ' approved  '
-                                    : item.code === 'stage progress'
+                                    : code === 'stage progress'
                                     ? ' put into process '
-                                    : item.code === 'stage fail'
+                                    : code === 'stage fail'
                                     ? ' marked as failed '
                                     : ' dismissed '
                             } ${not.details.progressName}.`,
@@ -250,7 +250,7 @@ const initSend = async () => {
                     break
                 case 'remove from progress':
                     details = await getMessageDetails(not, 'accountinspiration')
-                    friend = await Account.findById(item.details.account)
+                    friend = await Account.findById(details.account)
                         .select('name')
                         .lean()
                         .exec()
@@ -265,7 +265,7 @@ const initSend = async () => {
                     break
                 case 'add to progress':
                     details = await getMessageDetails(not, 'accountinspiration')
-                    friend = await Account.findById(item.details.account)
+                    friend = await Account.findById(details.account)
                         .select('name')
                         .lean()
                         .exec()

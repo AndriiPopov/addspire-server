@@ -2,33 +2,36 @@ var moment = require('moment') // require
 
 const isEqual = require('lodash.isequal')
 const { Progress } = require('../models/progress')
+const { Activity } = require('../models/activity')
 moment().format()
 
-const getStages = progress => {
+const getStages = activity => {
     let stages = [],
         start
-    switch (progress.repeat) {
+    switch (activity.repeat) {
         case 'no':
-            progress.currentId = progress.currentId + 1
+            activity.currentId = activity.currentId + 1
             stages.push({
-                stageId: 'stage_' + progress.currentId,
+                stageId: 'stage_' + activity.currentId,
                 approvedBy: [],
                 paid: [],
                 status: 'Due',
+                repeat: activity.repeat,
             })
             break
         case 'day':
             start = moment().subtract(3, 'd')
             for (let i = 0; i < 6; i++) {
                 start.add(1, 'd')
-                progress.currentId = progress.currentId + 1
+                activity.currentId = activity.currentId + 1
                 stages.push({
-                    stageId: 'stage_' + progress.currentId,
+                    stageId: 'stage_' + activity.currentId,
                     approvedBy: [],
                     paid: [],
                     status: 'Due',
                     year: start.year(),
                     day: start.dayOfYear(),
+                    repeat: activity.repeat,
                 })
             }
             break
@@ -36,14 +39,15 @@ const getStages = progress => {
             start = moment().subtract(3, 'w')
             for (let i = 0; i < 6; i++) {
                 start.add(1, 'w')
-                progress.currentId = progress.currentId + 1
+                activity.currentId = activity.currentId + 1
                 stages.push({
-                    stageId: 'stage_' + progress.currentId,
+                    stageId: 'stage_' + activity.currentId,
                     approvedBy: [],
                     paid: [],
                     status: 'Due',
                     year: start.weekYear(),
                     week: start.week(),
+                    repeat: activity.repeat,
                 })
             }
             break
@@ -51,14 +55,15 @@ const getStages = progress => {
             start = moment().subtract(3, 'm')
             for (let i = 0; i < 6; i++) {
                 start.add(1, 'm')
-                progress.currentId = progress.currentId + 1
+                activity.currentId = activity.currentId + 1
                 stages.push({
-                    stageId: 'stage_' + progress.currentId,
+                    stageId: 'stage_' + activity.currentId,
                     approvedBy: [],
                     paid: [],
                     status: 'Due',
                     year: start.year(),
                     month: start.month(),
+                    repeat: activity.repeat,
                 })
             }
             break
@@ -66,27 +71,29 @@ const getStages = progress => {
             start = moment().subtract(3, 'y')
             for (let i = 0; i < 6; i++) {
                 start.add(1, 'y')
-                progress.currentId = progress.currentId + 1
+                activity.currentId = activity.currentId + 1
                 stages.push({
-                    stageId: 'stage_' + progress.currentId,
+                    stageId: 'stage_' + activity.currentId,
                     approvedBy: [],
                     paid: [],
                     status: 'Due',
                     year: start.year(),
+                    repeat: activity.repeat,
                 })
             }
             break
         case 'weekday':
-            if (!progress.days || progress.days.length === 0) {
-                progress.currentId = progress.currentId + 1
+            if (!activity.days || activity.days.length === 0) {
+                activity.currentId = activity.currentId + 1
                 stages.push({
-                    stageId: 'stage_' + progress.currentId,
+                    stageId: 'stage_' + activity.currentId,
                     approvedBy: [],
                     paid: [],
                     status: 'Due',
+                    repeat: activity.repeat,
                 })
             } else {
-                const days = progress.days.sort().map(item => parseInt(item))
+                const days = activity.days.sort().map(item => parseInt(item))
 
                 const getDayBack = (lastDay, forward, firstDay) => {
                     if (!lastDay) lastDay = moment()
@@ -114,14 +121,15 @@ const getStages = progress => {
                             )
                         )
                     }
-                    progress.currentId = progress.currentId + 1
+                    activity.currentId = activity.currentId + 1
                     const stage = {
-                        stageId: 'stage_' + progress.currentId,
+                        stageId: 'stage_' + activity.currentId,
                         approvedBy: [],
                         paid: [],
                         status: 'Due',
                         year: current.year(),
                         day: current.dayOfYear(),
+                        repeat: activity.repeat,
                     }
                     if (!forward) stages.unshift(stage)
                     else stages.push(stage)
@@ -142,37 +150,37 @@ const getStages = progress => {
     return stages
 }
 
-module.exports.updateStages = (progress, prevGoal) => {
+module.exports.updateStages = (activity, prevActivity) => {
     let stages = []
 
     if (
-        !prevGoal ||
-        prevGoal.repeat !== progress.repeat ||
-        !isEqual(prevGoal.days, progress.days)
+        !prevActivity ||
+        prevActivity.repeat !== activity.repeat ||
+        !isEqual(prevActivity.days, activity.days)
     ) {
-        progress.stages.map(item => ({ ...item, old: true }))
-        stages = getStages(progress)
+        activity.stages.map(item => ({ ...item, old: true }))
+        stages = getStages(activity)
     }
-    progress.stages = [...progress.stages, ...stages]
+    activity.stages = [...activity.stages, ...stages]
 }
 
 module.exports.updateStagesAuto = () => {
     const doUpdate = async () => {
-        const progresses = await Progress.find()
-        for (let progress of progresses) {
+        const activities = await Activity.find()
+        for (let activity of activities) {
             if (
-                progress.repeat === 'no' ||
-                (progress.repeat === 'weekday' && progress.days.length === 0)
+                activity.repeat === 'no' ||
+                (activity.repeat === 'weekday' && activity.days.length === 0)
             )
                 return
 
             let stages = [],
                 needToSave
 
-            stages = getStages(progress)
+            stages = getStages(activity)
 
-            const oldStagesSlice = progress.stages
-                .slice(Math.max(progress.stages.length - 10, 0))
+            const oldStagesSlice = activity.stages
+                .slice(Math.max(activity.stages.length - 10, 0))
                 .filter(item => !item.old)
 
             for (let stage of stages) {
@@ -185,12 +193,12 @@ module.exports.updateStagesAuto = () => {
                             item.day === stage.day
                     )
                 ) {
-                    progress.stages.push(stage)
+                    activity.stages.push(stage)
                     needToSave = true
                 }
             }
 
-            if (needToSave) progress.save()
+            if (needToSave) activity.save()
         }
     }
     setTimeout(doUpdate, 60000)

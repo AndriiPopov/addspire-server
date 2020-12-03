@@ -11,14 +11,19 @@ const transactionSchema = new mongoose.Schema(
         to: String,
         reward: String,
         rewardName: String,
+        rewardImages: [String],
         progress: String,
         progressId: String,
+        activity: String,
+        activityId: String,
         date: {
             type: Date,
             default: Date.now,
             required: true,
         },
         status: String,
+        quantity: Number,
+        stage: {},
     },
     { minimize: false }
 )

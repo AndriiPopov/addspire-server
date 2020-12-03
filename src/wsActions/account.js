@@ -9,6 +9,8 @@ const { User } = require('../models/user')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
 const { Progress } = require('../models/progress')
+const { Reward } = require('../models/reward')
+const { Activity } = require('../models/activity')
 
 const editAccountSchema = Joi.object({
     accountId: Joi.string()
@@ -57,16 +59,17 @@ module.exports.editAccount = async (data, ws) => {
     }
 }
 
-const addRecentProgressSchema = Joi.object({
+const addRecentSchema = Joi.object({
     accountId: Joi.string()
         .max(JoiLength.name)
         .required(),
-    progressId: Joi.objectId().required(),
+    resourceId: Joi.objectId().required(),
+    type: Joi.string().required(),
 }).unknown(true)
 
-module.exports.addRecentProgress = async (data, ws) => {
+module.exports.addRecent = async (data, ws) => {
     try {
-        const { error } = addRecentProgressSchema.validate(data)
+        const { error } = addRecentSchema.validate(data)
         if (error) {
             return
         }
@@ -75,7 +78,7 @@ module.exports.addRecentProgress = async (data, ws) => {
             { _id: data.accountId },
             {
                 $pull: {
-                    recentProgresses: data.progressId,
+                    recent: { resourceId: data.resourceId },
                 },
             },
             { useFindAndModify: false }
@@ -85,7 +88,12 @@ module.exports.addRecentProgress = async (data, ws) => {
             {
                 $push: {
                     recentProgresses: {
-                        $each: [data.progressId],
+                        $each: [
+                            {
+                                resourceId: data.progressId,
+                                resourceType: data.type,
+                            },
+                        ],
                         $position: 0,
                         $slice: 20,
                     },
@@ -254,14 +262,15 @@ module.exports.unfollowAccount = async (data, ws) => {
     }
 }
 
-const followProgressSchema = Joi.object({
+const followResourceSchema = Joi.object({
     accountId: Joi.string().required(),
-    progressId: Joi.string().required(),
+    resourceId: Joi.string().required(),
+    type: Joi.string().required(),
 }).unknown(true)
 
-module.exports.followProgress = async (data, ws) => {
+module.exports.followResource = async (data, ws) => {
     try {
-        const { error } = followProgressSchema.validate(data)
+        const { error } = followResourceSchema.validate(data)
         if (error) {
             sendError(ws, 'Bad data!')
             return
@@ -269,12 +278,25 @@ module.exports.followProgress = async (data, ws) => {
 
         await Account.updateOne(
             { _id: data.accountId },
-            { $addToSet: { followProgresses: data.progressId } },
+            {
+                $addToSet: {
+                    [data.type === 'goal'
+                        ? 'followProgresses'
+                        : data.type === 'reward'
+                        ? 'followRewards'
+                        : 'followActivities']: data.resourceId,
+                },
+            },
             { useFindAndModify: false }
         )
-
-        await Progress.updateOne(
-            { _id: data.progressId },
+        const model =
+            data.type === 'goal'
+                ? Progress
+                : data.type === 'reward'
+                ? Reward
+                : Activity
+        await model.updateOne(
+            { _id: data.resourceId },
             { $addToSet: { followingAccounts: data.accountId } },
             { useFindAndModify: false }
         )
@@ -285,9 +307,9 @@ module.exports.followProgress = async (data, ws) => {
     }
 }
 
-module.exports.unfollowProgress = async (data, ws) => {
+module.exports.unfollowResource = async (data, ws) => {
     try {
-        const { error } = followProgressSchema.validate(data)
+        const { error } = followResourceSchema.validate(data)
         if (error) {
             sendError(ws, 'Bad data!')
             return
@@ -295,18 +317,32 @@ module.exports.unfollowProgress = async (data, ws) => {
 
         await Account.updateOne(
             { _id: data.accountId },
-            { $pull: { followProgresses: data.progressId } },
+            {
+                $pull: {
+                    [data.type === 'goal'
+                        ? 'followProgresses'
+                        : data.type === 'reward'
+                        ? 'followRewards'
+                        : 'followActivities']: data.resourceId,
+                },
+            },
             { useFindAndModify: false }
         )
-
-        await Progress.updateOne(
-            { _id: data.progressId },
+        const model =
+            data.type === 'goal'
+                ? Progress
+                : data.type === 'reward'
+                ? Reward
+                : Activity
+        await model.updateOne(
+            { _id: data.resourceId },
             { $pull: { followingAccounts: data.accountId } },
             { useFindAndModify: false }
         )
 
         sendSuccess(ws)
     } catch (ex) {
+        console.log(ex)
         sendError(ws, 'Something failed.')
     }
 }

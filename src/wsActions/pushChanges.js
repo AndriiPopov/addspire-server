@@ -5,6 +5,7 @@ const { Transaction } = require('../models/transaction')
 const WebSocket = require('ws')
 const { Post } = require('../models/post')
 const { Reward } = require('../models/reward')
+const { Activity } = require('../models/activity')
 
 module.exports.pushChanges = wss => {
     try {
@@ -63,7 +64,7 @@ module.exports.pushChanges = wss => {
                         sendData(['user'])
                     } else if (type === 'account') {
                         sendData(['account', 'friendData'])
-                    } else if (type === 'transactions') {
+                    } else if (type === 'transaction') {
                         sendData(['transactionData'])
                     } else if (type === 'progress') {
                         sendData(['progress', 'progressData'])
@@ -71,6 +72,8 @@ module.exports.pushChanges = wss => {
                         sendData(['post', 'postData'])
                     } else if (type === 'reward') {
                         sendData(['reward', 'rewardData'])
+                    } else if (type === 'activity') {
+                        sendData(['activity', 'activityData'])
                     }
                 }
             } catch (ex) {}
@@ -101,6 +104,9 @@ module.exports.pushChanges = wss => {
         try {
             Reward.watch()
         } catch (ex) {}
+        try {
+            Activity.watch()
+        } catch (ex) {}
 
         const userChangeStream = User.watch().on('change', data => {
             pushChange(data, 'user')
@@ -123,6 +129,10 @@ module.exports.pushChanges = wss => {
 
         const rewardChangeStream = Reward.watch().on('change', data => {
             pushChange(data, 'reward')
+        })
+
+        const activityChangeStream = Activity.watch().on('change', data => {
+            pushChange(data, 'activity')
         })
 
         function resumeStream(changeStreamCursor, forceResume = false) {
@@ -157,5 +167,6 @@ module.exports.pushChanges = wss => {
         resumeStream(transactionChangeStream, true)
         resumeStream(postChangeStream, true)
         resumeStream(rewardChangeStream, true)
+        resumeStream(activityChangeStream, true)
     } catch (ex) {}
 }

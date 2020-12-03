@@ -2,16 +2,15 @@ const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const { mongoLength } = require('../constants/fieldLength')
 const notificationSchema = require('./schemas/notification')
-const stageSchema = require('./schemas/stage')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
+const progressRewardSchema = require('./schemas/progressReward')
 const types = mongoose.Schema.Types
 
 const progressSchema = new mongoose.Schema(
     {
         posts: [String],
         owner: String,
-        stages: [stageSchema],
         status: String,
         currentId: {
             type: Number,
@@ -49,20 +48,17 @@ const progressSchema = new mongoose.Schema(
             required: true,
             default: 'public',
         },
-        users: [String],
-        rewards: [String],
-        repeat: String,
-        days: [String],
+        rewards: [progressRewardSchema],
+        oldRewards: [progressRewardSchema],
         position: {},
         nomap: Boolean,
         category: [String],
+        activities: [String],
+        oldActivities: [String],
     },
     { minimize: false }
 )
-// progressSchema.pre('save', function(next) {
-//     this.increment()
-//     return next()
-// })
+
 progressSchema.index({ position: '2dsphere' })
 progressSchema.plugin(updateIfCurrentPlugin)
 

@@ -5,13 +5,15 @@ const { Progress } = require('../models/progress')
 const { Transaction } = require('../models/transaction')
 const { Post } = require('../models/post')
 const { Reward } = require('../models/reward')
+const { Activity } = require('../models/activity')
+const { get } = require('../startup/redis')
 
 // const validateSchema = Joi.object({
 //     ids: Joi.array().items(Joi.string().optional()),
 //     type: Joi.string().valid('user', 'website', 'resource'),
 // }).unknown()
 
-module.exports.requestResource = async (data, ws, client) => {
+module.exports.requestResource = async (data, ws) => {
     try {
         // const { error } = validateSchema.validate(data)
         // if (error) return
@@ -36,7 +38,7 @@ module.exports.requestResource = async (data, ws, client) => {
                         .lean()
                         .exec()
                     for (let user of data.ids)
-                        if (client.get(user)) onlineUsers.push(user)
+                        if (await get(user)) onlineUsers.push(user)
 
                     break
                 case 'progress':
@@ -67,6 +69,14 @@ module.exports.requestResource = async (data, ws, client) => {
                         .exec()
                     break
 
+                case 'activity':
+                    result = await Activity.find({
+                        _id: { $in: data.ids },
+                    })
+                        .lean()
+                        .exec()
+                    break
+
                 case 'friendData':
                     result = await Account.find({
                         _id: { $in: data.ids },
@@ -75,7 +85,7 @@ module.exports.requestResource = async (data, ws, client) => {
                         .lean()
                         .exec()
                     for (let user of data.ids)
-                        if (client.get(user)) onlineUsers.push(user)
+                        if (await get(user)) onlineUsers.push(user)
 
                     break
                 case 'postData':
@@ -111,7 +121,15 @@ module.exports.requestResource = async (data, ws, client) => {
                     result = await Reward.find({
                         _id: { $in: data.ids },
                     })
-                        .select('name owner images post likes wish __v')
+                        .select('name owner images likes wish __v')
+                        .lean()
+                        .exec()
+                    break
+                case 'activityData':
+                    result = await Activity.find({
+                        _id: { $in: data.ids },
+                    })
+                        .select('name owner images likes stages users __v')
                         .lean()
                         .exec()
 
@@ -163,5 +181,7 @@ module.exports.requestResource = async (data, ws, client) => {
                 )
             }
         }
-    } catch (ex) {}
+    } catch (ex) {
+        console.log(ex)
+    }
 }

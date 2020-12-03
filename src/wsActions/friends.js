@@ -38,7 +38,6 @@ module.exports.searchFriends = async (data, ws) => {
                 })
             )
         } else {
-            console.log('sending error')
             sendError(ws, 'No accounts with nickname ' + data.search + ' .')
         }
     } catch (ex) {
@@ -234,7 +233,7 @@ module.exports.unfriend = async (data, ws) => {
         }
 
         const account = await Account.findById(data.accountId)
-            .select('friends myNotifications notifications wallet __v')
+            .select('friends myNotifications notifications __v')
             .exec()
 
         if (!account) {
@@ -252,7 +251,6 @@ module.exports.unfriend = async (data, ws) => {
         account.friends = account.friends.filter(
             item => item.friend !== friendId
         )
-        account.wallet = account.wallet.filter(item => item.user !== friendId)
 
         const newNotificationId = await getNotificationId()
         addNotification(
@@ -272,16 +270,14 @@ module.exports.unfriend = async (data, ws) => {
         account.save()
 
         const friend = await Account.findById(friendId)
-            .select('friends wallet myNotifications notifications __v')
+            .select('friends myNotifications notifications __v')
             .exec()
 
         if (friend) {
             friend.friends = friend.friends.filter(
                 item => item.friend !== account._id
             )
-            friend.wallet = friend.wallet.filter(
-                item => item.user !== account._id
-            )
+
             addNotification(
                 friend,
                 {
