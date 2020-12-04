@@ -162,21 +162,39 @@ module.exports.requestResource = async (data, ws) => {
 
             if (result && result.length > 0) {
                 for (let item of result) {
-                    ws.resources[data.type][item._id.toString()] = result[0].__v
+                    if (item)
+                        ws.resources[data.type][item._id.toString()] =
+                            result[0].__v
                 }
                 ws.send(
                     JSON.stringify({
                         messageCode: 'addResource',
                         type: data.type,
-                        resources: result,
+                        resources: result.filter(item => item),
                         newOnlineUsers: onlineUsers,
                     })
                 )
             } else {
+                if (
+                    [
+                        'user',
+                        'account',
+                        'progress',
+                        'post',
+                        'reward',
+                        'activity',
+                    ].includes(data.type)
+                ) {
+                    ws.send(
+                        JSON.stringify({
+                            messageCode: '404',
+                        })
+                    )
+                }
                 ws.send(
                     JSON.stringify({
                         messageCode: 'notFoundResource',
-                        _id: data.id,
+                        _id: data.ids,
                     })
                 )
             }

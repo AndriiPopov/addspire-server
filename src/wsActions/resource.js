@@ -101,7 +101,7 @@ module.exports.saveResource = async (data, ws) => {
                     )
                 }
 
-                sendSuccess(ws, 'progress created')
+                sendSuccess(ws, type + ' created')
                 ws.send(
                     JSON.stringify({
                         messageCode: 'goTo',
@@ -231,12 +231,7 @@ module.exports.saveResource = async (data, ws) => {
                     resource.markModified('description')
                     resource.markModified('position')
                     resource.save()
-                    ws.send(
-                        JSON.stringify({
-                            messageCode: 'successMessage',
-                            messageText: 'Changes are saved',
-                        })
-                    )
+                    sendSuccess(ws)
                     return
                 }
             }
@@ -318,12 +313,7 @@ module.exports.leaveResource = async (data, ws) => {
 
             resource.save()
         }
-        ws.send(
-            JSON.stringify({
-                messageCode: 'successMessage',
-                messageText: 'You have left the progress',
-            })
-        )
+        sendSuccess(ws)
         ws.send(
             JSON.stringify({
                 messageCode: 'redirectToProgresses',
@@ -397,12 +387,7 @@ module.exports.deleteResource = async (data, ws) => {
             )
         }
 
-        ws.send(
-            JSON.stringify({
-                messageCode: 'successMessage',
-                messageText: 'You have deleted the progress',
-            })
-        )
+        sendSuccess(ws)
         ws.send(
             JSON.stringify({
                 messageCode: 'redirectToAccount',

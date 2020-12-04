@@ -7,7 +7,7 @@ const getAccount = require('../utils/getAccount')
 const { sendSuccess, sendError } = require('./confirm')
 const { User } = require('../models/user')
 const { getNotificationId } = require('../models/system')
-const addNotification = require('../utils/addNotification')
+
 const { Progress } = require('../models/progress')
 const { Reward } = require('../models/reward')
 const { Activity } = require('../models/activity')

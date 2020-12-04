@@ -3,7 +3,7 @@ module.exports.sendSuccess = (ws, message) => {
         ws.send(
             JSON.stringify({
                 messageCode: 'successMessage',
-                messageText: message || 'Changes are saved',
+                // messageText: message || 'Changes are saved',
             })
         )
     } catch (ex) {}
@@ -20,9 +20,9 @@ module.exports.sendError = (ws, text, toLogout) => {
         ws.send(
             JSON.stringify({
                 messageCode: 'error',
-                text:
-                    text ||
-                    'An error occured during this operation. If the error persists, try to refresh the page.',
+                // text:
+                //     text ||
+                //     'An error occured during this operation. If the error persists, try to refresh the page.',
             })
         )
         // if (toLogout) toLogout()

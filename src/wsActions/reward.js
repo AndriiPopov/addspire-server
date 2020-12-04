@@ -137,12 +137,7 @@ module.exports.saveReward = async (data, ws) => {
                     account.myPosts.push(post._id.toString())
                 }
                 await account.save()
-                ws.send(
-                    JSON.stringify({
-                        messageCode: 'successMessage',
-                        messageText: 'Changes are saved',
-                    })
-                )
+                sendSuccess(ws)
                 return
             }
         }

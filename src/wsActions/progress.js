@@ -162,12 +162,7 @@ module.exports.leaveProgress = async (data, ws) => {
         })
 
         progress.save()
-        ws.send(
-            JSON.stringify({
-                messageCode: 'successMessage',
-                messageText: 'You have left the progress',
-            })
-        )
+        sendSuccess(ws)
         ws.send(
             JSON.stringify({
                 messageCode: 'redirectToProgresses',
@@ -310,12 +305,7 @@ module.exports.editProgress = async (data, ws) => {
                 progress.markModified('rewards')
                 progress.markModified('description')
                 progress.save()
-                ws.send(
-                    JSON.stringify({
-                        messageCode: 'successMessage',
-                        messageText: 'Changes are saved',
-                    })
-                )
+                sendSuccess(ws)
                 return
             }
         }
@@ -342,12 +332,7 @@ module.exports.deleteRewardFromProgress = async (data, ws) => {
             rewards.splice(rewards.indexOf(data.rewardId), 1)
             progress.rewards = rewards
             await progress.save()
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'successMessage',
-                    messageText: 'Changes are saved',
-                })
-            )
+            sendSuccess(ws)
             return
         }
         sendError(ws)
@@ -371,12 +356,7 @@ module.exports.deleteActivityFromProgress = async (data, ws) => {
             { useFindAndModify: false }
         )
 
-        ws.send(
-            JSON.stringify({
-                messageCode: 'successMessage',
-                messageText: 'Changes are saved',
-            })
-        )
+        sendSuccess(ws)
     } catch (ex) {
         console.log(ex)
         sendError(ws)
@@ -391,12 +371,7 @@ module.exports.addRewardToProgress = async (data, ws) => {
             { useFindAndModify: false }
         )
 
-        ws.send(
-            JSON.stringify({
-                messageCode: 'successMessage',
-                messageText: 'Changes are saved',
-            })
-        )
+        sendSuccess(ws)
         return
     } catch (ex) {
         console.log(ex)
@@ -418,12 +393,7 @@ module.exports.addActivityToProgress = async (data, ws) => {
             { useFindAndModify: false }
         )
 
-        ws.send(
-            JSON.stringify({
-                messageCode: 'successMessage',
-                messageText: 'Changes are saved',
-            })
-        )
+        sendSuccess(ws)
         return
     } catch (ex) {
         console.log(ex)
@@ -462,12 +432,7 @@ module.exports.saveRewardInProgress = async (data, ws) => {
                 }
             }
             await progress.save()
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'successMessage',
-                    messageText: 'Changes are saved',
-                })
-            )
+            sendSuccess(ws)
         }
     } catch (ex) {
         console.log(ex)
@@ -486,12 +451,7 @@ module.exports.deleteRewardInProgress = async (data, ws) => {
                 item => item.rewardId !== data.rewardId
             )
             await progress.save()
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'successMessage',
-                    messageText: 'Changes are saved',
-                })
-            )
+            sendSuccess(ws)
         }
     } catch (ex) {
         console.log(ex)
