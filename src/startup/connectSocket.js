@@ -239,6 +239,9 @@ const connectSocket = server => {
                         case 'deleteTransaction':
                             deleteTransaction(data, ws)
                             break
+                        case 'addRecent':
+                            addRecent(data, ws)
+                            break
                         default:
                             break
                     }

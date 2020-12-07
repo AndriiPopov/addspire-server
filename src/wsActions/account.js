@@ -87,10 +87,10 @@ module.exports.addRecent = async (data, ws) => {
             { _id: data.accountId },
             {
                 $push: {
-                    recentProgresses: {
+                    recent: {
                         $each: [
                             {
-                                resourceId: data.progressId,
+                                resourceId: data.resourceId,
                                 resourceType: data.type,
                             },
                         ],
