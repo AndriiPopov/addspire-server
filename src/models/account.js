@@ -4,7 +4,6 @@ const { mongoLength } = require('../constants/fieldLength')
 
 const { postSchema } = require('./post')
 const notificationSchema = require('./schemas/notification')
-const perkSchema = require('./schemas/perk')
 const friendSchema = require('./schemas/friend')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
@@ -29,7 +28,6 @@ const accountSchema = new mongoose.Schema(
         image: { type: Number, default: 0 },
         settings: {},
         progresses: [String],
-        perks: [perkSchema],
         transactions: [String],
         friends: [friendSchema],
         followPosts: [String],

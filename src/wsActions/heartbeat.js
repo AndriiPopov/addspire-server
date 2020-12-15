@@ -1,6 +1,6 @@
 const { redisClient: client } = require('../startup/redis')
 
-module.exports.heartbeat = async (ws, data, client) => {
+module.exports.heartbeat = async (ws, data) => {
     try {
         ws.isAlive = true
         client.set(ws.account, true, 'EX', 40)

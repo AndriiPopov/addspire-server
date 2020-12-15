@@ -158,7 +158,10 @@ module.exports.updateStages = (activity, prevActivity) => {
         prevActivity.repeat !== activity.repeat ||
         !isEqual(prevActivity.days, activity.days)
     ) {
-        activity.stages.map(item => ({ ...item, old: true }))
+        activity.stages = activity.stages.map(item => ({
+            ...item,
+            old: true,
+        }))
         stages = getStages(activity)
     }
     activity.stages = [...activity.stages, ...stages]

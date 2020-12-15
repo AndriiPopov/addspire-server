@@ -9,6 +9,8 @@ const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
 const { updateStages } = require('../utils/updateStages')
 const { Progress } = require('../models/progress')
+const { Reward } = require('../models/reward')
+const { Transaction } = require('../models/transaction')
 const dayjs = require('dayjs')
 var minMax = require('dayjs/plugin/minMax')
 const getStageStartEnd = require('../utils/getStageStartEnd')
@@ -446,6 +448,7 @@ module.exports.changeStage = async (data, ws) => {
             })
         )
     } catch (ex) {
+        console.log(ex)
         sendError(ws)
     }
 }

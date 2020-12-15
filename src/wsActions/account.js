@@ -95,7 +95,7 @@ module.exports.addRecent = async (data, ws) => {
                             },
                         ],
                         $position: 0,
-                        $slice: 20,
+                        $slice: 6,
                     },
                 },
             },

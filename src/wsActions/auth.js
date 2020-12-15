@@ -15,9 +15,12 @@ const authenticate = async (data, ws) => {
                     if (err) {
                         sendError(ws, 'Login error1.', true)
                     } else {
-                        user = (await User.exists({ _id: decoded._id }))
-                            ? decoded._id
-                            : null
+                        const userObj = await User.findById(decoded._id)
+                            .select('myAccount')
+                            .lean()
+                            .exec()
+                        if (userObj) ws.account = userObj.myAccount
+                        user = userObj ? decoded._id : null
                         if (!user) {
                             sendError(ws, 'Login error2.', true)
                         }
@@ -37,6 +40,7 @@ module.exports.auth = async (ws, data) => {
     try {
         let user = await authenticate(data, ws)
         if (user) {
+            ws.user = user
             ws.user = user
             ws.resources = data.resourcesToMonitor
             ws.send(

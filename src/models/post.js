@@ -32,10 +32,7 @@ const postSchema = new mongoose.Schema(
     },
     { minimize: false }
 )
-// postSchema.pre('save', function(next) {
-//     this.increment()
-//     return next()
-// })
+
 postSchema.plugin(updateIfCurrentPlugin)
 
 postSchema.pre(

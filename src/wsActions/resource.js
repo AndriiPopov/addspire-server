@@ -102,20 +102,21 @@ module.exports.saveResource = async (data, ws) => {
                 }
 
                 sendSuccess(ws, type + ' created')
-                ws.send(
-                    JSON.stringify({
-                        messageCode: 'goTo',
-                        messageText:
-                            '/' +
-                            (type === 'goal'
-                                ? 'goals'
-                                : type === 'reward'
-                                ? 'rewards'
-                                : 'activities') +
-                            '/' +
-                            resource._id,
-                    })
-                )
+                if (data.goToResource)
+                    ws.send(
+                        JSON.stringify({
+                            messageCode: 'goTo',
+                            messageText:
+                                '/' +
+                                (type === 'goal'
+                                    ? 'goals'
+                                    : type === 'reward'
+                                    ? 'rewards'
+                                    : 'activities') +
+                                '/' +
+                                resource._id,
+                        })
+                    )
             } else {
                 let resource = await model.findById(value._id)
                 if (resource) {

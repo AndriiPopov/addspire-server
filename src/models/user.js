@@ -27,10 +27,6 @@ const userSchema = new mongoose.Schema(
     { minimize: false }
 )
 
-// userSchema.pre('save', function(next) {
-//     this.increment()
-//     return next()
-// })
 userSchema.plugin(updateIfCurrentPlugin)
 
 userSchema.pre(

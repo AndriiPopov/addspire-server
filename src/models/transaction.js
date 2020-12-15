@@ -27,10 +27,7 @@ const transactionSchema = new mongoose.Schema(
     },
     { minimize: false }
 )
-// transactionSchema.pre('save', function(next) {
-//     this.increment()
-//     return next()
-// })
+
 transactionSchema.plugin(updateIfCurrentPlugin)
 
 transactionSchema.pre(
