@@ -41,9 +41,12 @@ module.exports.saveResource = async (data, ws) => {
                 let resource = new model({
                     owner: accountId,
                     ...value,
+
                     followingAccounts: allUsers,
                 })
                 if (type === 'activity') updateStages(resource)
+                if (type === 'goal') resource.dueDate = new Date(value.dueDate)
+
                 await resource.save()
 
                 const newNotificationId = await getNotificationId()
@@ -123,7 +126,8 @@ module.exports.saveResource = async (data, ws) => {
                     const resourceObj = resource.toObject()
                     const oldResource = resource.toObject()
                     resource = Object.assign(resource, data.value)
-
+                    if (type === 'goal')
+                        resource.dueDate = new Date(value.dueDate)
                     const allOldAccounts = [
                         ...new Set([
                             ...(oldResource.users || []),
@@ -394,6 +398,26 @@ module.exports.deleteResource = async (data, ws) => {
                 messageCode: 'redirectToAccount',
             })
         )
+        return
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws)
+    }
+}
+
+module.exports.changeResourceStatus = async (data, ws) => {
+    try {
+        await Progress.findByIdAndUpdate(
+            { _id: data.resourceId },
+            {
+                status: data.status,
+                finishDate: new Date(),
+            },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+
         return
     } catch (ex) {
         console.log(ex)

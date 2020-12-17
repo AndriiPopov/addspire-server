@@ -61,7 +61,7 @@ router.post('/search', async (req, res, next) => {
             .sort('views')
             .skip(req.body.skip)
             .limit(20)
-            .select('__v owner name images users views')
+            .select('__v owner name images users views status')
             .lean()
             .exec()
 

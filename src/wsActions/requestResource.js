@@ -103,7 +103,7 @@ module.exports.requestResource = async (data, ws) => {
                         _id: { $in: data.ids },
                     })
                         .select(
-                            'worker owner notifications __v name views images'
+                            'worker owner notifications __v name views images status'
                         )
                         .lean()
                         .exec()

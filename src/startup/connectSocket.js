@@ -18,6 +18,7 @@ const {
     deleteResource,
     changeLikesResource,
     leaveResource,
+    changeResourceStatus,
 } = require('../wsActions/resource')
 
 const {
@@ -242,6 +243,10 @@ const connectSocket = server => {
                         case 'addRecent':
                             addRecent(data, ws)
                             break
+                        case 'changeResourceStatus':
+                            changeResourceStatus(data, ws)
+                            break
+
                         default:
                             break
                     }

@@ -11,7 +11,10 @@ const progressSchema = new mongoose.Schema(
     {
         posts: [String],
         owner: String,
-        status: String,
+        status: {
+            type: String,
+            default: 'process',
+        },
         currentId: {
             type: Number,
             default: 0,
@@ -55,6 +58,14 @@ const progressSchema = new mongoose.Schema(
         category: [String],
         activities: [String],
         oldActivities: [String],
+        dueDate: {
+            type: Date,
+            default: () => new Date(+new Date() + 7 * 24 * 60 * 60 * 1000),
+            required: true,
+        },
+        finishDate: {
+            type: Date,
+        },
     },
     { minimize: false }
 )
