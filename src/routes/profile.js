@@ -18,7 +18,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
                 'name image friends rewards progresses transactions activities followAccounts followingAccounts followProgresses followRewards followActivities'
             )
             .lean()
-        // .exec()
+            .exec()
 
         if (!profile) {
             res.send({

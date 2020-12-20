@@ -109,12 +109,15 @@ const getStages = activity => {
                         )
                     } else {
                         let lastThisWeek = -1
-                        for (let i of days)
+                        for (let i of days) {
                             if (
                                 i > lastDay.day() ||
-                                (i == lastDay.day() && firstDay)
-                            )
+                                (i === lastDay.day() && firstDay)
+                            ) {
                                 lastThisWeek = i
+                                break
+                            }
+                        }
                         current = lastDay.day(
                             parseInt(
                                 lastThisWeek === -1 ? days[0] + 7 : lastThisWeek
