@@ -18,6 +18,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
                 'name image friends rewards progresses transactions activities followAccounts followingAccounts followProgresses followRewards followActivities'
             )
             .lean()
+        // .exec()
 
         if (!profile) {
             res.send({
@@ -81,7 +82,8 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
             ]),
         ]
 
-        const onlineUsersKeys = await mget(accountIds)
+        const onlineUsersKeys =
+            accountIds && accountIds.length > 0 ? await mget(accountIds) : []
         const onlineUsers = accountIds.filter(
             (item, index) => onlineUsersKeys[index]
         )
