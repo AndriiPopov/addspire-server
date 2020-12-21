@@ -37,7 +37,10 @@ router.get('/:id', async (req, res, next) => {
                 .lean()
                 .exec()
 
-            const onlineUsersKeys = await mget(accountIds)
+            const onlineUsersKeys =
+                accountIds && accountIds.length > 0
+                    ? await mget(accountIds)
+                    : []
             const onlineUsers = accountIds.filter(
                 (item, index) => onlineUsersKeys[index]
             )
