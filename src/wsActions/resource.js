@@ -15,7 +15,7 @@ const { updateStages } = require('../utils/updateStages')
 
 module.exports.saveResource = async (data, ws) => {
     try {
-        const { accountId, value, type } = data
+        const { accountId, value, type, structureId } = data
 
         if (value && accountId) {
             const allUsers = [...new Set([accountId, ...(value.users || [])])]
@@ -120,6 +120,16 @@ module.exports.saveResource = async (data, ws) => {
                                 resource._id,
                         })
                     )
+                if (structureId) {
+                    ws.send(
+                        JSON.stringify({
+                            messageCode: 'addToStructure',
+                            accountId,
+                            structureId,
+                            resourceId: resource._id,
+                        })
+                    )
+                }
             } else {
                 let resource = await model.findById(value._id)
                 if (resource) {

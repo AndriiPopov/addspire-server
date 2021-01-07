@@ -59,6 +59,7 @@ const accountSchema = new mongoose.Schema(
         language: { type: String, default: 'en' },
         description: {},
         descriptionText: String,
+        structure: {},
     },
     { minimize: false }
 )

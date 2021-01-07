@@ -42,16 +42,16 @@ module.exports.requestResource = async (data, ws) => {
 
                     break
                 case 'progress':
-                    result = [
-                        await Progress.findOneAndUpdate(
-                            {
-                                _id: { $in: data.ids },
-                            },
-                            { $inc: { views: 1 } }
-                        )
-                            .lean()
-                            .exec(),
-                    ]
+                    result = await Progress.find(
+                        {
+                            _id: { $in: data.ids },
+                        }
+
+                        // { $inc: { views: 1 } }
+                    )
+                        .lean()
+                        .exec()
+
                     break
                 case 'post':
                     result = await Post.find({
@@ -166,6 +166,7 @@ module.exports.requestResource = async (data, ws) => {
                         ws.resources[data.type][item._id.toString()] =
                             result[0].__v
                 }
+
                 ws.send(
                     JSON.stringify({
                         messageCode: 'addResource',

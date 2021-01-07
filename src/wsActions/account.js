@@ -346,3 +346,24 @@ module.exports.unfollowResource = async (data, ws) => {
         sendError(ws, 'Something failed.')
     }
 }
+
+module.exports.saveStructure = async (data, ws) => {
+    try {
+        await Account.updateOne(
+            { _id: data.accountId },
+            {
+                structure: data.structure,
+            },
+            { useFindAndModify: false }
+        )
+        ws.send(
+            JSON.stringify({
+                messageCode: 'structureSaved',
+            })
+        )
+        sendSuccess(ws)
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Something failed.')
+    }
+}

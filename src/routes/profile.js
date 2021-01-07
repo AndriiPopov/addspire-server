@@ -8,6 +8,7 @@ const getAccount = require('../utils/getAccount')
 const { Reward } = require('../models/reward')
 const { Activity } = require('../models/activity')
 const { mget } = require('../startup/redis')
+const { Post } = require('../models/post')
 
 const router = express.Router()
 
@@ -15,7 +16,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
     try {
         const profile = await Account.findById(req.params._id)
             .select(
-                'name image friends rewards progresses transactions activities followAccounts followingAccounts followProgresses followRewards followActivities'
+                'name image structure friends rewards progresses transactions activities followAccounts followingAccounts followProgresses followRewards followActivities'
             )
             .lean()
             .exec()
@@ -31,51 +32,104 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
 
         const progressData = await Progress.find({
             _id: {
-                $in: [
-                    ...new Set([
-                        ...profile.progresses,
-                        ...profile.followProgresses,
-                    ]),
-                ],
+                $in: profile.followProgresses,
             },
         })
             .select('name images')
+            .lean()
+            .exec()
+
+        const progress = await Progress.find({
+            _id: {
+                $in: profile.progresses,
+            },
+        })
             .lean()
             .exec()
 
         const rewardData = await Reward.find({
             _id: {
-                $in: [
-                    ...new Set([...profile.rewards, ...profile.followRewards]),
-                ],
+                $in: profile.followRewards,
             },
         })
             .select('name images')
             .lean()
             .exec()
 
+        const reward = await Reward.find({
+            _id: {
+                $in: profile.rewards,
+            },
+        })
+            .lean()
+            .exec()
+
         const activityData = await Activity.find({
             _id: {
-                $in: [
-                    ...new Set([
-                        ...profile.activities,
-                        ...profile.followActivities,
-                    ]),
-                ],
+                $in: profile.followActivities,
             },
         })
             .select('name images stages owner users')
             .lean()
             .exec()
 
-        let accountIds = []
+        const activity = await Activity.find({
+            _id: {
+                $in: profile.activities,
+            },
+        })
+            .lean()
+            .exec()
 
-        for (let activity of activityData) {
-            accountIds = [...accountIds, ...activity.users, activity.owner]
-        }
+        const post = await Post.find({
+            _id: {
+                $in: [
+                    ...reward.reduce((acc, val) => [...acc, ...val.posts], []),
+                    ...activity.reduce(
+                        (acc, val) => [...acc, ...val.posts],
+                        []
+                    ),
+                    ...progress.reduce(
+                        (acc, val) => [...acc, ...val.posts],
+                        []
+                    ),
+                ],
+            },
+        })
+            .lean()
+            .exec()
 
-        accountIds = [
+        let accountIds = [
             ...new Set([
+                ...reward.reduce(
+                    (acc, val) => [
+                        ...acc,
+                        val.owner,
+                        ...val.followingAccounts,
+                        ...val.likes,
+                    ],
+                    []
+                ),
+                ...progress.reduce(
+                    (acc, val) => [
+                        ...acc,
+                        val.owner,
+                        ...val.followingAccounts,
+                        ...val.likes,
+                    ],
+                    []
+                ),
+                ...activity.reduce(
+                    (acc, val) => [
+                        ...acc,
+                        val.owner,
+                        ...val.followingAccounts,
+                        ...val.likes,
+                        ...val.users,
+                    ],
+                    []
+                ),
+                ...post.reduce((acc, val) => [...acc, ...val.users], []),
                 ...profile.friends.map(item => item.friend),
                 ...profile.followAccounts,
                 ...profile.followingAccounts,
@@ -100,6 +154,10 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
             friendData,
             rewardData,
             activityData,
+            activity,
+            progress,
+            reward,
+            post,
             onlineUsers,
             success: true,
         })

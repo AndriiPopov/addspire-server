@@ -32,6 +32,28 @@ const progressSchema = new mongoose.Schema(
             default: 'New goal',
             maxlength: mongoLength.name,
         },
+        startDescription: {},
+        startDate: {
+            type: Date,
+        },
+        startImages: [
+            {
+                type: String,
+                default: '',
+                maxlength: 500,
+            },
+        ],
+        finishDescription: {},
+        finishDate: {
+            type: Date,
+        },
+        finishImages: [
+            {
+                type: String,
+                default: '',
+                maxlength: 500,
+            },
+        ],
         description: {},
         descriptionText: {
             type: String,
@@ -45,6 +67,11 @@ const progressSchema = new mongoose.Schema(
                 maxlength: 500,
             },
         ],
+        dueDate: {
+            type: Date,
+            default: () => new Date(+new Date() + 7 * 24 * 60 * 60 * 1000),
+            required: true,
+        },
         privacy: {
             type: String,
             enum: ['public', 'private'],
@@ -58,14 +85,6 @@ const progressSchema = new mongoose.Schema(
         category: [String],
         activities: [String],
         oldActivities: [String],
-        dueDate: {
-            type: Date,
-            default: () => new Date(+new Date() + 7 * 24 * 60 * 60 * 1000),
-            required: true,
-        },
-        finishDate: {
-            type: Date,
-        },
     },
     { minimize: false }
 )

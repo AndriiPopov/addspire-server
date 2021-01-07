@@ -50,6 +50,7 @@ const {
     followResource,
     unfollowResource,
     addRecent,
+    saveStructure,
 } = require('../wsActions/account')
 const {
     saveWishlistItem,
@@ -246,7 +247,9 @@ const connectSocket = server => {
                         case 'changeResourceStatus':
                             changeResourceStatus(data, ws)
                             break
-
+                        case 'saveStructure':
+                            saveStructure(data, ws)
+                            break
                         default:
                             break
                     }
