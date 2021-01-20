@@ -7,6 +7,8 @@ const activateAccount = require('../routes/activateAccount')
 const account = require('../routes/account')
 const awsSignS3 = require('../routes/awsSignS3')
 
+const unsplashProxy = require('../routes/unsplashProxy')
+const unsplashProxyEmpty = require('../routes/unsplashProxyEmpty')
 const friends = require('../routes/friends')
 const similar = require('../routes/similar')
 const explore = require('../routes/explore')
@@ -68,6 +70,9 @@ module.exports = function(app) {
     app.use('/activities', serveCustomIndexActivity)
     app.use('/wishlist', serveCustomIndexReward)
     app.use('/sitemap.xml', sitemap)
+
+    app.use('/api/unsplash-proxy-empty', unsplashProxyEmpty)
+    app.use('/api/unsplash-proxy', unsplashProxy)
 
     app.use('/api/authtest', authtest)
     app.get('*', (req, res) => {

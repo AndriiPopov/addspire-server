@@ -31,6 +31,7 @@
         "expo-server-sdk": "^3.6.0",
         "express": "^4.17.1",
         "express-async-errors": "^2.1.2",
+        "express-http-proxy": "^1.6.2",
         "helmet": "^3.21.2",
         "heroku-client": "^3.1.0",
         "heroku-self-ping": "^2.0.1",
