@@ -21,7 +21,7 @@ router.get('/:id', async (req, res, next) => {
 
             let accountIds = [
                 activity.owner,
-                ...activity.followingAccounts,
+                ...activity.followers,
                 ...activity.likes,
             ]
 

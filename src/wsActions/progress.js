@@ -1,534 +1,248 @@
-const { Progress } = require('../models/progress')
-const { Account } = require('../models/account')
-const { Transaction } = require('../models/transaction')
 const Joi = require('@hapi/joi')
 const { JoiLength } = require('../constants/fieldLength')
 
-const findMessage = require('../utils/findMessage')
 const { sendError, sendSuccess } = require('./confirm')
-const { Post } = require('../models/post')
-const { Reward } = require('../models/reward')
-const { Activity } = require('../models/activity')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
+const { Version } = require('../models/version')
+const { Advice } = require('../models/advice')
+const { Step } = require('../models/step')
+const { Account } = require('../models/account')
+const { Progress } = require('../models/progress')
+const { ProgressStep } = require('../models/progressStep')
 const { updateStages } = require('../utils/updateStages')
 
-module.exports.startProgress = async (data, ws) => {
+module.exports.startAdvice = async (data, ws) => {
     try {
-        const { accountId, value } = data
+        const { adviceId, versionId } = data
 
-        if (value && accountId) {
-            const allUsers = [...new Set([accountId, ...(value.users || [])])]
-            let progress = new Progress({
-                status: 'not started',
-                owner: accountId,
-                ...value,
-                admins: [accountId],
-                followingAccounts: allUsers,
-            })
+        const progress = new Progress({
+            advice: adviceId,
+            version: versionId,
+            owner: ws.account,
+        })
+        const newNotificationId = await getNotificationId()
 
-            updateStages(progress)
-            await progress.save()
+        const account = await Account.findOneAndUpdate(
+            {
+                $and: [
+                    { _id: ws.account },
+                    { currentAdvices: { $ne: adviceId } },
+                ],
+            },
 
-            const newNotificationId = await getNotificationId()
-            for (let user of allUsers) {
-                let as = ''
-                if (as === accountId) as = 'motivator'
-                if (value.users && value.users.includes(user))
-                    as = as + (as ? ', ' : '') + 'achiever'
+            {
+                $push: {
+                    currentAdvices: adviceId,
+                },
+            },
+            { useFindAndModify: false, new: true, fields: { _id: 1 } }
+        )
+        if (account) {
+            const version = await Version.findById(versionId)
+                .select('steps')
+                .lean()
+                .exec()
+            if (version) {
+                for (let item of version.steps) {
+                    const step = await Step.findById(item)
+                        .select('repeat days')
+                        .lean()
+                        .exec()
+                    if (!step) return
+                    const progressStep = new ProgressStep({
+                        step: step._id,
+                        repeat: step.repeat,
+                        days: step.days,
+                        status: 'process',
+                        progress: progress._id,
+                    })
+                    progress.progressSteps.push(progressStep._id)
 
+                    updateStages(progressStep)
+                    await progressStep.save()
+                }
+                await progress.save()
                 await Account.updateOne(
-                    { _id: user },
+                    { _id: ws.account },
                     {
                         $push: {
-                            progresses: {
-                                $each: [progress._id.toString()],
-                                $position: 0,
-                            },
-                            followProgresses: {
-                                $each: [progress._id.toString()],
-                                $position: 0,
-                            },
+                            progresses: progress._id,
                             notifications: {
                                 $each: [
                                     {
-                                        user,
-                                        code: 'start progress',
-                                        notId: newNotificationId,
+                                        user: ws.account,
+                                        code: 'new progress',
                                         details: {
-                                            itemId: progress._id,
-                                            itemName: progress.name,
-                                            as,
+                                            progressId: progress._id,
+                                            adviceId,
                                         },
+                                        notId: newNotificationId,
                                     },
                                 ],
-                                $position: 0,
-                                $slice: 20,
-                            },
-                            myNotifications: {
-                                $each: [
-                                    {
-                                        user,
-                                        code: 'start progress',
-                                        notId: newNotificationId,
-                                        details: {
-                                            itemId: progress._id,
-                                            itemName: progress.name,
-                                            as,
-                                        },
-                                    },
-                                ],
-                                $position: 0,
-                                $slice: 100,
+                                $slice: -20,
                             },
                         },
-                    }
+                        $inc: { progressesCount: 1 },
+                    },
+                    { useFindAndModify: false }
+                )
+                await Advice.updateOne(
+                    { _id: adviceId },
+                    {
+                        $push: {
+                            progresses: progress._id,
+                            notifications: {
+                                $each: [
+                                    {
+                                        user: ws.account,
+                                        code: 'new progress',
+                                        details: {
+                                            progressId: progress._id,
+                                            adviceId,
+                                        },
+                                        notId: newNotificationId,
+                                    },
+                                ],
+                                $slice: -20,
+                            },
+                        },
+                        $inc: { progressesCount: 1 },
+                        $addToSet: {
+                            currentUsers: ws.account,
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+                if (
+                    !(await Advice.exists({
+                        _id: adviceId,
+                        users: { $elemMatch: { $eq: ws.account } },
+                    }))
+                ) {
+                    await Advice.updateOne(
+                        { _id: adviceId },
+                        {
+                            $push: {
+                                users: ws.account,
+                                currentUsers: ws.account,
+                            },
+                            $inc: { usersCount: 1 },
+                        },
+                        { useFindAndModify: false }
+                    )
+                }
+                sendSuccess(ws, 'You have started the Advice/goal')
+                ws.send(
+                    JSON.stringify({
+                        messageCode: 'goTo',
+                        messageText:
+                            '/advice/' + adviceId + '?p=' + progress._id,
+                    })
                 )
             }
-
-            sendSuccess(ws, 'progress created')
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'goTo',
-                    messageText: '/goals/' + progress._id,
-                })
-            )
-        } else sendError(ws, 'Bad data!')
+        }
     } catch (ex) {
         console.log(ex)
         sendError(ws, 'Bad data!')
     }
 }
 
-module.exports.changeLikesProgress = async (data, ws) => {
+module.exports.setProgressStepStatus = async (data, ws) => {
     try {
-        if (data.progressId && data.accountId) {
-            if (data.add) {
-                await Progress.updateOne(
-                    { _id: data.progressId },
-                    { $addToSet: { likes: data.accountId } },
-                    { useFindAndModify: false }
-                )
-            } else {
-                await Progress.updateOne(
-                    { _id: data.progressId },
-                    { $pull: { likes: data.accountId } },
-                    { useFindAndModify: false }
-                )
+        const { status, progressStepId } = data
+        if (status === 'process') {
+            const progressStep = await ProgressStep.findById(progressStepId)
+
+            if (progressStep) {
+                progressStep.status = status
+                updateStages(progressStep)
+                progressStep.save()
+                sendSuccess(ws, 'Status changed')
             }
-        }
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
-    }
-}
-
-module.exports.requestProgress = async (data, ws) => {
-    try {
-        ws.progressId = data.progressId
-    } catch (ex) {
-        sendError(ws)
-    }
-}
-
-module.exports.leaveProgress = async (data, ws) => {
-    try {
-        const { accountId, progressId } = data
-        const progress = await Progress.findById(progressId)
-            .select('__v owner worker name notifications')
-            .exec()
-        const account = await Account.findById(accountId)
-            .select('__v progresses')
-            .exec()
-        if (account) {
-            account.progresses = account.progresses.filter(
-                item => item !== progressId
+        } else {
+            await ProgressStep.updateOne(
+                { _id: progressStepId },
+                { status },
+                { useFindAndModify: false }
             )
-            account.save()
-        }
 
-        if (accountId === progress.owner) progress.owner = ''
-        else if (accountId === progress.worker) progress.worker = ''
-
-        const newNotificationId = await getNotificationId()
-        addNotification(progress, {
-            user: accountId,
-            code: 'leave progress',
-            notId: newNotificationId,
-            details: {
-                progressId: progress._id,
-                progressName: progress.name,
-            },
-        })
-
-        progress.save()
-        sendSuccess(ws)
-        ws.send(
-            JSON.stringify({
-                messageCode: 'redirectToProgresses',
-            })
-        )
-        return
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
-    }
-}
-
-module.exports.getFriendsData = async (data, ws) => {
-    try {
-        if (ws.progressId === data.progressId) {
-            friendsData = await Account.find({
-                _id: { $in: data.accountIds },
-            })
-                .select('name image')
-                .lean()
-                .exec()
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'friendsData',
-                    friendsData,
-                })
-            )
+            sendSuccess(ws, 'Status changed')
         }
     } catch (ex) {
         console.log(ex)
-        sendError(ws)
+        sendError(ws, 'Bad data!')
     }
 }
 
-module.exports.editProgress = async (data, ws) => {
+module.exports.changeProgressStatus = async (data, ws) => {
     try {
-        const { accountId, progressId } = data
-        const progress = await Progress.findById(data.progressId)
-        if (progress) {
-            const progressObj = progress.toObject()
-            if (progress.owner === accountId) {
-                const oldProgress = progress.toObject()
-                Object.assign(progress, data.value)
-                // progress = {
-                //     ...oldProgress,
-                //     ...data.value,
-                // }
-
-                const allOldAccounts = [
-                    ...new Set([...oldProgress.users, oldProgress.owner]),
-                ]
-
-                const allNewAccounts = [
-                    ...new Set([...progress.users, progress.owner]),
-                ]
-
-                let droppedAccounts = allOldAccounts.filter(
-                    x => !allNewAccounts.includes(x)
-                )
-
-                let addedAccounts = allNewAccounts.filter(
-                    x => !allOldAccounts.includes(x)
-                )
-
-                progress.followingAccounts = [
-                    ...new Set([
-                        ...progress.followingAccounts,
-                        ...addedAccounts,
-                    ]),
-                ]
-                const newNotificationId = await getNotificationId()
-                addNotification(progress, {
-                    user: accountId,
-                    code: 'edit progress',
-                    notId: newNotificationId,
-                    details: {
-                        progressId: progress._id,
-                        progressName: progress.name,
-                        droppedAccounts,
-                        addedAccounts,
-                    },
-                })
-
-                for (let id of droppedAccounts) {
-                    const account = await Account.findById(id)
-                        .select('progresses notifications myNotifications __v')
-                        .exec()
-                    if (account) {
-                        account.progresses = account.progresses.filter(
-                            item => item !== progressId
-                        )
-                        const newNotificationId = await getNotificationId()
-                        addNotification(
-                            account,
-                            {
-                                user: accountId,
-                                code: 'remove from progress',
-                                notId: newNotificationId,
-                                details: {
-                                    progressId: progress._id,
-                                    progressName: progress.name,
-                                    account: id,
-                                },
-                            },
-                            true,
-                            true
-                        )
-                        account.save()
-                    }
-                }
-
-                for (let id of addedAccounts) {
-                    const account = await Account.findById(id)
-                        .select('progresses notifications myNotifications __v')
-                        .exec()
-                    if (account) {
-                        account.progresses = [
-                            ...new Set([...account.progresses, progressId]),
-                        ]
-                        const newNotificationId = await getNotificationId()
-                        addNotification(
-                            account,
-                            {
-                                user: accountId,
-                                code: 'add to progress',
-                                notId: newNotificationId,
-                                details: {
-                                    progressId: progress._id,
-                                    progressName: progress.name,
-                                    account: id,
-                                },
-                            },
-                            true,
-                            true
-                        )
-                        account.save()
-                    }
-                }
-                updateStages(progress, progressObj)
-                progress.markModified('rewards')
-                progress.markModified('description')
-                progress.save()
-                sendSuccess(ws)
-                return
-            }
-        }
-
-        ws.send(
-            JSON.stringify({
-                messageCode: 'errorMessage',
-                messageText: 'Something failed...',
-            })
-        )
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
-    }
-}
-
-module.exports.deleteRewardFromProgress = async (data, ws) => {
-    try {
-        const progress = await Progress.findById(data.progressId)
-            .select('__v rewards')
-            .exec()
-        if (progress) {
-            const rewards = [...progress.toObject().rewards]
-            rewards.splice(rewards.indexOf(data.rewardId), 1)
-            progress.rewards = rewards
-            await progress.save()
-            sendSuccess(ws)
-            return
-        }
-        sendError(ws)
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
-    }
-}
-
-module.exports.deleteActivityFromProgress = async (data, ws) => {
-    try {
+        const { status, progressId } = data
         await Progress.updateOne(
-            { _id: data.progressId },
-            { $pull: { activities: data.activityId } },
+            { _id: progressId },
+            { status },
             { useFindAndModify: false }
         )
 
-        await Activity.updateOne(
-            { _id: data.activityId },
-            { $pull: { goals: data.progressId } },
+        sendSuccess(ws, 'Status changed')
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Bad data!')
+    }
+}
+
+module.exports.changeStage = async (data, ws) => {
+    try {
+        const { status, progressStepId, stageId } = data
+        await ProgressStep.updateOne(
+            { _id: progressStepId, 'stages.stageId': stageId },
+            { $set: { 'stages.$.status': status } },
             { useFindAndModify: false }
         )
-
-        sendSuccess(ws)
+        sendSuccess(ws, 'Status changed')
     } catch (ex) {
         console.log(ex)
         sendError(ws)
     }
 }
 
-module.exports.addRewardToProgress = async (data, ws) => {
+module.exports.changeProgressStepRepeat = async (data, ws) => {
     try {
-        await Progress.updateOne(
-            { _id: data.progressId },
-            { $push: { rewards: data.rewardId } },
-            { useFindAndModify: false }
-        )
+        const { progressStepId, repeat, days } = data
 
-        sendSuccess(ws)
-        return
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
-    }
-}
+        const progressStep = await ProgressStep.findById(progressStepId)
 
-module.exports.addActivityToProgress = async (data, ws) => {
-    try {
-        await Progress.updateOne(
-            { _id: data.progressId },
-            { $addToSet: { activities: data.activityId } },
-            { useFindAndModify: false }
-        )
-
-        await Activity.updateOne(
-            { _id: data.activityId },
-            { $addToSet: { goals: data.progressId } },
-            { useFindAndModify: false }
-        )
-
-        sendSuccess(ws)
-        return
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
-    }
-}
-
-module.exports.saveRewardInProgress = async (data, ws) => {
-    try {
-        const progress = await Progress.findById(data.goalId)
-            .select('__v rewards currentId')
-            .exec()
-        if (
-            data.value.activities.length === 1 &&
-            data.value.rewards.length > 0 &&
-            progress
-        ) {
-            if (data.rewardId === 'new') {
-                for (let reward of data.value.rewards) {
-                    progress.rewards.push({
-                        ...data.value,
-                        reward,
-                        rewardId: 'reward_' + progress.currentId++,
-                        owner: data.accountId,
-                    })
-                }
-            } else {
-                for (let reward in progress.rewards) {
-                    if (progress.rewards[reward].rewardId === data.rewardId) {
-                        progress.rewards[reward] = Object.assign(
-                            progress.rewards[reward],
-                            data.value
-                        )
-                        break
-                    }
-                }
-            }
-            await progress.save()
-            sendSuccess(ws)
+        if (progressStep) {
+            const prevProgressStep = progressStep.toObject()
+            progressStep.repeat = repeat
+            progressStep.days = days
+            updateStages(progressStep, prevProgressStep)
+            progressStep.save()
+            sendSuccess(ws, 'Status changed')
         }
+        // await ProgressStep.updateOne(
+        //     { _id: progressStepId },
+        //     { repeat, days },
+        //     { useFindAndModify: false,  }
+        // )
     } catch (ex) {
         console.log(ex)
-        sendError(ws)
+        sendError(ws, 'Bad data!')
     }
 }
 
-module.exports.deleteRewardInProgress = async (data, ws) => {
+module.exports.changeProgressStepNote = async (data, ws) => {
     try {
-        const progress = await Progress.findById(data.goalId)
-            .select('__v rewards')
-            .exec()
+        const { progressStepId, note } = data
 
-        if (progress) {
-            progress.rewards = progress.rewards.filter(
-                item => item.rewardId !== data.rewardId
-            )
-            await progress.save()
-            sendSuccess(ws)
-        }
+        await ProgressStep.updateOne(
+            { _id: progressStepId },
+            { description: note },
+            { useFindAndModify: false }
+        )
+        sendSuccess(ws, 'Status changed')
     } catch (ex) {
         console.log(ex)
-        sendError(ws)
-    }
-}
-
-module.exports.sendReward = async (data, ws) => {
-    try {
-        const progress = await Progress.findById(data.progressId)
-            .select('rewards name owner notifications __v')
-            .exec()
-        if (progress) {
-            const rewardObj = progress.rewards.find(
-                item => item.rewardId === data.rewardId
-            )
-            if (rewardObj) {
-                const rewardObject = await Reward.findById(rewardObj.reward)
-                    .select('name owner images')
-                    .lean()
-                    .exec()
-                if (rewardObject) {
-                    const owner = await Account.findById(rewardObject.owner)
-                        .select('transactions __v')
-                        .exec()
-                    const reciever = progress.owner
-
-                    const worker =
-                        owner._id.toString() !== reciever.toString()
-                            ? await Account.findById(reciever)
-                                  .select('transactions __v')
-                                  .exec()
-                            : owner
-                    const ownerIsWorker =
-                        owner._id.toString() === worker._id.toString()
-
-                    let transaction = new Transaction({
-                        from: owner._id,
-                        to: worker._id,
-                        progress: progress.name,
-                        progressId: progress._id,
-                        status: 'pending',
-                        reward: rewardObj.reward,
-                        rewardName: rewardObject.name,
-                        rewardImages: rewardObject.images,
-                    })
-
-                    transaction.save()
-
-                    owner.transactions.unshift(transaction._id.toString())
-
-                    if (!ownerIsWorker) {
-                        worker.transactions.unshift(transaction._id.toString())
-                    }
-
-                    await owner.save()
-                    if (!ownerIsWorker) await worker.save()
-                    newNotificationId = await getNotificationId()
-                    addNotification(progress, {
-                        user: reciever,
-                        code: 'get reward',
-                        notId: newNotificationId,
-                        details: {
-                            progressId: progress._id,
-                            progressName: progress.name,
-                            from: rewardObject.owner,
-                            reward: {
-                                itemName: rewardObject.name,
-                            },
-                        },
-                    })
-                    await progress.save()
-                }
-            }
-        }
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws)
+        sendError(ws, 'Bad data!')
     }
 }

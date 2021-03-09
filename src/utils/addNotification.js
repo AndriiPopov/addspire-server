@@ -41,7 +41,7 @@ setTimeout(() => setInterval(init, 60000), 30000)
 
 const getMessageDetails = async (not, type) => {
     let account = await Account.findById(not.user)
-        .select('followingAccounts name')
+        .select('followers name')
         .lean()
         .exec()
     if (account) {
@@ -54,7 +54,7 @@ const getMessageDetails = async (not, type) => {
         }
         if (type === 'account' || type === 'accountinspiration') {
             let friends = await Account.find({
-                _id: { $in: account.followingAccounts },
+                _id: { $in: account.followers },
             })
                 .select('tokens')
                 .lean()
@@ -72,12 +72,12 @@ const getMessageDetails = async (not, type) => {
         }
         if (type === 'inspiration') {
             const inspiration = await Progress.findById(not.details.progressId)
-                .select('followingAccounts')
+                .select('followers')
                 .lean()
                 .exec()
             // progress.goal.name
             let friends = await Account.find({
-                _id: { $in: inspiration.followingAccounts },
+                _id: { $in: inspiration.followers },
             })
                 .select('tokens')
                 .lean()

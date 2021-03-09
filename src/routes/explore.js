@@ -3,15 +3,15 @@ const { resSendError } = require('../utils/resError')
 const Joi = require('@hapi/joi')
 const { JoiLength } = require('../constants/fieldLength')
 
-const { Progress } = require('../models/progress')
+const { Advice } = require('../models/advice')
 const { Account } = require('../models/account')
-const { Activity } = require('../models/activity')
-const { Reward } = require('../models/reward')
+const { Board } = require('../models/board')
 const router = express.Router()
 
 const findProgressesSchema = Joi.object({
     value: Joi.string().max(JoiLength.name),
     skip: Joi.number(),
+    skip: Joi.string(),
 }).unknown(true)
 
 router.post('/search', async (req, res, next) => {
@@ -25,50 +25,114 @@ router.post('/search', async (req, res, next) => {
         // }
 
         const search = req.body.value
-        const model =
-            search.type === 'goal'
-                ? Progress
-                : search.type === 'activity'
-                ? Activity
-                : Reward
+        let model = Advice
+        let sortString = { usersCount: -1, savedCount: -1, likesCount: -1 }
+        let selectString = {
+            usersCount: 1,
+            likesCount: 1,
+            savedCount: 1,
+            name: 1,
+            owner: 1,
+            image: 1,
+        }
+        if (search.type === 'board') {
+            model = Board
+            sortString = { savedCount: -1, likesCount: -1, itemsCount: -1 }
+            selectString = {
+                savedCount: 1,
+                likesCount: 1,
+                itemsCount: 1,
+                name: 1,
+                owner: 1,
+                image: 1,
+            }
+        } else if (search.type === 'account') {
+            model = Account
+            sortString = {
+                followersCount: -1,
+                boardsCount: -1,
+                progressesCount: -1,
+            }
+            selectString = {
+                followersCount: 1,
+                boardsCount: 1,
+                progressesCount: 1,
+                name: 1,
+                image: 1,
+            }
+        }
+
         const query = {}
         let isSearch
-        if (search.withMap) {
-            query.position = {
-                $geoWithin: {
-                    $centerSphere: [
-                        [search.position[1], search.position[0]],
-                        search.distance / (search.units === 'mi' ? 3963 : 6377),
-                    ],
-                },
-            }
-            isSearch = true
-        }
+        // if (search.withMap) {
+        //     query.position = {
+        //         $geoWithin: {
+        //             $centerSphere: [
+        //                 [search.position[1], search.position[0]],
+        //                 search.distance / (search.units === 'mi' ? 3963 : 6377),
+        //             ],
+        //         },
+        //     }
+        //     isSearch = true
+        // }
         if (search.value) {
             query.name = new RegExp(search.value, 'gi')
             isSearch = true
         }
-        if (search.categories.length > 0) {
-            query.category = {
-                $elemMatch: {
-                    $in: search.categories,
-                },
-            }
-            isSearch = true
-        }
-        const progresses = await model
-            .find(isSearch ? query : undefined)
-            .sort('views')
-            .skip(req.body.skip)
-            .limit(20)
-            .select('__v owner name images users views status')
-            .lean()
-            .exec()
+        // if (search.categories.length > 0) {
+        //     query.category = {
+        //         $elemMatch: {
+        //             $in: search.categories,
+        //         },
+        //     }
+        //     isSearch = true
+        // }
+        // const progresses = await model
+        //     .find(isSearch ? query : undefined)
+        //     .sort('views')
+        //     .skip(req.body.skip)
+        //     .limit(20)
+        //     .select('__v owner name images users views status')
+        //     .lean()
+        //     .exec()
 
-        let friends = progresses.map(item => item.owner)
+        const progresses = await model.aggregate([
+            ...(search.value
+                ? [
+                      search.type !== 'account'
+                          ? {
+                                $search: {
+                                    text: {
+                                        query: search.value,
+                                        path: {
+                                            value: 'name',
+                                            multi: req.body.language,
+                                        },
+                                    },
+                                },
+                            }
+                          : {
+                                $match: {
+                                    name: {
+                                        $regex: search.value,
+                                        $options: 'gi',
+                                    },
+                                },
+                            },
+                  ]
+                : []),
+            { $sort: sortString },
+            { $skip: req.body.skip },
+            { $limit: 100 },
+            { $project: selectString },
+        ])
 
-        friends = await Account.find({
-            _id: { $in: friends },
+        let accountD = progresses.map(item =>
+            search.type === 'account' ? item._id : item.owner
+        )
+
+        accountD = await Account.find({
+            _id: { $in: accountD },
         })
             .select('name image')
             .lean()
@@ -76,11 +140,13 @@ router.post('/search', async (req, res, next) => {
 
         res.send({
             progresses,
-            friends,
+            accountD,
             success: true,
-            noMore: progresses.length < 20,
+            noMore: progresses.length < 100,
         })
-    } catch (ex) {}
+    } catch (ex) {
+        console.log(ex)
+    }
 })
 
 module.exports = router

@@ -4,7 +4,6 @@ const { mongoLength } = require('../constants/fieldLength')
 
 const { postSchema } = require('./post')
 const notificationSchema = require('./schemas/notification')
-const friendSchema = require('./schemas/friend')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
 
@@ -25,11 +24,18 @@ const accountSchema = new mongoose.Schema(
             required: true,
             maxlength: mongoLength.name,
         },
-        image: { type: Number, default: 0 },
+        images: [String],
+        image: { type: String, default: '' },
         settings: {},
+        admin: [String],
+        sadmin: [String],
+        collaborator: [String],
+        adminB: [String],
+        sadminB: [String],
+        collaboratorB: [String],
         progresses: [String],
-        transactions: [String],
-        friends: [friendSchema],
+        currentAdvices: [String],
+        myVerions: [String],
         followPosts: [String],
         myPosts: [String],
         currentId: {
@@ -47,19 +53,44 @@ const accountSchema = new mongoose.Schema(
         notifications: [notificationSchema],
         myNotifications: [notificationSchema],
         lastSeenNot: { type: Number, default: 0 },
-        followAccounts: [String],
-        followingAccounts: [String],
-        followProgresses: [String],
-        followActivities: [String],
-        followRewards: [String],
+        following: [String],
+        boards: [String],
+        boardsCount: {
+            type: Number,
+            default: 0,
+        },
+        followers: [String],
         tokens: [String],
-        recent: [{ resourceId: String, resourceType: String }],
-        rewards: [String],
-        activities: [String],
         language: { type: String, default: 'en' },
         description: {},
         descriptionText: String,
-        structure: {},
+        structure: String,
+        userid: {
+            type: String,
+            required: true,
+        },
+        accountInfo: {},
+        platformId: {
+            type: String,
+            required: true,
+        },
+        logoutAllDate: {
+            type: Number,
+            default: 0,
+        },
+        likesCount: {
+            type: Number,
+            default: 0,
+        },
+        followersCount: {
+            type: Number,
+            default: 0,
+        },
+        progressesCount: {
+            type: Number,
+            default: 0,
+        },
+        seenNots: [String],
     },
     { minimize: false }
 )
@@ -75,5 +106,18 @@ accountSchema.pre(
     ],
     increaseVersion
 )
+
+module.exports.generateAuthToken = function(account) {
+    try {
+        const token = jwt.sign(
+            { _id: account._id, issued: new Date().getTime() },
+            process.env.jwtPrivateKey,
+            {
+                expiresIn: '7d',
+            }
+        )
+        return token
+    } catch (ex) {}
+}
 
 module.exports.Account = mongoose.model('Account', accountSchema)

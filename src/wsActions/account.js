@@ -5,12 +5,12 @@ const { JoiLength } = require('../constants/fieldLength')
 
 const getAccount = require('../utils/getAccount')
 const { sendSuccess, sendError } = require('./confirm')
-const { User } = require('../models/user')
 const { getNotificationId } = require('../models/system')
 
-const { Progress } = require('../models/progress')
-const { Reward } = require('../models/reward')
-const { Activity } = require('../models/activity')
+const { Version } = require('../models/version')
+const { Advice } = require('../models/advice')
+const { Structure } = require('../models/structure')
+const { Board } = require('../models/board')
 
 const editAccountSchema = Joi.object({
     accountId: Joi.string()
@@ -31,8 +31,8 @@ module.exports.editAccount = async (data, ws) => {
             return
         }
         const newNotificationId = await getNotificationId()
-        await Account.findOneAndUpdate(
-            { _id: data.accountId },
+        await Account.updateOne(
+            { _id: ws.account },
             {
                 $set: { name: data.name },
                 $push: {
@@ -59,53 +59,63 @@ module.exports.editAccount = async (data, ws) => {
     }
 }
 
-const addRecentSchema = Joi.object({
-    accountId: Joi.string()
-        .max(JoiLength.name)
-        .required(),
-    resourceId: Joi.objectId().required(),
-    type: Joi.string().required(),
-}).unknown(true)
-
-module.exports.addRecent = async (data, ws) => {
+module.exports.addImage = async (data, ws) => {
     try {
-        const { error } = addRecentSchema.validate(data)
-        if (error) {
-            return
-        }
-
-        await Account.findOneAndUpdate(
-            { _id: data.accountId },
-            {
-                $pull: {
-                    recent: { resourceId: data.resourceId },
-                },
-            },
-            { useFindAndModify: false }
-        )
-        await Account.findOneAndUpdate(
-            { _id: data.accountId },
-            {
-                $push: {
-                    recent: {
-                        $each: [
-                            {
-                                resourceId: data.resourceId,
-                                resourceType: data.type,
-                            },
-                        ],
-                        $position: 0,
-                        $slice: 6,
-                    },
-                },
-            },
+        await Account.updateOne(
+            { _id: ws.account },
+            { $push: { images: data.image } },
             { useFindAndModify: false }
         )
 
-        // sendSuccess(ws)
+        sendSuccess(ws)
     } catch (ex) {
         console.log(ex)
-        // sendError(ws, 'Something failed.')
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.deleteImage = async (data, ws) => {
+    try {
+        await Account.updateOne(
+            { _id: ws.account },
+            { $pull: { images: data.image } },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.setAvatar = async (data, ws) => {
+    try {
+        await Account.updateOne(
+            { _id: ws.account },
+            { $set: { image: data.image } },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.saveAboutUser = async (data, ws) => {
+    try {
+        await Account.updateOne(
+            { _id: ws.account },
+            { $set: { description: data.value } },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Something failed.')
     }
 }
 
@@ -122,77 +132,7 @@ module.exports.deleteAccount = async (data, ws) => {
             return
         }
 
-        let account = await Account.findById(data.accountId)
-            .select(
-                'friends progresses followAccounts followingAccounts followProgresses __v'
-            )
-            .lean()
-        if (!account) {
-            sendError(ws, 'Bad data!')
-            return
-        }
-
-        await Account.updateMany(
-            {
-                _id: {
-                    $in: [
-                        ...account.friends.map(friend => friend.friend),
-                        ...account.followAccounts,
-                        ...account.followingAccounts,
-                    ],
-                },
-            },
-            {
-                $pull: {
-                    followAccounts: data.accountId,
-                    followingAccounts: data.accountId,
-                    friends: { friend: data.accountId },
-                },
-                $push: {
-                    notifications: {
-                        $each: [
-                            {
-                                user: account._id,
-                                code: 'delete account',
-                            },
-                        ],
-                        $position: 0,
-                        $slice: 20,
-                    },
-                },
-            },
-            { useFindAndModify: false }
-        )
-
-        await Progress.updateMany(
-            {
-                _id: {
-                    $in: [...account.progresses, ...account.followProgresses],
-                },
-            },
-            {
-                $pull: {
-                    followingAccounts: data.accountId,
-                    users: data.accountId,
-                },
-                $push: {
-                    notifications: {
-                        $each: [
-                            {
-                                user: account._id,
-                                code: 'delete account',
-                            },
-                        ],
-                        $position: 0,
-                        $slice: 20,
-                    },
-                },
-            },
-            { useFindAndModify: false }
-        )
-
-        await Account.findByIdAndDelete(account._id).exec()
-        await User.findByIdAndDelete(ws.user).exec()
+        await Account.deleteOne({ _id: account._id })
 
         sendSuccess(ws)
         ws.send(
@@ -206,98 +146,64 @@ module.exports.deleteAccount = async (data, ws) => {
 }
 
 const followAccountSchema = Joi.object({
-    accountId: Joi.string().required(),
-    accountFollow: Joi.string().required(),
-}).unknown(true)
-
-module.exports.followAccount = async (data, ws) => {
-    try {
-        const { error } = followAccountSchema.validate(data)
-        if (error) {
-            sendError(ws, 'Bad data!')
-            return
-        }
-
-        await Account.updateOne(
-            { _id: data.accountId },
-            { $addToSet: { followAccounts: data.accountFollow } },
-            { useFindAndModify: false }
-        )
-
-        await Account.updateOne(
-            { _id: data.accountFollow },
-            { $addToSet: { followingAccounts: data.accountId } },
-            { useFindAndModify: false }
-        )
-
-        sendSuccess(ws)
-    } catch (ex) {
-        sendError(ws, 'Something failed.')
-    }
-}
-
-module.exports.unfollowAccount = async (data, ws) => {
-    try {
-        const { error } = followAccountSchema.validate(data)
-        if (error) {
-            sendError(ws, 'Bad data!')
-            return
-        }
-
-        await Account.updateOne(
-            { _id: data.accountId },
-            { $pull: { followAccounts: data.accountFollow } },
-            { useFindAndModify: false }
-        )
-
-        await Account.updateOne(
-            { _id: data.accountFollow },
-            { $pull: { followingAccounts: data.accountId } },
-            { useFindAndModify: false }
-        )
-
-        sendSuccess(ws)
-    } catch (ex) {
-        sendError(ws, 'Something failed.')
-    }
-}
-
-const followResourceSchema = Joi.object({
-    accountId: Joi.string().required(),
     resourceId: Joi.string().required(),
     type: Joi.string().required(),
 }).unknown(true)
 
-module.exports.followResource = async (data, ws) => {
+module.exports.follow = async (data, ws) => {
     try {
-        const { error } = followResourceSchema.validate(data)
+        const { error } = followAccountSchema.validate(data)
         if (error) {
             sendError(ws, 'Bad data!')
             return
         }
+        const { type, resourceId } = data
+        const newNotificationId = await getNotificationId()
 
         await Account.updateOne(
-            { _id: data.accountId },
+            { _id: ws.account },
             {
-                $addToSet: {
-                    [data.type === 'goal'
-                        ? 'followProgresses'
-                        : data.type === 'reward'
-                        ? 'followRewards'
-                        : 'followActivities']: data.resourceId,
+                $addToSet: { following: resourceId },
+                $push: {
+                    notifications: {
+                        $each: [
+                            {
+                                user: ws.account,
+                                code: 'follow',
+                                details: {
+                                    accountId: resourceId,
+                                },
+                                notId: newNotificationId,
+                            },
+                        ],
+                        $slice: -20,
+                    },
                 },
             },
             { useFindAndModify: false }
         )
-        const model =
-            data.type === 'goal'
-                ? Progress
-                : data.type === 'reward'
-                ? Reward
-                : Activity
-        await model.updateOne(
-            { _id: data.resourceId },
-            { $addToSet: { followingAccounts: data.accountId } },
+
+        await Account.updateOne(
+            { _id: resourceId },
+            {
+                $addToSet: { followers: ws.account },
+                $inc: { followersCount: 1 },
+                $push: {
+                    notifications: {
+                        $each: [
+                            {
+                                user: ws.account,
+                                code: 'follow',
+                                details: {
+                                    accountId: resourceId,
+                                },
+                                notId: newNotificationId,
+                            },
+                        ],
+                        $slice: -20,
+                    },
+                },
+            },
             { useFindAndModify: false }
         )
 
@@ -307,50 +213,104 @@ module.exports.followResource = async (data, ws) => {
     }
 }
 
-module.exports.unfollowResource = async (data, ws) => {
+module.exports.unfollow = async (data, ws) => {
     try {
-        const { error } = followResourceSchema.validate(data)
+        const { error } = followAccountSchema.validate(data)
         if (error) {
             sendError(ws, 'Bad data!')
             return
         }
+        const { type, resourceId } = data
 
         await Account.updateOne(
-            { _id: data.accountId },
-            {
-                $pull: {
-                    [data.type === 'goal'
-                        ? 'followProgresses'
-                        : data.type === 'reward'
-                        ? 'followRewards'
-                        : 'followActivities']: data.resourceId,
-                },
-            },
+            { _id: ws.account },
+            { $pull: { following: resourceId } },
             { useFindAndModify: false }
         )
-        const model =
-            data.type === 'goal'
-                ? Progress
-                : data.type === 'reward'
-                ? Reward
-                : Activity
-        await model.updateOne(
-            { _id: data.resourceId },
-            { $pull: { followingAccounts: data.accountId } },
+
+        await Account.updateOne(
+            { _id: resourceId },
+            {
+                $pull: { followers: ws.account },
+                $inc: { followersCount: -1 },
+            },
             { useFindAndModify: false }
         )
 
         sendSuccess(ws)
     } catch (ex) {
-        console.log(ex)
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.like = async (data, ws) => {
+    try {
+        const { error } = followAccountSchema.validate(data)
+        if (error) {
+            sendError(ws, 'Bad data!')
+            return
+        }
+        const { type, resourceId } = data
+        const model = type === 'advice' ? Advice : Board
+
+        await model.updateOne(
+            { _id: resourceId },
+            {
+                $addToSet: { likes: ws.account },
+                $inc: { likesCount: 1 },
+                $push: {
+                    notifications: {
+                        $each: [
+                            {
+                                user: ws.account,
+                                code: 'like',
+                                details: {
+                                    [type === 'advice'
+                                        ? 'adviceId'
+                                        : 'boardId']: resourceId,
+                                },
+                                notId: newNotificationId,
+                            },
+                        ],
+                        $slice: -20,
+                    },
+                },
+            },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+    } catch (ex) {
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.unlike = async (data, ws) => {
+    try {
+        const { error } = followAccountSchema.validate(data)
+        if (error) {
+            sendError(ws, 'Bad data!')
+            return
+        }
+        const { type, resourceId } = data
+        const model = type === 'advice' ? Advice : Board
+
+        await model.updateOne(
+            { _id: resourceId },
+            { $pull: { likes: ws.account }, $inc: { likesCount: -1 } },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws)
+    } catch (ex) {
         sendError(ws, 'Something failed.')
     }
 }
 
 module.exports.saveStructure = async (data, ws) => {
     try {
-        await Account.updateOne(
-            { _id: data.accountId },
+        await Structure.updateOne(
+            { _id: data.structureId },
             {
                 structure: data.structure,
             },
@@ -360,6 +320,28 @@ module.exports.saveStructure = async (data, ws) => {
             JSON.stringify({
                 messageCode: 'structureSaved',
             })
+        )
+        sendSuccess(ws)
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Something failed.')
+    }
+}
+
+module.exports.markSeenNots = async (data, ws) => {
+    try {
+        console.log(data.ids)
+        await Account.updateOne(
+            { _id: ws.account },
+            {
+                $push: {
+                    seenNots: {
+                        $each: data.ids,
+                        $slice: -100,
+                    },
+                },
+            },
+            { useFindAndModify: false }
         )
         sendSuccess(ws)
     } catch (ex) {

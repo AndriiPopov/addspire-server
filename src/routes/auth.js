@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const passport = require('passport')
+const { generateAuthToken } = require('../models/account')
 require('../authStrategies/google')
 require('../authStrategies/facebook')
 require('../authStrategies/twitter')
@@ -27,14 +28,24 @@ router.get(
     '/google/redirect',
     passport.authenticate('google', { session: false }),
     async (req, res) => {
-        const token = req.user.generateAuthToken()
-        res.cookie('auth_token', token, {
-            expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
-        }).redirect(
-            process.env.NODE_ENV === 'production'
-                ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000'
-        )
+        if (req.user) {
+            const token = generateAuthToken(req.user)
+            res.cookie('auth_token', token, {
+                expires: new Date(
+                    new Date().getTime() + 6 * 24 * 60 * 60 * 1000
+                ),
+            }).redirect(
+                process.env.NODE_ENV === 'production'
+                    ? 'https://addspire.com'
+                    : 'http://my.websiter.test:3000'
+            )
+        } else {
+            resredirect(
+                process.env.NODE_ENV === 'production'
+                    ? 'https://addspire.com'
+                    : 'http://my.websiter.test:3000'
+            )
+        }
     }
 )
 
@@ -58,14 +69,24 @@ router.get(
     '/instagram/redirect',
     passport.authenticate('instagram', { session: false }),
     async (req, res) => {
-        const token = req.user.generateAuthToken()
-        res.cookie('auth_token', token, {
-            expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
-        }).redirect(
-            process.env.NODE_ENV === 'production'
-                ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000'
-        )
+        if (req.user) {
+            const token = generateAuthToken(req.user)
+            res.cookie('auth_token', token, {
+                expires: new Date(
+                    new Date().getTime() + 6 * 24 * 60 * 60 * 1000
+                ),
+            }).redirect(
+                process.env.NODE_ENV === 'production'
+                    ? 'https://addspire.com'
+                    : 'http://my.websiter.test:3000'
+            )
+        } else {
+            resredirect(
+                process.env.NODE_ENV === 'production'
+                    ? 'https://addspire.com'
+                    : 'http://my.websiter.test:3000'
+            )
+        }
     }
 )
 
@@ -88,14 +109,24 @@ router.get(
     '/facebook/redirect',
     passport.authenticate('facebook', { session: false }),
     async (req, res) => {
-        const token = req.user.generateAuthToken()
-        res.cookie('auth_token', token, {
-            expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
-        }).redirect(
-            process.env.NODE_ENV === 'production'
-                ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000'
-        )
+        if (req.user) {
+            const token = generateAuthToken(req.user)
+            res.cookie('auth_token', token, {
+                expires: new Date(
+                    new Date().getTime() + 6 * 24 * 60 * 60 * 1000
+                ),
+            }).redirect(
+                process.env.NODE_ENV === 'production'
+                    ? 'https://addspire.com'
+                    : 'http://my.websiter.test:3000'
+            )
+        } else {
+            resredirect(
+                process.env.NODE_ENV === 'production'
+                    ? 'https://addspire.com'
+                    : 'http://my.websiter.test:3000'
+            )
+        }
     }
 )
 
@@ -118,6 +149,7 @@ router.get(
 //     '/twitter/redirect',
 //     passport.authenticate('twitter', { session: false }),
 //     async (req, res) => {
+// if (req.user) {
 //         const token = req.user.generateAuthToken()
 //         res.cookie('auth_token', token, {
 //             expires: new Date(new Date().getTime() + 300 * 24 * 60 * 60 * 1000),
@@ -127,6 +159,14 @@ router.get(
 //                 : 'http://my.websiter.test:3000/login'
 //         )
 //     }
+// else {
+//             resredirect(
+//                 process.env.NODE_ENV === 'production'
+//                     ? 'https://addspire.com'
+//                     : 'http://my.websiter.test:3000'
+//             )
+//         }
+// }
 // )
 
 // GITHUB
@@ -148,14 +188,24 @@ router.get(
     '/github/redirect',
     passport.authenticate('github', { session: false }),
     async (req, res) => {
-        const token = req.user.generateAuthToken()
-        res.cookie('auth_token', token, {
-            expires: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000),
-        }).redirect(
-            process.env.NODE_ENV === 'production'
-                ? 'https://addspire.com'
-                : 'http://my.websiter.test:3000'
-        )
+        if (req.user) {
+            const token = generateAuthToken(req.user)
+            res.cookie('auth_token', token, {
+                expires: new Date(
+                    new Date().getTime() + 6 * 24 * 60 * 60 * 1000
+                ),
+            }).redirect(
+                process.env.NODE_ENV === 'production'
+                    ? 'https://addspire.com'
+                    : 'http://my.websiter.test:3000'
+            )
+        } else {
+            resredirect(
+                process.env.NODE_ENV === 'production'
+                    ? 'https://addspire.com'
+                    : 'http://my.websiter.test:3000'
+            )
+        }
     }
 )
 

@@ -16,7 +16,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
     try {
         const profile = await Account.findById(req.params._id)
             .select(
-                'name image structure friends rewards progresses transactions activities followAccounts followingAccounts followProgresses followRewards followActivities'
+                'name image structure friends rewards progresses transactions activities followAccounts followers followProgresses followRewards followActivities'
             )
             .lean()
             .exec()
@@ -105,7 +105,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
                     (acc, val) => [
                         ...acc,
                         val.owner,
-                        ...val.followingAccounts,
+                        ...val.followers,
                         ...val.likes,
                     ],
                     []
@@ -114,7 +114,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
                     (acc, val) => [
                         ...acc,
                         val.owner,
-                        ...val.followingAccounts,
+                        ...val.followers,
                         ...val.likes,
                     ],
                     []
@@ -123,7 +123,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
                     (acc, val) => [
                         ...acc,
                         val.owner,
-                        ...val.followingAccounts,
+                        ...val.followers,
                         ...val.likes,
                         ...val.users,
                     ],
@@ -132,7 +132,7 @@ router.get('/:_id*', authNotForce, async (req, res, next) => {
                 ...post.reduce((acc, val) => [...acc, ...val.users], []),
                 ...profile.friends.map(item => item.friend),
                 ...profile.followAccounts,
-                ...profile.followingAccounts,
+                ...profile.followers,
             ]),
         ]
 

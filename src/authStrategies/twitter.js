@@ -1,6 +1,6 @@
 const passport = require('passport')
 const TwitterStrategy = require('passport-twitter').Strategy
-const { User } = require('../models/user')
+const { Account } = require('../models/account')
 
 const passportConfig = {
     consumerKey: process.env.TwitterClientID || '1',
@@ -13,25 +13,32 @@ passport.use(
         passportConfig,
         async (accessToken, refreshToken, profile, done) => {
             try {
-                let user = await User.findOne({
-                    userid: profile.id,
-                    platformId: 'twitter',
-                })
-                if (!user) {
-                    user = new User({
-                        userid: profile.id,
+                let account = await Account.findById('t_' + profile.id)
+                    .select('_id')
+                    .lean()
+                    .exec()
+                if (!account) {
+                    let name = profile.displayName || profile.username
+                    name = name && name.length > 1 && name
+                    account = new Account({
+                        _id: 't_' + profile.id,
+                        name: name || 't_' + profile.id,
                         platformId: 'twitter',
                         logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
                         accountInfo: {
                             displayName: profile.displayName,
                             emails: propfile.emails,
                             photos: profile.photos,
+                            userid: profile.id,
                         },
                     })
-                    user.markModified('accountInfo')
-                    await user.save()
+                    if (profile.photos.length > 0 && profile.photos[0].value)
+                        account.image = profile.photos[0].value
+                    account.markModified('accountInfo')
+                    account = await account.save()
                 }
-                return done(null, user)
+                if (account) return done(null, account)
+                else return done()
             } catch {
                 console.log('Create user failed.')
             }

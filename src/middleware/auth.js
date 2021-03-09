@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { User } = require('../models/user')
+const { Account } = require('../models/account')
 
 const logout = res => {
     res.redirect(
@@ -21,12 +21,15 @@ module.exports = async (req, res, next) => {
                 if (err) {
                     return logout(res)
                 } else {
-                    req.user = await User.findById(decoded._id)
-                    if (!req.user) {
+                    req.account = await Account.findById(decoded._id)
+                        .select('logoutAllDate')
+                        .lean()
+                        .exec()
+                    if (!req.account) {
                         return logout(res)
                     } else {
-                        if (decoded.issued < req.user.logoutAllDate) {
-                            req.user = null
+                        if (decoded.issued < req.account.logoutAllDate) {
+                            req.account = null
                             return logout(res)
                         }
                         next()

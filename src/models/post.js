@@ -28,6 +28,7 @@ const postSchema = new mongoose.Schema(
         parent: {
             parentId: String,
             parentType: String,
+            progressId: String,
         },
     },
     { minimize: false }

@@ -21,7 +21,7 @@ router.get('/:id', async (req, res, next) => {
 
             let accountIds = [
                 reward.owner,
-                ...reward.followingAccounts,
+                ...reward.followers,
                 ...reward.likes,
             ]
 

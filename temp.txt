@@ -1,0 +1,18 @@
+Create course
+Create version
+Edit version
+Publish version
+Edit version map
+
+Create step
+Edit step
+Delete step
+
+Start progress
+Finish progress
+Save progress for future
+Set step status
+Change schedule
+Set stage status
+
+

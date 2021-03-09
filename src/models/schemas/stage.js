@@ -4,27 +4,7 @@ const { mongoLength } = require('../../constants/fieldLength')
 const stageSchema = new mongoose.Schema(
     {
         stageId: String,
-        approvedBy: [
-            {
-                accountId: String,
-                date: {
-                    type: Date,
-                    default: Date.now,
-                },
-            },
-        ],
-        failBy: [
-            {
-                accountId: String,
-                date: {
-                    type: Date,
-                    default: Date.now,
-                },
-            },
-        ],
-        paid: [String],
         status: String,
-        dismissed: Boolean,
         old: Boolean,
         year: Number,
         month: Number,

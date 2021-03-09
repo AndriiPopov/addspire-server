@@ -5,34 +5,14 @@ const aws = require('aws-sdk')
 const AWS_S3_KEY = process.env.AWSAccessKeyId
 const AWS_S3_SECRET = process.env.AWSSecretKey
 const AWS_S3_BUCKET = process.env.AWSBucket
-const Joi = require('@hapi/joi')
-const getAccount = require('../utils/getAccount')
-Joi.objectId = require('joi-objectid')(Joi)
+const { getImgId } = require('../models/system')
 
 const router = express.Router()
 
-const signFileSchema = Joi.object({
-    fileName: Joi.string().required(),
-})
-
 router.post('/', auth, async (req, res) => {
     try {
-        // const { error } = signFileSchema.validate(req.body)
-        // if (error) {
-        //     return res.status(400).send('Image upload failed. Wrong data.')
-        // }
-        let account = await getAccount(req, res, 'currentId image __v', true)
-        if (!account) return
-        let fileName = req.body.fileName
-        if (fileName === 'avatar') {
-            account.image = account.image + 1
-            account.save()
-        }
-        if (!fileName) {
-            fileName = 'image' + account.currentId + '.jpeg'
-            account.currentId = account.currentId + 1
-            account.save()
-        }
+        const imageName = 'users/img-' + (await getImgId())
+
         const s3 = new aws.S3({
             accessKeyId: AWS_S3_KEY,
             secretAccessKey: AWS_S3_SECRET,
@@ -41,11 +21,9 @@ router.post('/', auth, async (req, res) => {
             region: 'us-east-2',
         })
 
-        fileName = account._id.toString() + '/' + fileName
-
         const s3ParamsFile = {
             Bucket: AWS_S3_BUCKET,
-            Key: fileName,
+            Key: imageName,
             Expires: 60,
             ContentType: 'image',
             ACL: 'public-read',
@@ -58,13 +36,14 @@ router.post('/', auth, async (req, res) => {
 
             const returnDataFile = {
                 signedRequest: data,
-                url: `https://${AWS_S3_BUCKET}.s3.amazonaws.com/${fileName}`,
+                url: `https://${AWS_S3_BUCKET}.s3.amazonaws.com/${imageName}`,
             }
             res.write(
                 JSON.stringify({
                     ...returnDataFile,
                 })
             )
+
             res.end()
         })
     } catch (ex) {

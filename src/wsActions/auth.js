@@ -1,10 +1,11 @@
-const { User } = require('../models/user')
+const { Account } = require('../models/account')
 const jwt = require('jsonwebtoken')
 const { sendError } = require('./confirm')
+const { redisClient: client } = require('../startup/redis')
 
-const authenticate = async (data, ws) => {
+module.exports.auth = async (ws, data) => {
     try {
-        let user
+        let account
         const token = data.user
 
         if (token) {
@@ -15,41 +16,23 @@ const authenticate = async (data, ws) => {
                     if (err) {
                         sendError(ws, 'Login error1.', true)
                     } else {
-                        const userObj = await User.findById(decoded._id)
-                            .select('myAccount')
-                            .lean()
-                            .exec()
-                        if (userObj) ws.account = userObj.myAccount
-                        user = userObj ? decoded._id : null
-                        if (!user) {
-                            sendError(ws, 'Login error2.', true)
-                        }
+                        if (
+                            await Account.exists({
+                                _id: decoded._id,
+                            })
+                        ) {
+                            ws.account = decoded._id
+                            ws.resources = data.resourcesToMonitor
+                            ws.send(
+                                JSON.stringify({
+                                    messageCode: 'authSuccess',
+                                })
+                            )
+                            client.set(ws.account, true, 'EX', 40)
+                        } else sendError(ws, 'Login error.4', true)
                     }
                 }
             )
-        }
-
-        return user
-    } catch {
-        sendError(ws, 'Login error.3', true)
-        return false
-    }
-}
-
-module.exports.auth = async (ws, data) => {
-    try {
-        let user = await authenticate(data, ws)
-        if (user) {
-            ws.user = user
-            ws.user = user
-            ws.resources = data.resourcesToMonitor
-            ws.send(
-                JSON.stringify({
-                    messageCode: 'authSuccess',
-                })
-            )
-        } else {
-            sendError(ws, 'Login error.4', true)
         }
     } catch (ex) {
         sendError(ws, 'Login error.5', true)

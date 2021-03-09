@@ -28,6 +28,7 @@ module.exports = function() {
             if (!system) {
                 system = new System({
                     currentId: 0,
+                    currentImgId: 0,
                 })
                 await system.save()
             }

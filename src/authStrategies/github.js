@@ -1,6 +1,6 @@
 const passport = require('passport')
 const passportGithub = require('passport-github').Strategy
-const { User } = require('../models/user')
+const { Account } = require('../models/account')
 
 const passportConfig = {
     clientID: process.env.GithubClientID,
@@ -17,13 +17,16 @@ passport.use(
         passportConfig,
         async (req, accessToken, refreshToken, profile, done) => {
             try {
-                let user = await User.findOne({
-                    userid: profile.id,
-                    platformId: 'github',
-                })
-
-                if (!user) {
-                    user = new User({
+                let account = await Account.findById('h_' + profile.id)
+                    .select('_id')
+                    .lean()
+                    .exec()
+                if (!account) {
+                    let name = profile.displayName || profile.username
+                    name = name && name.length > 1 && name
+                    account = new Account({
+                        _id: 'h_' + profile.id,
+                        name: name || 'h_' + profile.id,
                         userid: profile.id,
                         platformId: 'github',
                         logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
@@ -31,13 +34,18 @@ passport.use(
                             displayName: profile.displayName,
                             emails: profile.emails,
                             photos: profile.photos,
+                            userid: profile.id,
                         },
                     })
-                    user.markModified('accountInfo')
-                    await user.save()
+                    if (profile.photos.length > 0 && profile.photos[0].value)
+                        account.image = profile.photos[0].value
+                    account.markModified('accountInfo')
+                    account = await account.save()
                 }
-                return done(null, user)
-            } catch {
+                if (account) return done(null, account)
+                else return done()
+            } catch (ex) {
+                console.log(ex)
                 console.log('Create user failed.')
             }
         }

@@ -1,11 +1,13 @@
-const { User } = require('../models/user')
 const { Account } = require('../models/account')
 const { Progress } = require('../models/progress')
-const { Transaction } = require('../models/transaction')
 const WebSocket = require('ws')
 const { Post } = require('../models/post')
-const { Reward } = require('../models/reward')
-const { Activity } = require('../models/activity')
+const { Board } = require('../models/board')
+const { Structure } = require('../models/structure')
+const { Version } = require('../models/version')
+const { Advice } = require('../models/advice')
+const { Step } = require('../models/step')
+const { ProgressStep } = require('../models/progressStep')
 
 module.exports.pushChanges = wss => {
     try {
@@ -15,26 +17,12 @@ module.exports.pushChanges = wss => {
                     const sendData = keys => {
                         for (let client of wss.clients) {
                             for (let key of keys) {
-                                // if (
-                                //     ![
-                                //         'friendData',
-                                //         'progressData',
-                                //         'postData',
-                                //     ].includes(key) ||
-                                //     !data.updateDescription.updatedFields
-                                //         .notifications
-                                // ) {
-                                // console.log(client.resources)
-                                // console.log(key)
                                 if (
                                     typeof client.resources[key][
                                         data.documentKey._id.toString()
                                     ] !== 'undefined'
                                 ) {
                                     if (client.readyState === WebSocket.OPEN) {
-                                        // console.log('KEY')
-                                        // console.log(key)
-                                        // console.log(data)
                                         client.send(
                                             JSON.stringify({
                                                 messageCode: 'updateResource',
@@ -60,21 +48,7 @@ module.exports.pushChanges = wss => {
                             }
                         }
                     }
-                    if (type === 'user') {
-                        sendData(['user'])
-                    } else if (type === 'account') {
-                        sendData(['account', 'friendData'])
-                    } else if (type === 'transaction') {
-                        sendData(['transactionData'])
-                    } else if (type === 'progress') {
-                        sendData(['progress', 'progressData'])
-                    } else if (type === 'post') {
-                        sendData(['post', 'postData'])
-                    } else if (type === 'reward') {
-                        sendData(['reward', 'rewardData'])
-                    } else if (type === 'activity') {
-                        sendData(['activity', 'activityData'])
-                    }
+                    sendData([type, type + 'D'])
                 }
             } catch (ex) {}
         }
@@ -89,50 +63,64 @@ module.exports.pushChanges = wss => {
                 },
             },
         ]
-        try {
-            User.watch()
-        } catch (ex) {}
+
         try {
             Account.watch()
+        } catch (ex) {}
+        try {
+            Board.watch()
+        } catch (ex) {}
+        try {
+            Advice.watch()
+        } catch (ex) {}
+        try {
+            Post.watch()
         } catch (ex) {}
         try {
             Progress.watch()
         } catch (ex) {}
         try {
-            Transaction.watch()
+            ProgressStep.watch()
         } catch (ex) {}
         try {
-            Reward.watch()
+            Step.watch()
         } catch (ex) {}
         try {
-            Activity.watch()
+            Structure.watch()
+        } catch (ex) {}
+        try {
+            Version.watch()
         } catch (ex) {}
 
-        const userChangeStream = User.watch().on('change', data => {
-            pushChange(data, 'user')
+        const accountChangeStream = Account.watch().on('change', data => {
+            pushChange(data, 'account')
+        })
+        const boardChangeStream = Board.watch().on('change', data => {
+            pushChange(data, 'board')
+        })
+        const adviceChangeStream = Advice.watch().on('change', data => {
+            pushChange(data, 'advice')
+        })
+        const postChangeStream = Post.watch().on('change', data => {
+            pushChange(data, 'post')
         })
         const progressChangeStream = Progress.watch().on('change', data => {
             pushChange(data, 'progress')
         })
-        const accountChangeStream = Account.watch().on('change', data => {
-            pushChange(data, 'account')
-        })
-        const transactionChangeStream = Transaction.watch().on(
+        const progressStepChangeStream = ProgressStep.watch().on(
             'change',
             data => {
-                pushChange(data, 'transaction')
+                pushChange(data, 'progressStep')
             }
         )
-        const postChangeStream = Post.watch().on('change', data => {
-            pushChange(data, 'post')
+        const stepChangeStream = Step.watch().on('change', data => {
+            pushChange(data, 'step')
         })
-
-        const rewardChangeStream = Reward.watch().on('change', data => {
-            pushChange(data, 'reward')
+        const structureChangeStream = Structure.watch().on('change', data => {
+            pushChange(data, 'structure')
         })
-
-        const activityChangeStream = Activity.watch().on('change', data => {
-            pushChange(data, 'activity')
+        const versionChangeStream = Version.watch().on('change', data => {
+            pushChange(data, 'version')
         })
 
         function resumeStream(changeStreamCursor, forceResume = false) {
@@ -161,12 +149,14 @@ module.exports.pushChanges = wss => {
             resumeStream(changeStreamCursor, forceResume)
         }
 
-        resumeStream(userChangeStream, true)
-        resumeStream(progressChangeStream, true)
         resumeStream(accountChangeStream, true)
-        resumeStream(transactionChangeStream, true)
+        resumeStream(boardChangeStream, true)
+        resumeStream(adviceChangeStream, true)
         resumeStream(postChangeStream, true)
-        resumeStream(rewardChangeStream, true)
-        resumeStream(activityChangeStream, true)
+        resumeStream(progressChangeStream, true)
+        resumeStream(progressStepChangeStream, true)
+        resumeStream(stepChangeStream, true)
+        resumeStream(structureChangeStream, true)
+        resumeStream(versionChangeStream, true)
     } catch (ex) {}
 }

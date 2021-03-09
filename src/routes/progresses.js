@@ -27,7 +27,7 @@ router.get('/:id', async (req, res, next) => {
 
             let accountIds = [
                 progress.owner,
-                ...progress.followingAccounts,
+                ...progress.followers,
                 ...progress.likes,
             ]
 

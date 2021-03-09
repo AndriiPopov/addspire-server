@@ -6,12 +6,14 @@ const systemSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    currentImgId: {
+        type: Number,
+        default: 0,
+    },
     notifications: [],
 })
 
 const System = mongoose.model('System', systemSchema)
-
-module.exports.System = System
 
 module.exports.getNotificationId = async () => {
     const newId = await System.findOneAndUpdate(
@@ -21,3 +23,13 @@ module.exports.getNotificationId = async () => {
     )
     return newId.currentId
 }
+
+module.exports.getImgId = async () => {
+    const newId = await System.findOneAndUpdate(
+        { name: 'system' },
+        { $inc: { currentImgId: 1 } },
+        { new: true }
+    )
+    return newId.currentImgId
+}
+module.exports.System = System

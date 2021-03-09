@@ -6,10 +6,9 @@ const { JoiLength } = require('../constants/fieldLength')
 const findMessage = require('../utils/findMessage')
 const { sendError } = require('./confirm')
 const { Post } = require('../models/post')
-const { Progress } = require('../models/progress')
 const addNotification = require('../utils/addNotification')
-const { Reward } = require('../models/reward')
-const { Activity } = require('../models/activity')
+const { Board } = require('../models/board')
+const { Advice } = require('../models/advice')
 
 const sendMessageSchema = Joi.object({
     postId: Joi.string()
@@ -174,12 +173,7 @@ module.exports.addPost = async (data, ws) => {
             sendError(ws, 'Bad data!')
             return
         }
-        const model =
-            data.parentType === 'goal'
-                ? Progress
-                : data.parentType === 'reward'
-                ? Reward
-                : Activity
+        const model = data.parentType === 'board' ? Board : Advice
         const parent = await model
             .findById(data.parentId)
             .select('posts notifications __v')
@@ -205,7 +199,11 @@ module.exports.addPost = async (data, ws) => {
                 date: Date.now(),
                 editedDate: Date.now(),
             },
-            parent: { parentId: parent._id, parentType: data.parentType },
+            parent: {
+                parentId: parent._id,
+                parentType: data.parentType,
+                progressId: data.progressId,
+            },
         })
 
         post.notifications = [
@@ -336,12 +334,7 @@ module.exports.deletePost = async (data, ws) => {
                 { useFindAndModify: false }
             )
 
-            const model =
-                post.parent.parentType === 'goal'
-                    ? Progress
-                    : post.parent.parentType === 'reward'
-                    ? Reward
-                    : Activity
+            const model = post.parent.parentType === 'board' ? Board : Advice
             await model.updateOne(
                 {
                     _id: post.parent.parentId,
