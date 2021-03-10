@@ -24,7 +24,6 @@ const authtest = require('../routes/authtest')
 // const serveCustomIndexGoal = require('../routes/serveCustomIndexGoal')
 // const serveCustomIndexReward = require('../routes/serveCustomIndexReward')
 // const serveCustomIndexActivity = require('../routes/serveCustomIndexActivity')
-const sslRedirect = require('heroku-ssl-redirect')
 
 module.exports = function(app) {
     app.all('*', (req, res, next) => {
@@ -37,8 +36,6 @@ module.exports = function(app) {
         )
         next()
     })
-
-    app.use(sslRedirect())
 
     app.use(express.json())
 
