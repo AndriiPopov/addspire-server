@@ -6,6 +6,7 @@ const router = express.Router()
 router.post('/', async (req, res, next) => {
     try {
         const data = req.body
+
         if (data.type && data.ids && data.ids.length > 0) {
             const [result, onlineUsers] = await getResourcesFromList(data)
 
@@ -16,19 +17,26 @@ router.post('/', async (req, res, next) => {
                     resources: result.filter(item => item),
                     newOnlineUsers: onlineUsers,
                 })
+                return
             } else {
                 if (!fields) {
                     res.send({
                         messageCode: '404',
                     })
+                    return
                 } else {
                     res.send({
                         messageCode: 'notFoundResource',
                         _id: data.ids,
                     })
+                    return
                 }
             }
         }
+        res.send({
+            messageCode: 'noResources',
+        })
+        return
     } catch (ex) {
         console.log(ex)
         res.send({
