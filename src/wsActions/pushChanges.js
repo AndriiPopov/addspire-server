@@ -4,10 +4,12 @@ const WebSocket = require('ws')
 const { Post } = require('../models/post')
 const { Board } = require('../models/board')
 const { Structure } = require('../models/structure')
-const { Version } = require('../models/version')
 const { Advice } = require('../models/advice')
-const { Step } = require('../models/step')
-const { ProgressStep } = require('../models/progressStep')
+const { Survey } = require('../models/survey')
+const { People } = require('../models/people')
+const { Community } = require('../models/community')
+const { Place } = require('../models/place')
+const { Document } = require('../models/document')
 
 module.exports.pushChanges = wss => {
     try {
@@ -68,10 +70,22 @@ module.exports.pushChanges = wss => {
             Account.watch()
         } catch (ex) {}
         try {
+            Advice.watch()
+        } catch (ex) {}
+        try {
             Board.watch()
         } catch (ex) {}
         try {
-            Advice.watch()
+            Community.watch()
+        } catch (ex) {}
+        try {
+            Document.watch()
+        } catch (ex) {}
+        try {
+            People.watch()
+        } catch (ex) {}
+        try {
+            Place.watch()
         } catch (ex) {}
         try {
             Post.watch()
@@ -80,26 +94,32 @@ module.exports.pushChanges = wss => {
             Progress.watch()
         } catch (ex) {}
         try {
-            ProgressStep.watch()
-        } catch (ex) {}
-        try {
-            Step.watch()
-        } catch (ex) {}
-        try {
             Structure.watch()
         } catch (ex) {}
         try {
-            Version.watch()
+            Survey.watch()
         } catch (ex) {}
 
         const accountChangeStream = Account.watch().on('change', data => {
             pushChange(data, 'account')
         })
+        const adviceChangeStream = Advice.watch().on('change', data => {
+            pushChange(data, 'advice')
+        })
         const boardChangeStream = Board.watch().on('change', data => {
             pushChange(data, 'board')
         })
-        const adviceChangeStream = Advice.watch().on('change', data => {
-            pushChange(data, 'advice')
+        const communityChangeStream = Community.watch().on('change', data => {
+            pushChange(data, 'community')
+        })
+        const documentChangeStream = Document.watch().on('change', data => {
+            pushChange(data, 'document')
+        })
+        const peopleChangeStream = People.watch().on('change', data => {
+            pushChange(data, 'people')
+        })
+        const placeChangeStream = Place.watch().on('change', data => {
+            pushChange(data, 'place')
         })
         const postChangeStream = Post.watch().on('change', data => {
             pushChange(data, 'post')
@@ -107,20 +127,11 @@ module.exports.pushChanges = wss => {
         const progressChangeStream = Progress.watch().on('change', data => {
             pushChange(data, 'progress')
         })
-        const progressStepChangeStream = ProgressStep.watch().on(
-            'change',
-            data => {
-                pushChange(data, 'progressStep')
-            }
-        )
-        const stepChangeStream = Step.watch().on('change', data => {
-            pushChange(data, 'step')
-        })
         const structureChangeStream = Structure.watch().on('change', data => {
             pushChange(data, 'structure')
         })
-        const versionChangeStream = Version.watch().on('change', data => {
-            pushChange(data, 'version')
+        const surveyChangeStream = Survey.watch().on('change', data => {
+            pushChange(data, 'survey')
         })
 
         function resumeStream(changeStreamCursor, forceResume = false) {
@@ -150,13 +161,15 @@ module.exports.pushChanges = wss => {
         }
 
         resumeStream(accountChangeStream, true)
-        resumeStream(boardChangeStream, true)
         resumeStream(adviceChangeStream, true)
+        resumeStream(communityChangeStream, true)
+        resumeStream(boardChangeStream, true)
+        resumeStream(documentChangeStream, true)
+        resumeStream(peopleChangeStream, true)
+        resumeStream(placeChangeStream, true)
         resumeStream(postChangeStream, true)
         resumeStream(progressChangeStream, true)
-        resumeStream(progressStepChangeStream, true)
-        resumeStream(stepChangeStream, true)
         resumeStream(structureChangeStream, true)
-        resumeStream(versionChangeStream, true)
+        resumeStream(surveyChangeStream, true)
     } catch (ex) {}
 }

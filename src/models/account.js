@@ -30,30 +30,17 @@ const accountSchema = new mongoose.Schema(
         admin: [String],
         sadmin: [String],
         collaborator: [String],
-        adminB: [String],
-        sadminB: [String],
-        collaboratorB: [String],
         progresses: [String],
-        currentAdvices: [String],
-        myVerions: [String],
         followPosts: [String],
-        myPosts: [String],
         currentId: {
             type: Number,
             default: 0,
             required: true,
         },
-        users: [String],
-        status: {
-            type: String,
-            default: 'notactivated',
-            enum: ['notactivated', 'activated'],
-            required: true,
-        },
         notifications: [notificationSchema],
         myNotifications: [notificationSchema],
         lastSeenNot: { type: Number, default: 0 },
-        following: [String],
+        following: [{ itemType: String, item: String }],
         boards: [String],
         boardsCount: {
             type: Number,
@@ -78,10 +65,6 @@ const accountSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        likesCount: {
-            type: Number,
-            default: 0,
-        },
         followersCount: {
             type: Number,
             default: 0,
@@ -90,7 +73,18 @@ const accountSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        communities: [String],
+        communitiesCount: {
+            type: Number,
+            default: 0,
+        },
+        shortDescription: String,
         seenNots: [String],
+        saved: [String],
+        savedCount: {
+            type: Number,
+            default: 0,
+        },
     },
     { minimize: false }
 )

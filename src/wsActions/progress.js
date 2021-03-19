@@ -4,13 +4,10 @@ const { JoiLength } = require('../constants/fieldLength')
 const { sendError, sendSuccess } = require('./confirm')
 const { getNotificationId } = require('../models/system')
 const addNotification = require('../utils/addNotification')
-const { Version } = require('../models/version')
 const { Advice } = require('../models/advice')
-const { Step } = require('../models/step')
+const { Step } = require('../models/schemas/step')
 const { Account } = require('../models/account')
 const { Progress } = require('../models/progress')
-const { ProgressStep } = require('../models/progressStep')
-const { updateStages } = require('../utils/updateStages')
 
 module.exports.startAdvice = async (data, ws) => {
     try {
@@ -39,7 +36,7 @@ module.exports.startAdvice = async (data, ws) => {
             { useFindAndModify: false, new: true, fields: { _id: 1 } }
         )
         if (account) {
-            const version = await Version.findById(versionId)
+            const version = await Advice.findById(versionId)
                 .select('steps')
                 .lean()
                 .exec()
@@ -50,17 +47,7 @@ module.exports.startAdvice = async (data, ws) => {
                         .lean()
                         .exec()
                     if (!step) return
-                    const progressStep = new ProgressStep({
-                        step: step._id,
-                        repeat: step.repeat,
-                        days: step.days,
-                        status: 'process',
-                        progress: progress._id,
-                    })
-                    progress.progressSteps.push(progressStep._id)
-
-                    updateStages(progressStep)
-                    await progressStep.save()
+                    progress.progressSteps.push(step._id)
                 }
                 await progress.save()
                 await Account.updateOne(
@@ -150,25 +137,23 @@ module.exports.startAdvice = async (data, ws) => {
 
 module.exports.setProgressStepStatus = async (data, ws) => {
     try {
-        const { status, progressStepId } = data
-        if (status === 'process') {
-            const progressStep = await ProgressStep.findById(progressStepId)
-
-            if (progressStep) {
-                progressStep.status = status
-                updateStages(progressStep)
-                progressStep.save()
-                sendSuccess(ws, 'Status changed')
-            }
-        } else {
-            await ProgressStep.updateOne(
-                { _id: progressStepId },
-                { status },
-                { useFindAndModify: false }
-            )
-
-            sendSuccess(ws, 'Status changed')
-        }
+        // const { status, progressStepId } = data
+        // if (status === 'process') {
+        //     const progressStep = await ProgressStep.findById(progressStepId)
+        //     if (progressStep) {
+        //         progressStep.status = status
+        //         updateStages(progressStep)
+        //         progressStep.save()
+        //         sendSuccess(ws, 'Status changed')
+        //     }
+        // } else {
+        //     await ProgressStep.updateOne(
+        //         { _id: progressStepId },
+        //         { status },
+        //         { useFindAndModify: false }
+        //     )
+        //     sendSuccess(ws, 'Status changed')
+        // }
     } catch (ex) {
         console.log(ex)
         sendError(ws, 'Bad data!')
@@ -193,56 +178,15 @@ module.exports.changeProgressStatus = async (data, ws) => {
 
 module.exports.changeStage = async (data, ws) => {
     try {
-        const { status, progressStepId, stageId } = data
-        await ProgressStep.updateOne(
-            { _id: progressStepId, 'stages.stageId': stageId },
-            { $set: { 'stages.$.status': status } },
-            { useFindAndModify: false }
-        )
-        sendSuccess(ws, 'Status changed')
+        // const { status, progressStepId, stageId } = data
+        // await ProgressStep.updateOne(
+        //     { _id: progressStepId, 'stages.stageId': stageId },
+        //     { $set: { 'stages.$.status': status } },
+        //     { useFindAndModify: false }
+        // )
+        // sendSuccess(ws, 'Status changed')
     } catch (ex) {
         console.log(ex)
         sendError(ws)
-    }
-}
-
-module.exports.changeProgressStepRepeat = async (data, ws) => {
-    try {
-        const { progressStepId, repeat, days } = data
-
-        const progressStep = await ProgressStep.findById(progressStepId)
-
-        if (progressStep) {
-            const prevProgressStep = progressStep.toObject()
-            progressStep.repeat = repeat
-            progressStep.days = days
-            updateStages(progressStep, prevProgressStep)
-            progressStep.save()
-            sendSuccess(ws, 'Status changed')
-        }
-        // await ProgressStep.updateOne(
-        //     { _id: progressStepId },
-        //     { repeat, days },
-        //     { useFindAndModify: false,  }
-        // )
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws, 'Bad data!')
-    }
-}
-
-module.exports.changeProgressStepNote = async (data, ws) => {
-    try {
-        const { progressStepId, note } = data
-
-        await ProgressStep.updateOne(
-            { _id: progressStepId },
-            { description: note },
-            { useFindAndModify: false }
-        )
-        sendSuccess(ws, 'Status changed')
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws, 'Bad data!')
     }
 }

@@ -8,7 +8,9 @@ router.post('/', async (req, res, next) => {
         const data = req.body
 
         if (data.type && data.ids && data.ids.length > 0) {
-            const [result, onlineUsers] = await getResourcesFromList(data)
+            const [result, fields, onlineUsers] = await getResourcesFromList(
+                data
+            )
 
             if (result && result.length > 0) {
                 res.send({

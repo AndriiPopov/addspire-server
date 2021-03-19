@@ -10,25 +10,11 @@ const types = mongoose.Schema.Types
 const postSchema = new mongoose.Schema(
     {
         messages: [messageSchema],
-        startMessage: {
-            type: messageSchema,
-            default: {
-                likes: [],
-                replies: [],
-                messageId: '0',
-            },
-        },
         notifications: [notificationSchema],
         users: [String],
-        currentId: {
-            type: Number,
-            default: 1,
-            required: true,
-        },
         parent: {
             parentId: String,
             parentType: String,
-            progressId: String,
         },
     },
     { minimize: false }

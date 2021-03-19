@@ -13,14 +13,16 @@ module.exports.requestResource = async (data, ws) => {
         // if (error) return
 
         //Compare and send not found resources!!!!!!!!
+
         if (data.type && data.ids && data.ids.length > 0) {
-            const [result, onlineUsers] = await getResourcesFromList(data)
+            const [result, fields, onlineUsers] = await getResourcesFromList(
+                data
+            )
 
             if (result && result.length > 0) {
                 for (let item of result) {
                     if (item)
-                        ws.resources[data.type][item._id.toString()] =
-                            result[0].__v
+                        ws.resources[data.type][item._id.toString()] = item.__v
                 }
 
                 ws.send(
@@ -33,7 +35,6 @@ module.exports.requestResource = async (data, ws) => {
                 )
             } else {
                 if (!fields) {
-                    console.log(data)
                     ws.send(
                         JSON.stringify({
                             messageCode: '404',

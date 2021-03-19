@@ -1,13 +1,10 @@
 const mongoose = require('mongoose')
 const { mongoLength } = require('../../constants/fieldLength')
-const replySchema = require('./reply')
 
-const messageSchema = new mongoose.Schema(
+const replySchema = new mongoose.Schema(
     {
         author: String,
-        text: {},
-        messageType: String,
-        details: {},
+        text: { type: String, maxlength: mongoLength.message },
         action: String,
         image: [String],
         date: {
@@ -19,9 +16,9 @@ const messageSchema = new mongoose.Schema(
             default: Date.now,
         },
         likes: [String],
-        replies: [replySchema],
+        replies: [],
     },
     { minimize: false }
 )
 
-module.exports = messageSchema
+module.exports = replySchema

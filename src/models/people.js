@@ -1,16 +1,28 @@
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const { mongoLength } = require('../constants/fieldLength')
+
+const { postSchema } = require('./post')
 const notificationSchema = require('./schemas/notification')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
-const boardItemSchema = require('./schemas/boardItem')
 const suggestedChangeSchema = require('./schemas/suggestedChangeSchema')
-const types = mongoose.Schema.Types
 
-const structureSchema = new mongoose.Schema(
+const types = mongoose.Types
+
+const peopleSchema = new mongoose.Schema(
     {
-        items: boardItemSchema,
+        user: String,
+        likes: [String],
+        likesCount: {
+            type: Number,
+            default: 0,
+        },
+        followers: [String],
+        followersCount: {
+            type: Number,
+            default: 0,
+        },
         notifications: [notificationSchema],
         owner: String,
         posts: [String],
@@ -42,11 +54,9 @@ const structureSchema = new mongoose.Schema(
     },
     { minimize: false }
 )
+peopleSchema.plugin(updateIfCurrentPlugin)
 
-// versionSchema.index({ position: '2dsphere' })
-structureSchema.plugin(updateIfCurrentPlugin)
-
-structureSchema.pre(
+peopleSchema.pre(
     [
         'update',
         'updateOne',
@@ -57,5 +67,4 @@ structureSchema.pre(
     increaseVersion
 )
 
-module.exports.Structure = mongoose.model('Structure', structureSchema)
-module.exports.structureSchema = structureSchema
+module.exports.People = mongoose.model('People', peopleSchema)

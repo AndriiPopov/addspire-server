@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const { mongoLength } = require('../constants/fieldLength')
-const stageSchema = require('./schemas/stage')
 const types = mongoose.Schema.Types
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
@@ -17,6 +16,14 @@ const progressSchema = new mongoose.Schema(
         nomap: Boolean,
         status: { type: String, default: 'process' },
         notifications: [notificationSchema],
+        date: {
+            type: Date,
+            default: Date.now,
+        },
+        updated: {
+            type: Date,
+            default: Date.now,
+        },
     },
     { minimize: false }
 )

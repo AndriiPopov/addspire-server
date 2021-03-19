@@ -9,14 +9,14 @@ const { Post } = require('../models/post')
 const addNotification = require('../utils/addNotification')
 const { Board } = require('../models/board')
 const { Advice } = require('../models/advice')
+const { Community } = require('../models/community')
+const getModelFromType = require('../utils/getModelFromType')
 
 const sendMessageSchema = Joi.object({
     postId: Joi.string()
         .max(JoiLength.progressId)
         .required(),
-    accountId: Joi.string()
-        .max(JoiLength.name)
-        .required(),
+
     messageValue: Joi.any(),
 }).unknown(true)
 
@@ -29,72 +29,65 @@ module.exports.sendMessage = async (data, ws) => {
             return
         }
 
-        const post = await Post.findById(data.postId)
-        const account = await Account.findById(data.accountId)
-            .select('followPosts __v')
-            .exec()
-
-        if (!post || !account) {
-            sendError(ws, 'Bad data!')
-            return
-        }
+        let edits = {}
+        let query = {}
         if (!data.editedMessage && !data.replyToMessage) {
-            post.messages.push({
-                author: data.accountId,
-                text: data.messageValue,
-                image: data.image,
-                action: data.imageUrl ? 'image' : 'message',
-                messageId: post.currentId,
-            })
-            post.currentId = post.currentId + 1
-            addNotification(post, {
-                user: data.accountId,
-                code: 'comment',
-            })
+            console.log(data)
+            edits = {
+                $push: {
+                    messages: {
+                        author: ws.account,
+                        text: data.messageValue,
+                        image: data.image,
+                        action: data.imageUrl ? 'image' : 'message',
+                    },
+                },
+            }
         } else if (data.editedMessage) {
-            const message = findMessage(post.messages, data.editedMessage)
-
-            if (message) {
-                message.text = data.messageValue
-                message.image = data.image
-                message.action = data.imageUrl ? 'image' : 'message'
-                message.editedDate = Date.now()
+            query = data.isReply
+                ? {
+                      'messages.replies._id': data.editedMessage,
+                  }
+                : {
+                      'messages._id': data.editedMessage,
+                  }
+            edits = {
+                $set: {
+                    'messages.$.text': data.messageValue,
+                    'messages.$.image': data.image,
+                    'messages.$.action': data.imageUrl ? 'image' : 'message',
+                    'messages.$.editedDate': Date.now(),
+                },
             }
-            addNotification(post, {
-                user: message.author,
-                code: 'edit comment',
-            })
         } else if (data.replyToMessage) {
-            const message = findMessage(post.messages, data.replyToMessage)
-
-            if (message) {
-                message.replies.push({
-                    author: data.accountId,
-                    text: data.messageValue,
-                    image: data.image,
-                    action: data.imageUrl ? 'image' : 'message',
-                    messageId: post.currentId,
-                    image: '',
-                    date: Date.now(),
-                    editedDate: Date.now(),
-                    likes: [],
-                    dislikes: [],
-                    replies: [],
-                })
-                addNotification(post, {
-                    user: data.accountId,
-                    code: 'comment',
-                })
-                post.currentId = post.currentId + 1
+            query = {
+                'messages._id': data.replyToMessage,
+            }
+            edits = {
+                $push: {
+                    'messages.$.replies': {
+                        author: ws.account,
+                        text: data.messageValue,
+                        image: data.image,
+                        action: data.imageUrl ? 'image' : 'message',
+                        image: '',
+                        date: Date.now(),
+                        editedDate: Date.now(),
+                        likes: [],
+                        dislikes: [],
+                        replies: [],
+                    },
+                },
             }
         }
-
-        if (!account.followPosts.includes(post._id.toString())) {
-            account.followPosts.push(post._id.toString())
-            account.save()
-        }
-        if (!post.users.includes(account._id)) post.users.push(account._id)
-        post.save()
+        await Post.updateOne(
+            {
+                _id: data.postId,
+                ...query,
+            },
+            edits,
+            { useFindAndModify: false }
+        )
         ws.send(
             JSON.stringify({
                 messageCode: 'messageSaved',
@@ -108,47 +101,28 @@ module.exports.sendMessage = async (data, ws) => {
 
 module.exports.changeLikesMessage = async (data, ws) => {
     try {
-        if (data.messageId && data.postId) {
-            const post = await Post.findById(data.postId)
-            const account = await Account.findById(data.accountId)
-                .select('followPosts __v')
-                .exec()
-
-            let message
-            if (data.messageId.toString() === '0') message = post.startMessage
-            else message = findMessage(post.messages, data.messageId)
-
-            if (!post || !account || !message) {
-                sendError(ws, 'Bad data!')
-                return
-            }
-
-            switch (data.messageCode) {
-                case 'likeMessage':
-                    if (message.likes.indexOf(data.accountId) === -1) {
-                        message.likes.push(data.accountId)
-                        addNotification(post, {
-                            user: data.accountId,
-                            code: 'like',
-                        })
-                    }
-                    break
-                case 'dislikeMessage':
-                    message.likes = message.likes.filter(
-                        item => item !== data.accountId
-                    )
-                    addNotification(post, {
-                        user: data.accountId,
-                        code: 'dislike',
-                    })
-                    break
-            }
-            if (!account.followPosts.includes(post._id.toString())) {
-                account.followPosts.push(post._id.toString())
-                account.save()
-            }
-            if (!post.users.includes(account._id)) post.users.push(account._id)
-            post.save()
+        if (data._id && data.postId) {
+            await Post.updateOne(
+                {
+                    _id: data.postId,
+                    'messages._id': data._id,
+                },
+                {
+                    ...(data.messageCode === 'likeMessage'
+                        ? {
+                              $addToSet: {
+                                  'messages.$.likes': ws.account,
+                                  users: ws.account,
+                              },
+                          }
+                        : {
+                              $pull: {
+                                  'messages.$.likes': ws.account,
+                              },
+                          }),
+                },
+                { useFindAndModify: false }
+            )
         }
     } catch (ex) {
         console.log(ex)
@@ -160,9 +134,7 @@ const addPostSchema = Joi.object({
     parentId: Joi.string()
         .max(JoiLength.progressId)
         .required(),
-    accountId: Joi.string()
-        .max(JoiLength.name)
-        .required(),
+
     messageValue: Joi.any(),
 }).unknown(true)
 
@@ -173,32 +145,20 @@ module.exports.addPost = async (data, ws) => {
             sendError(ws, 'Bad data!')
             return
         }
-        const model = data.parentType === 'board' ? Board : Advice
-        const parent = await model
-            .findById(data.parentId)
-            .select('posts notifications __v')
-            .exec()
-
-        const account = await Account.findById(data.accountId)
-            .select('followPosts __v')
-            .exec()
-
-        if (!parent || !account) {
-            sendError(ws, 'Bad data!')
-            return
-        }
+        const model = getModelFromType(data.parentType)
 
         const post = new Post({
-            users: [data.accountId],
-            startMessage: {
-                author: data.accountId,
-                text: data.messageValue,
-                image: data.images,
-                action: 'message',
-                messageId: '0',
-                date: Date.now(),
-                editedDate: Date.now(),
-            },
+            users: [ws.account],
+            messages: [
+                {
+                    author: ws.account,
+                    text: data.messageValue,
+                    image: data.images,
+                    action: 'message',
+                    date: Date.now(),
+                    editedDate: Date.now(),
+                },
+            ],
             parent: {
                 parentId: parent._id,
                 parentType: data.parentType,
@@ -206,31 +166,21 @@ module.exports.addPost = async (data, ws) => {
             },
         })
 
-        post.notifications = [
-            {
-                user: data.accountId,
-                code: 'add post',
-                details: {
-                    postId: post._id,
-                },
-            },
-        ]
-
-        addNotification(parent, {
-            user: data.accountId,
-            code: 'add post',
-            details: {
-                postId: post._id,
-            },
-        })
-
         post.save()
+        if (model)
+            await model.updateOne(
+                { _id: data.parentId },
+                { $push: { posts: post._id } },
+                { useFindAndModify: false }
+            )
 
-        account.followPosts.push(post._id.toString())
-        account.save()
-
-        parent.posts.push(post._id.toString())
-        parent.save()
+        if (data.parentType !== 'community') {
+            await Community.updateOne(
+                { _id: data.communityId },
+                { $push: { posts: post._id } },
+                { useFindAndModify: false }
+            )
+        }
 
         ws.send(
             JSON.stringify({
@@ -247,9 +197,7 @@ const editPostSchema = Joi.object({
     postId: Joi.string()
         .max(JoiLength.progressId)
         .required(),
-    accountId: Joi.string()
-        .max(JoiLength.name)
-        .required(),
+
     messageValue: Joi.any(),
 }).unknown(true)
 
@@ -261,24 +209,18 @@ module.exports.editPost = async (data, ws) => {
             sendError(ws, 'Bad data!')
             return
         }
-        const post = await Post.findById(data.postId)
-            .select('startMessage notifications __v')
-            .exec()
-
-        if (!post || data.accountId !== post.startMessage.author) {
-            sendError(ws, 'Bad data!')
-            return
-        }
-
-        post.startMessage.text = data.messageValue
-        post.startMessage.image = data.images
-
-        addNotification(post, {
-            user: data.accountId,
-            code: 'edit post',
-        })
-        post.markModified('startMessage.text')
-        await post.save()
+        await Post.updateOne(
+            {
+                _id: data.postId,
+            },
+            {
+                $set: {
+                    'messages.0.text': data.messageValue,
+                    'messages.0.image': data.images,
+                },
+            },
+            { useFindAndModify: false }
+        )
 
         ws.send(
             JSON.stringify({
@@ -295,9 +237,6 @@ const deletePostSchema = Joi.object({
     postId: Joi.string()
         .max(JoiLength.progressId)
         .required(),
-    accountId: Joi.string()
-        .max(JoiLength.name)
-        .required(),
 }).unknown(true)
 
 module.exports.deletePost = async (data, ws) => {
@@ -308,45 +247,20 @@ module.exports.deletePost = async (data, ws) => {
             sendError(ws, 'Bad data!')
             return
         }
-        const { postId } = data
-        const post = await Post.findOneAndDelete(
-            { _id: postId },
+        const { postId, communityId, resourceId, resourceType } = data
+        await Post.deleteOne({ _id: postId })
+
+        await Community.updateOne(
             {
-                projection: {
-                    users: 1,
-                    parent: 1,
+                _id: communityId,
+            },
+            {
+                $pull: {
+                    posts: postId,
                 },
-            }
+            },
+            { useFindAndModify: false }
         )
-
-        if (post) {
-            await Account.updateMany(
-                {
-                    _id: {
-                        $in: post.users,
-                    },
-                },
-                {
-                    $pull: {
-                        posts: postId,
-                    },
-                },
-                { useFindAndModify: false }
-            )
-
-            const model = post.parent.parentType === 'board' ? Board : Advice
-            await model.updateOne(
-                {
-                    _id: post.parent.parentId,
-                },
-                {
-                    $pull: {
-                        posts: postId,
-                    },
-                },
-                { useFindAndModify: false }
-            )
-        }
 
         ws.send(
             JSON.stringify({
@@ -362,8 +276,5 @@ module.exports.deletePost = async (data, ws) => {
 const deleteMessageSchema = Joi.object({
     postId: Joi.string()
         .max(JoiLength.progressId)
-        .required(),
-    accountId: Joi.string()
-        .max(JoiLength.name)
         .required(),
 }).unknown(true)

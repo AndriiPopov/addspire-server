@@ -1,33 +1,68 @@
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const { mongoLength } = require('../constants/fieldLength')
+
+const { postSchema } = require('./post')
 const notificationSchema = require('./schemas/notification')
-const stepSchema = require('./schemas/step')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
 const suggestedChangeSchema = require('./schemas/suggestedChangeSchema')
-const types = mongoose.Schema.Types
 
-const adviceSchema = new mongoose.Schema(
+const types = mongoose.Types
+
+const communitySchema = new mongoose.Schema(
     {
-        users: [String],
-        settings: {},
-        trend: { type: Number, default: 0 },
-        likes: [String],
-        saved: [String],
         name: {
             type: String,
+            minlength: 2,
             required: true,
-            default: 'New goal',
             maxlength: mongoLength.name,
+            index: true,
         },
-        image: String,
         images: [String],
-        progresses: [String],
-        progressesCount: {
+        image: { type: String, default: '' },
+        settings: {},
+        admins: [String],
+        sadmins: [String],
+        collaborators: [String],
+        posts: [String],
+        notifications: [notificationSchema],
+        users: [String],
+        usersCount: {
             type: Number,
             default: 0,
         },
+        boards: [String],
+        boardsCount: {
+            type: Number,
+            default: 0,
+        },
+        advices: [String],
+        advicesCount: {
+            type: Number,
+            default: 0,
+        },
+        people: [String],
+        peopleCount: {
+            type: Number,
+            default: 0,
+        },
+        places: [String],
+        placesCount: {
+            type: Number,
+            default: 0,
+        },
+        documents: [String],
+        documentsCount: {
+            type: Number,
+            default: 0,
+        },
+        surveys: [String],
+        surveysCount: {
+            type: Number,
+            default: 0,
+        },
+        likes: [String],
         likesCount: {
             type: Number,
             default: 0,
@@ -37,25 +72,10 @@ const adviceSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        savedCount: {
-            type: Number,
-            default: 0,
-        },
-        usersCount: {
-            type: Number,
-            default: 0,
-        },
-        steps: [stepSchema],
-        category: [String],
-        notifications: [notificationSchema],
-        owner: String,
-        posts: [String],
-        sadmins: [String],
-        admins: [String],
-        collaborators: [String],
-        structure: String,
         description: {},
         shortDescription: String,
+        structure: String,
+        private: Boolean,
         suggestedChanges: [suggestedChangeSchema],
         appliedChanges: [suggestedChangeSchema],
         date: {
@@ -73,23 +93,13 @@ const adviceSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        community: String,
-        confirmed: [
-            {
-                date: {
-                    type: Date,
-                    default: Date.now,
-                },
-                user: String,
-            },
-        ],
+        url: String,
     },
     { minimize: false }
 )
+communitySchema.plugin(updateIfCurrentPlugin)
 
-adviceSchema.plugin(updateIfCurrentPlugin)
-
-adviceSchema.pre(
+communitySchema.pre(
     [
         'update',
         'updateOne',
@@ -100,5 +110,4 @@ adviceSchema.pre(
     increaseVersion
 )
 
-module.exports.Advice = mongoose.model('Advice', adviceSchema)
-module.exports.adviceSchema = adviceSchema
+module.exports.Community = mongoose.model('Community', communitySchema)

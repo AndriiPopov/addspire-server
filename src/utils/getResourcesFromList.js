@@ -3,11 +3,14 @@ const { Progress } = require('../models/progress')
 const { Post } = require('../models/post')
 const { get } = require('../startup/redis')
 const { Board } = require('../models/board')
-const { ProgressStep } = require('../models/progressStep')
+const { Document } = require('../models/document')
+const { Community } = require('../models/community')
+const { People } = require('../models/people')
+const { Place } = require('../models/place')
+const { Survey } = require('../models/survey')
 const { Structure } = require('../models/structure')
-const { Version } = require('../models/version')
 const { Advice } = require('../models/advice')
-const { Step } = require('../models/step')
+const { Step } = require('../models/schemas/step')
 
 module.exports = async data => {
     if (data.type && data.ids && data.ids.length > 0) {
@@ -21,11 +24,23 @@ module.exports = async data => {
                 for (let user of data.ids)
                     if (await get(user)) onlineUsers.push(user)
                 break
+            case 'advice':
+                model = Advice
+                break
             case 'board':
                 model = Board
                 break
-            case 'advice':
-                model = Advice
+            case 'community':
+                model = Community
+                break
+            case 'document':
+                model = Document
+                break
+            case 'people':
+                model = People
+                break
+            case 'place':
+                model = Place
                 break
             case 'post':
                 model = Post
@@ -33,35 +48,50 @@ module.exports = async data => {
             case 'progress':
                 model = Progress
                 break
-            case 'progressStep':
-                model = ProgressStep
-                break
-            case 'step':
-                model = Step
-                break
             case 'structure':
                 model = Structure
                 break
-            case 'version':
-                model = Version
+            case 'survey':
+                model = Survey
                 break
 
             case 'accountD':
                 model = Account
                 fields =
-                    'name image notifications boardsCount likesCount followersCount progressesCount __v'
-                for (let user of data.ids)
-                    if (await get(user)) onlineUsers.push(user)
-                break
-            case 'boardD':
-                model = Board
-                fields =
-                    'name image itemsCount trend notifications likesCount savedCount updated owner __v'
+                    'name image notifications boardsCount followersCount communitiesCount progressesCount __v'
+                for (let user of data.ids) {
+                    if (user && (await get(user))) onlineUsers.push(user)
+                }
                 break
             case 'adviceD':
                 model = Advice
                 fields =
-                    'currentVersion owner name image notifications likesCount savedCount updated usersCount __v'
+                    'owner suggestedChanges name image notifications likesCount savedCount usersCount suggestedChangesCount date updated version community __v'
+                break
+            case 'boardD':
+                model = Board
+                fields =
+                    'name suggestedChanges image itemsCount trend notifications likesCount savedCount suggestedChangesCount date updated version community owner __v'
+                break
+            case 'communityD':
+                model = Community
+                fields =
+                    'name shortDescription suggestedChanges image itemsCount trend notifications likesCount followersCount usersCount boardsCount advicesCount peopleCount placesCount documentsCount surveysCount  suggestedChangesCount date updated version admins sadmins __v'
+                break
+            case 'documentD':
+                model = Document
+                fields =
+                    'name suggestedChanges image shortDescription likesCount notifications followersCount  suggestedChangesCount date updated version  __v'
+                break
+            case 'peopleD':
+                model = People
+                fields =
+                    'user suggestedChanges likesCount shortDescription notifications followersCount  suggestedChangesCount date updated version __v'
+                break
+            case 'placeD':
+                model = Place
+                fields =
+                    'name suggestedChanges image shortDescription likesCount notifications followersCount suggestedChangesCount date updated version __v'
                 break
             case 'postD':
                 model = Post
@@ -70,22 +100,15 @@ module.exports = async data => {
             case 'progressD':
                 model = Progress
                 break
-            case 'progressStepD':
-                model = ProgressStep
-                fields = 'step description status __v'
-                break
-            case 'stepD':
-                model = Step
-                fields = 'name images __v'
-                break
             case 'structureD':
                 model = Structure
                 break
-            case 'versionD':
-                model = Version
+            case 'surveyD':
+                model = Structure
                 fields =
-                    'name images category published description owner Advice __v'
+                    'name suggestedChanges image shortDescription likesCount notifications followersCount url suggestedChangesCount date updated version __v'
                 break
+
             default:
                 break
         }
@@ -108,6 +131,7 @@ module.exports = async data => {
                     .exec()
             }
         }
-        return [result, onlineUsers]
+
+        return [result, fields, onlineUsers]
     }
 }

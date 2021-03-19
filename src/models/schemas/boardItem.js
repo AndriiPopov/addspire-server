@@ -7,7 +7,7 @@ const boardItemSchema = new mongoose.Schema(
         item: String,
         details: {},
     },
-    { minimize: false, _id: false, id: false }
+    { minimize: false }
 )
 
 module.exports = boardItemSchema

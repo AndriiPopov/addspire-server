@@ -27,14 +27,17 @@ const {
 
 const { setLastSeenNot } = require('../wsActions/dashboard')
 const {
-    editVersion,
     createNewAdvice,
     addAdmin,
     deleteAdmin,
     setSAdmin,
-    reviewVersion,
-    changeVersion,
 } = require('../wsActions/version')
+const { addSuggestedChange, reviewResult } = require('../wsActions/resources')
+const {
+    createCommunity,
+    becomeMember,
+    leave,
+} = require('../wsActions/community')
 const {
     setProgressStepStatus,
     startAdvice,
@@ -91,6 +94,18 @@ const connectSocket = server => {
                         case 'requestResource':
                             requestResource(data, ws)
                             break
+                        case 'becomeMember':
+                            becomeMember(data, ws)
+                            break
+                        case 'leave':
+                            leave(data, ws)
+                            break
+                        case 'addSuggestedChange':
+                            addSuggestedChange(data, ws)
+                            break
+                        case 'reviewResult':
+                            reviewResult(data, ws)
+                            break
                         case 'createNewBoard':
                             createNewBoard(data, ws)
                             break
@@ -115,6 +130,8 @@ const connectSocket = server => {
                         case 'editVersion':
                             editVersion(data, ws)
                             break
+                        case 'createCommunity':
+                            createCommunity(data, ws)
                         case 'createNewAdvice':
                             createNewAdvice(data, ws)
                             break

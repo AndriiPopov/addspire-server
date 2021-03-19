@@ -7,7 +7,6 @@ const getAccount = require('../utils/getAccount')
 const { sendSuccess, sendError } = require('./confirm')
 const { getNotificationId } = require('../models/system')
 
-const { Version } = require('../models/version')
 const { Advice } = require('../models/advice')
 const { Structure } = require('../models/structure')
 const { Board } = require('../models/board')

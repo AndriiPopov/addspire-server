@@ -1,7 +1,6 @@
 var moment = require('moment') // require
 
 const isEqual = require('lodash.isequal')
-const { ProgressStep } = require('../models/progressStep')
 moment().format()
 
 const getStages = pS => {

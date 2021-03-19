@@ -1,16 +1,36 @@
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const { mongoLength } = require('../constants/fieldLength')
+
+const { postSchema } = require('./post')
 const notificationSchema = require('./schemas/notification')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
-const boardItemSchema = require('./schemas/boardItem')
 const suggestedChangeSchema = require('./schemas/suggestedChangeSchema')
-const types = mongoose.Schema.Types
 
-const structureSchema = new mongoose.Schema(
+const types = mongoose.Types
+
+const placeSchema = new mongoose.Schema(
     {
-        items: boardItemSchema,
+        name: {
+            type: String,
+            minlength: 2,
+            required: true,
+            maxlength: mongoLength.name,
+            index: true,
+        },
+        images: [String],
+        image: { type: String, default: '' },
+        likes: [String],
+        likesCount: {
+            type: Number,
+            default: 0,
+        },
+        followers: [String],
+        followersCount: {
+            type: Number,
+            default: 0,
+        },
         notifications: [notificationSchema],
         owner: String,
         posts: [String],
@@ -42,11 +62,9 @@ const structureSchema = new mongoose.Schema(
     },
     { minimize: false }
 )
+placeSchema.plugin(updateIfCurrentPlugin)
 
-// versionSchema.index({ position: '2dsphere' })
-structureSchema.plugin(updateIfCurrentPlugin)
-
-structureSchema.pre(
+placeSchema.pre(
     [
         'update',
         'updateOne',
@@ -57,5 +75,4 @@ structureSchema.pre(
     increaseVersion
 )
 
-module.exports.Structure = mongoose.model('Structure', structureSchema)
-module.exports.structureSchema = structureSchema
+module.exports.Place = mongoose.model('Place', placeSchema)

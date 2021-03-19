@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
-const { mongoLength } = require('../constants/fieldLength')
-const stageSchema = require('./schemas/stage')
+const { mongoLength } = require('../../constants/fieldLength')
 const types = mongoose.Schema.Types
-const increaseVersion = require('../utils/increaseVersion')
+const increaseVersion = require('../../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
-const notificationSchema = require('./schemas/notification')
+const notificationSchema = require('./notification')
 
 const stepSchema = new mongoose.Schema(
     {
@@ -16,7 +15,6 @@ const stepSchema = new mongoose.Schema(
             default: 'New goal',
             maxlength: mongoLength.name,
         },
-        description: {},
         images: [
             {
                 type: String,
@@ -26,21 +24,21 @@ const stepSchema = new mongoose.Schema(
         ],
         repeat: String,
         days: [String],
+        notifications: [notificationSchema],
+        owner: String,
+        pendingVersions: [String],
+        structure: String,
+        description: {},
+        date: {
+            type: Date,
+            default: Date.now,
+        },
+        pending: {
+            type: Boolean,
+            default: true,
+        },
     },
     { minimize: false }
 )
 
-stepSchema.plugin(updateIfCurrentPlugin)
-
-stepSchema.pre(
-    [
-        'update',
-        'updateOne',
-        'findOneAndUpdate',
-        'findByIdAndUpdate',
-        'updateMany',
-    ],
-    increaseVersion
-)
-
-module.exports.Step = mongoose.model('Step', stepSchema)
+module.exports = stepSchema
