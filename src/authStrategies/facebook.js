@@ -20,7 +20,6 @@ passport.use(
         passportConfig,
         async (accessToken, refreshToken, profile, done) => {
             try {
-                console.log(profile)
                 let account = await Account.findById('f_' + profile.id)
                     .select('_id')
                     .lean()
