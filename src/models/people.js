@@ -12,6 +12,9 @@ const types = mongoose.Types
 
 const peopleSchema = new mongoose.Schema(
     {
+        name: String,
+        image: String,
+        images: [String],
         user: String,
         likes: [String],
         likesCount: {
@@ -50,6 +53,7 @@ const peopleSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        link: String,
         community: String,
     },
     { minimize: false }

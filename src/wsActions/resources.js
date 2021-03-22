@@ -251,7 +251,10 @@ const reviewResultResource = async (data, ws) => {
                     useFindAndModify: false,
                 })
             } else if (change.action === 'add') {
-                if (change.key === 'advice') {
+                if (['advice', 'people'].includes(change.key)) {
+                    const modelAddedResource = getModelFromType(change.key)
+                    const attr = change.key === 'advice' ? 'advices' : 'people'
+
                     resourceActions.$push = {
                         ...resourceActions.$push,
                         appliedChanges: {
@@ -261,7 +264,7 @@ const reviewResultResource = async (data, ws) => {
                         },
                     }
                     if (decision) {
-                        await Advice.updateOne(
+                        await modelAddedResource.updateOne(
                             { _id: itemId },
                             {
                                 $set: {
@@ -275,11 +278,11 @@ const reviewResultResource = async (data, ws) => {
                             $inc: {
                                 ...resourceActions.$inc,
                                 version: 1,
-                                advicesCount: 1,
+                                [attr + 'Count']: 1,
                             },
                             $push: {
                                 ...resourceActions.$push,
-                                advices: itemId,
+                                [attr]: itemId,
                             },
                             $set: {
                                 ...resourceActions.$set,

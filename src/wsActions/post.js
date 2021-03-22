@@ -32,7 +32,6 @@ module.exports.sendMessage = async (data, ws) => {
         let edits = {}
         let query = {}
         if (!data.editedMessage && !data.replyToMessage) {
-            console.log(data)
             edits = {
                 $push: {
                     messages: {

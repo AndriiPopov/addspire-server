@@ -329,7 +329,6 @@ module.exports.saveStructure = async (data, ws) => {
 
 module.exports.markSeenNots = async (data, ws) => {
     try {
-        console.log(data.ids)
         await Account.updateOne(
             { _id: ws.account },
             {

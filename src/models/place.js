@@ -58,6 +58,7 @@ const placeSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        position: {},
         community: String,
     },
     { minimize: false }

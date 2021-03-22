@@ -38,6 +38,9 @@ const {
     becomeMember,
     leave,
 } = require('../wsActions/community')
+
+const { createPeople } = require('../wsActions/people')
+
 const {
     setProgressStepStatus,
     startAdvice,
@@ -132,6 +135,10 @@ const connectSocket = server => {
                             break
                         case 'createCommunity':
                             createCommunity(data, ws)
+                            break
+                        case 'createPeople':
+                            createPeople(data, ws)
+                            break
                         case 'createNewAdvice':
                             createNewAdvice(data, ws)
                             break

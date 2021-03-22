@@ -86,7 +86,7 @@ module.exports = async data => {
             case 'peopleD':
                 model = People
                 fields =
-                    'user suggestedChanges likesCount shortDescription notifications followersCount  suggestedChangesCount date updated version __v'
+                    'user name image suggestedChanges likesCount shortDescription notifications followersCount  suggestedChangesCount date updated version __v'
                 break
             case 'placeD':
                 model = Place
