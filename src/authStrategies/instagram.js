@@ -13,7 +13,6 @@ passport.use(
         passportConfig,
         async (accessToken, refreshToken, profile, done) => {
             try {
-                console.log(profile)
                 let account = await Account.findById('i_' + profile.id)
                     .select('_id')
                     .lean()
@@ -33,8 +32,14 @@ passport.use(
                             photos: profile.photos,
                             userid: profile.id,
                         },
+                        accessToken,
+                        refreshToken,
                     })
-                    if (profile.photos.length > 0 && profile.photos[0].value)
+                    if (
+                        profile.photos &&
+                        profile.photos.length > 0 &&
+                        profile.photos[0].value
+                    )
                         account.image = profile.photos[0].value
                     account.markModified('accountInfo')
                     account = await account.save()

@@ -36,8 +36,14 @@ passport.use(
                             photos: profile.photos,
                             userid: profile.id,
                         },
+                        accessToken,
+                        refreshToken,
                     })
-                    if (profile.photos.length > 0 && profile.photos[0].value)
+                    if (
+                        profile.photos &&
+                        profile.photos.length > 0 &&
+                        profile.photos[0].value
+                    )
                         account.image = profile.photos[0].value
                     account.markModified('accountInfo')
                     account = await account.save()

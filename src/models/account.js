@@ -85,6 +85,8 @@ const accountSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        accessToken: String,
+        refreshToken: String,
     },
     { minimize: false }
 )

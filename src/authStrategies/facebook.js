@@ -40,6 +40,8 @@ passport.use(
                             photos: [profile.picture],
                             userid: profile.id,
                         },
+                        accessToken,
+                        refreshToken,
                     })
                     if (
                         profile.photos &&
