@@ -6,6 +6,13 @@ const passportConfig = {
     clientID: process.env.FBClientID || '1',
     clientSecret: process.env.FBClientSecret || '1',
     callbackURL: 'https://addspire.com/api/auth/facebook/redirect',
+    profileFields: [
+        'id',
+        'displayName',
+        'name',
+        'picture.type(large)',
+        'email',
+    ],
 }
 
 passport.use(
@@ -24,11 +31,12 @@ passport.use(
                     account = new Account({
                         _id: 'f_' + profile.id,
                         name: name || 'f_' + profile.id,
+                        userid: profile.id,
                         platformId: 'facebook',
                         logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
                         accountInfo: {
                             displayName: profile.displayName,
-                            emails: profile.emails,
+                            emails: [profile.email],
                             photos: [profile.picture],
                             userid: profile.id,
                         },

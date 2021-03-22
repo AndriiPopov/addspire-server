@@ -13,6 +13,7 @@ passport.use(
         passportConfig,
         async (accessToken, refreshToken, profile, done) => {
             try {
+                console.log(profile)
                 let account = await Account.findById('g_' + profile.id)
                     .select('_id')
                     .lean()
@@ -24,6 +25,7 @@ passport.use(
                         _id: 'g_' + profile.id,
                         name: name || 'g_' + profile.id,
                         platformId: 'google',
+                        userid: profile.id,
                         logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
                         accountInfo: {
                             displayName: profile.displayName,

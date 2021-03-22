@@ -24,6 +24,7 @@ passport.use(
                         _id: 't_' + profile.id,
                         name: name || 't_' + profile.id,
                         platformId: 'twitter',
+                        userid: profile.id,
                         logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
                         accountInfo: {
                             displayName: profile.displayName,
