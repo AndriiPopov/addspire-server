@@ -13,6 +13,7 @@ passport.use(
         passportConfig,
         async (accessToken, refreshToken, profile, done) => {
             try {
+                console.log(profile)
                 let account = await Account.findById('i_' + profile.id)
                     .select('_id')
                     .lean()
