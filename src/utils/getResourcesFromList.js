@@ -76,7 +76,7 @@ module.exports = async data => {
             case 'communityD':
                 model = Community
                 fields =
-                    'name shortDescription suggestedChanges image itemsCount trend notifications likesCount followersCount usersCount boardsCount advicesCount peopleCount placesCount documentsCount surveysCount  suggestedChangesCount date updated version admins sadmins __v'
+                    'name boards shortDescription suggestedChanges image itemsCount trend notifications likesCount followersCount usersCount boardsCount advicesCount peopleCount placesCount documentsCount surveysCount  suggestedChangesCount date updated version admins sadmins __v'
                 break
             case 'documentD':
                 model = Document

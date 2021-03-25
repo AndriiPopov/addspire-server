@@ -9,55 +9,7 @@ const { Account } = require('../models/account')
 const { Progress } = require('../models/progress')
 const { startAdvice } = require('./progress')
 const { Board } = require('../models/board')
-
-module.exports.createNewBoard = async (data, ws) => {
-    try {
-        const { value } = data
-
-        const board = new Board({
-            owner: ws.account,
-            collaborators: [ws.account],
-            sadmins: [ws.account],
-            name: value.name,
-            description: value.description,
-            image: value.images.length ? value.images[0] : '',
-            images: value.images || [],
-            saved: [ws.account],
-            savedCount: 1,
-        })
-
-        await board.save()
-        const newNotificationId = await getNotificationId()
-        await Account.updateOne(
-            { _id: ws.account },
-            {
-                $push: {
-                    sadminB: board._id,
-                    boards: board._id,
-                    notifications: {
-                        $each: [
-                            {
-                                user: ws.account,
-                                code: 'new board',
-                                details: {
-                                    boardId: board._id,
-                                },
-                                notId: newNotificationId,
-                            },
-                        ],
-                        $slice: -20,
-                    },
-                },
-                $inc: { boardsCount: 1 },
-            },
-            { useFindAndModify: false }
-        )
-        sendSuccess(ws, 'The new Board is created')
-    } catch (ex) {
-        console.log(ex)
-        sendError(ws, 'Bad data!')
-    }
-}
+const getModelFromType = require('../utils/getModelFromType')
 
 module.exports.saveBoard = async (data, ws) => {
     try {
@@ -157,55 +109,56 @@ module.exports.editBoardAdvices = async (data, ws) => {
     }
 }
 
-module.exports.addAdviceToBoard = async (data, ws) => {
+module.exports.addResourceToBoard = async (data, ws) => {
     try {
-        const { adviceId, boardId } = data
-        const newNotificationId = await getNotificationId()
+        const { resourceId, type, boardId } = data
+        // const newNotificationId = await getNotificationId()
+        const model = getModelFromType(type)
         await Board.updateOne(
             { _id: boardId },
             {
-                $addToSet: { items: adviceId },
+                $addToSet: { items: { item: resourceId, itemType: type } },
                 $inc: { itemsCount: 1 },
-                $push: {
-                    notifications: {
-                        $each: [
-                            {
-                                user: ws.account,
-                                code: 'add advice to board',
-                                details: {
-                                    boardId,
-                                    adviceId,
-                                },
-                                notId: newNotificationId,
-                            },
-                        ],
-                        $slice: -20,
-                    },
-                },
+                // $push: {
+                //     notifications: {
+                //         $each: [
+                //             {
+                //                 user: ws.account,
+                //                 code: 'add advice to board',
+                //                 details: {
+                //                     boardId,
+                //                     adviceId,
+                //                 },
+                //                 notId: newNotificationId,
+                //             },
+                //         ],
+                //         $slice: -20,
+                //     },
+                // },
             },
             { useFindAndModify: false }
         )
-        await Advice.updateOne(
-            { _id: adviceId },
+        await model.updateOne(
+            { _id: resourceId },
             {
                 $addToSet: { saved: boardId },
                 $inc: { savedCount: 1 },
-                $push: {
-                    notifications: {
-                        $each: [
-                            {
-                                user: ws.account,
-                                code: 'add advice to board',
-                                details: {
-                                    boardId,
-                                    adviceId,
-                                },
-                                notId: newNotificationId,
-                            },
-                        ],
-                        $slice: -20,
-                    },
-                },
+                // $push: {
+                //     notifications: {
+                //         $each: [
+                //             {
+                //                 user: ws.account,
+                //                 code: 'add advice to board',
+                //                 details: {
+                //                     boardId,
+                //                     adviceId,
+                //                 },
+                //                 notId: newNotificationId,
+                //             },
+                //         ],
+                //         $slice: -20,
+                //     },
+                // },
             },
             { useFindAndModify: false }
         )
@@ -216,16 +169,20 @@ module.exports.addAdviceToBoard = async (data, ws) => {
     }
 }
 
-module.exports.deleteAdviceFromBoard = async (data, ws) => {
+module.exports.deleteResourceFromBoard = async (data, ws) => {
     try {
-        const { adviceId, boardId } = data
+        const { resourceId, type, boardId } = data
+        const model = getModelFromType(type)
         await Board.updateOne(
             { _id: boardId },
-            { $pull: { items: adviceId }, $inc: { itemsCount: -1 } },
+            {
+                $pull: { items: { item: resourceId } },
+                $inc: { itemsCount: -1 },
+            },
             { useFindAndModify: false }
         )
-        await Advice.updateOne(
-            { _id: adviceId },
+        await model.updateOne(
+            { _id: resourceId },
             { $pull: { saved: boardId }, $inc: { savedCount: -1 } },
             { useFindAndModify: false }
         )

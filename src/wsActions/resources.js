@@ -250,52 +250,6 @@ const reviewResultResource = async (data, ws) => {
                 await model.updateOne({ _id: resourceId }, resourceActions, {
                     useFindAndModify: false,
                 })
-            } else if (change.action === 'add') {
-                if (['advice', 'people'].includes(change.key)) {
-                    const modelAddedResource = getModelFromType(change.key)
-                    const attr = change.key === 'advice' ? 'advices' : 'people'
-
-                    resourceActions.$push = {
-                        ...resourceActions.$push,
-                        appliedChanges: {
-                            ...change,
-                            approved: decision,
-                            value: itemId,
-                        },
-                    }
-                    if (decision) {
-                        await modelAddedResource.updateOne(
-                            { _id: itemId },
-                            {
-                                $set: {
-                                    ...change.value,
-                                },
-                            },
-                            { useFindAndModify: false }
-                        )
-                        resourceActions = {
-                            ...resourceActions,
-                            $inc: {
-                                ...resourceActions.$inc,
-                                version: 1,
-                                [attr + 'Count']: 1,
-                            },
-                            $push: {
-                                ...resourceActions.$push,
-                                [attr]: itemId,
-                            },
-                            $set: {
-                                ...resourceActions.$set,
-                                updated: now,
-                            },
-                        }
-                    }
-                    await model.updateOne(
-                        { _id: resourceId },
-                        resourceActions,
-                        { useFindAndModify: false }
-                    )
-                }
             } else if (change.action === 'delete') {
                 if (change.key === 'advice') {
                     resourceActions.$push = {
@@ -511,6 +465,94 @@ const reviewResultStep = async (data, ws) => {
             })
         }
         sendSuccess(ws, 'Applied')
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Bad data!')
+    }
+}
+
+module.exports.createResource = async (data, ws) => {
+    try {
+        const { value, communityId, type } = data
+
+        const model = getModelFromType(type)
+        const attr = getModelFromType.getPrefix(type)
+        const now = new Date()
+        const resource = new model({
+            owner: ws.account,
+            collaborators: [ws.account],
+            image: value.images.length ? value.images[0] : '',
+            community: communityId,
+            sadmins: ws.account,
+            ...value,
+        })
+        await resource.save()
+
+        await Community.updateOne(
+            { _id: communityId },
+            {
+                $inc: {
+                    version: 1,
+                    [attr + 'Count']: 1,
+                },
+                $push: { [attr]: resource._id },
+                $set: { updated: now },
+            },
+            { useFindAndModify: false }
+        )
+
+        // const post = new Post({
+        //     messages: [
+        //         {
+        //             messageType: 'add',
+        //             author: ws.account,
+        //             details: {
+        //                 editId,
+        //                 resourceId: communityId,
+        //                 resourceType: 'community',
+        //                 communityId,
+        //             },
+        //         },
+        //         ...(comment
+        //             ? [
+        //                   {
+        //                       messageType: 'text',
+        //                       author: ws.account,
+        //                       text: comment,
+        //                   },
+        //               ]
+        //             : []),
+        //     ],
+        //     users: [ws.account],
+        // })
+
+        // await post.save()
+
+        // const newNotificationId = await getNotificationId()
+        // await Account.findOneAndUpdate(
+        //     { _id: ws.account },
+        //     {
+        //         $push: {
+        //             sadmin: advice._id,
+        //             notifications: {
+        //                 $each: [
+        //                     {
+        //                         user: ws.account,
+        //                         code: 'create new advice',
+        //                         details: {
+        //                             adviceId: advice._id,
+        //                         },
+        //                         notId: newNotificationId,
+        //                     },
+        //                 ],
+        //                 $slice: -20,
+        //             },
+        //         },
+        //     },
+        //     { useFindAndModify: false }
+        // )
+
+        sendSuccess(ws, 'The new Advice is created')
     } catch (ex) {
         console.log(ex)
         sendError(ws, 'Bad data!')

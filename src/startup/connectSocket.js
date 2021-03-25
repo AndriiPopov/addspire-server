@@ -26,20 +26,17 @@ const {
 } = require('../wsActions/account')
 
 const { setLastSeenNot } = require('../wsActions/dashboard')
+const { addAdmin, deleteAdmin, setSAdmin } = require('../wsActions/admin')
 const {
-    createNewAdvice,
-    addAdmin,
-    deleteAdmin,
-    setSAdmin,
-} = require('../wsActions/version')
-const { addSuggestedChange, reviewResult } = require('../wsActions/resources')
+    addSuggestedChange,
+    reviewResult,
+    createResource,
+} = require('../wsActions/resources')
 const {
     createCommunity,
     becomeMember,
     leave,
 } = require('../wsActions/community')
-
-const { createPeople } = require('../wsActions/people')
 
 const {
     setProgressStepStatus,
@@ -61,9 +58,8 @@ const resources = require('../constants/resources')
 const {
     editBoardAdvices,
     editBoard,
-    createNewBoard,
-    addAdviceToBoard,
-    deleteAdviceFromBoard,
+    addResourceToBoard,
+    deleteResourceFromBoard,
     deleteBoard,
     saveBoard,
 } = require('../wsActions/board')
@@ -112,6 +108,9 @@ const connectSocket = server => {
                         case 'createNewBoard':
                             createNewBoard(data, ws)
                             break
+                        case 'createResource':
+                            createResource(data, ws)
+                            break
                         case 'editBoard':
                             editBoard(data, ws)
                             break
@@ -124,11 +123,11 @@ const connectSocket = server => {
                         case 'editBoardAdvices':
                             editBoardAdvices(data, ws)
                             break
-                        case 'addAdviceToBoard':
-                            addAdviceToBoard(data, ws)
+                        case 'addResourceToBoard':
+                            addResourceToBoard(data, ws)
                             break
-                        case 'deleteAdviceFromBoard':
-                            deleteAdviceFromBoard(data, ws)
+                        case 'deleteResourceFromBoard':
+                            deleteResourceFromBoard(data, ws)
                             break
                         case 'editVersion':
                             editVersion(data, ws)
