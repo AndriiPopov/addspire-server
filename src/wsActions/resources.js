@@ -11,6 +11,7 @@ const { Advice } = require('../models/advice')
 const arrayMove = require('array-move')
 const { Post } = require('../models/post')
 const getModelFromType = require('../utils/getModelFromType')
+const { Board } = require('../models/board')
 
 // function arraymove(arr, fromIndex, toIndex) {
 //     var element = arr[fromIndex]
@@ -24,15 +25,7 @@ module.exports.addSuggestedChange = (data, ws) => {
 }
 const addSuggestedChangeResource = async (data, ws) => {
     try {
-        const {
-            resourceId,
-            resourceType,
-            key,
-            action,
-            comment,
-            value,
-            details,
-        } = data
+        const { resourceId, resourceType, key, action, value, details } = data
 
         const newNotificationId = await getNotificationId()
 
@@ -52,15 +45,6 @@ const addSuggestedChangeResource = async (data, ws) => {
                             communityId: details.communityId,
                         },
                     },
-                    ...(comment
-                        ? [
-                              {
-                                  messageType: 'text',
-                                  author: ws.account,
-                                  text: comment,
-                              },
-                          ]
-                        : []),
                 ],
                 users: [ws.account],
             })
@@ -203,85 +187,105 @@ const reviewResultResource = async (data, ws) => {
 
         const newNotificationId = await getNotificationId()
         const model = getModelFromType(resourceType)
-
+        const prefix = getModelFromType.getPrefix(resourceType)
         if (model) {
             const now = new Date()
             if (decision && communityId) {
                 await Community.updateOne(
                     { _id: communityId },
                     { $set: { updated: now } },
-                    {
-                        useFindAndModify: false,
-                    }
+                    { useFindAndModify: false }
                 )
             }
-            let resourceActions = {
-                $pull: {
-                    suggestedChanges: {
-                        _id: change._id,
-                    },
-                },
-                $inc: {
-                    suggestedChangesCount: -1,
-                },
-            }
+
             if (change.action === 'change') {
-                resourceActions = {
-                    ...resourceActions,
-                    $push: {
-                        appliedChanges: {
-                            ...change,
-                            approved: decision,
+                await model.updateOne(
+                    { _id: resourceId },
+                    {
+                        $pull: { suggestedChanges: { _id: change._id } },
+                        $inc: { suggestedChangesCount: -1 },
+                        $push: {
+                            appliedChanges: { ...change, approved: decision },
                         },
+                        ...(decision
+                            ? {
+                                  $set: {
+                                      [change.key]: change.value,
+                                      updated: now,
+                                  },
+                              }
+                            : {}),
                     },
-                    ...(decision
-                        ? {
-                              $set: {
-                                  [change.key]: change.value,
-                                  updated: now,
-                              },
-                              $inc: {
-                                  ...resourceActions.$inc,
-                                  version: 1,
-                              },
-                          }
-                        : {}),
-                }
-                await model.updateOne({ _id: resourceId }, resourceActions, {
-                    useFindAndModify: false,
-                })
+                    { useFindAndModify: false }
+                )
             } else if (change.action === 'delete') {
-                if (change.key === 'advice') {
-                    resourceActions.$push = {
-                        ...resourceActions.$push,
-                        appliedChanges: {
-                            ...change,
-                            approved: decision,
+                if (decision) {
+                    Community.updateOne(
+                        { _id: change.details.communityId },
+                        {
+                            $inc: { [prefix + 'Count']: -1 },
+                            $pull: { [prefix]: resourceId },
+                            $set: { updated: now },
                         },
-                    }
-                    if (decision) {
-                        await Advice.deleteOne({ _id: resourceId })
-                        resourceActions = {
-                            ...resourceActions,
-                            $inc: {
-                                ...resourceActions.$inc,
-                                version: 1,
-                                advicesCount: 1,
+                        { useFindAndModify: false }
+                    )
+                    const resource = await model
+                        .findOneAndDelete({ _id: resourceId })
+                        .select(
+                            'saved admins sadmins collaborators owner items'
+                        )
+                        .exec()
+
+                    if (resource) {
+                        Board.updateMany(
+                            { _id: { $in: resource.saved } },
+                            {
+                                $pull: { items: { item: resourceId } },
+                                $inc: { itemsCount: -1 },
                             },
-                            $pull: {
-                                ...resourceActions.$pull,
-                                advices: resourceId,
+                            { useFindAndModify: false }
+                        )
+                        Account.updateMany(
+                            {
+                                _id: {
+                                    $in: [
+                                        ...resource.admins,
+                                        ...resource.sadmins,
+                                        ...resource.collaborators,
+                                        resource.owner,
+                                    ],
+                                },
                             },
-                            $set: {
-                                ...resourceActions.$set,
-                                updated: now,
+                            {
+                                $pull: {
+                                    admin: { item: resourceId },
+                                    sadmin: { item: resourceId },
+                                    collaborator: { item: resourceId },
+                                    owner: { item: resourceId },
+                                },
                             },
+                            { useFindAndModify: false }
+                        )
+                        if (resourceType === 'board') {
+                            for (let item of resource.items) {
+                                let modelItem = getModelFromType(item.itemType)
+                                modelItem.updateOne(
+                                    { _id: item.item },
+                                    {
+                                        $pull: { saved: resourceId },
+                                        $inc: { savedCount: -1 },
+                                    },
+                                    { useFindAndModify: false }
+                                )
+                            }
                         }
                     }
-                    await model.updateOne(
-                        { _id: change.details.communityId },
-                        resourceActions,
-                        { useFindAndModify: false }
+                    ws.send(
+                        JSON.stringify({
+                            messageCode: 'goTo',
+                            messageText:
+                                '/community/' + change.details.communityId,
+                        })
                     )
                 }
             }
@@ -464,6 +468,7 @@ const reviewResultStep = async (data, ws) => {
                 useFindAndModify: false,
             })
         }
+
         sendSuccess(ws, 'Applied')
     } catch (ex) {
         console.log(ex)

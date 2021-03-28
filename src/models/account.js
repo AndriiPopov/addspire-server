@@ -6,6 +6,7 @@ const { postSchema } = require('./post')
 const notificationSchema = require('./schemas/notification')
 const increaseVersion = require('../utils/increaseVersion')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
+const boardItemSchema = require('./schemas/boardItem')
 
 const types = mongoose.Types
 
@@ -27,9 +28,10 @@ const accountSchema = new mongoose.Schema(
         images: [String],
         image: { type: String, default: '' },
         settings: {},
-        admin: [String],
-        sadmin: [String],
-        collaborator: [String],
+        admin: [boardItemSchema],
+        sadmin: [boardItemSchema],
+        collaborator: [boardItemSchema],
+        owner: [boardItemSchema],
         progresses: [String],
         followPosts: [String],
         currentId: {
@@ -40,7 +42,7 @@ const accountSchema = new mongoose.Schema(
         notifications: [notificationSchema],
         myNotifications: [notificationSchema],
         lastSeenNot: { type: Number, default: 0 },
-        following: [{ itemType: String, item: String }],
+        following: [boardItemSchema],
         boards: [String],
         boardsCount: {
             type: Number,

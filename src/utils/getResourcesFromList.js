@@ -71,7 +71,7 @@ module.exports = async data => {
             case 'boardD':
                 model = Board
                 fields =
-                    'name suggestedChanges image itemsCount trend notifications likesCount savedCount suggestedChangesCount date updated version community owner __v'
+                    'admins sadmins name suggestedChanges image itemsCount trend notifications likesCount savedCount suggestedChangesCount date updated version community owner __v'
                 break
             case 'communityD':
                 model = Community
