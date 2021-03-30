@@ -23,7 +23,7 @@
     "dependencies": {
         "@hapi/joi": "^17.1.0",
         "array-move": "^3.0.1",
-        "aws-sdk": "^2.708.0",
+        "aws-sdk": "^2.875.0",
         "axios": "^0.19.2",
         "bcryptjs": "^2.4.3",
         "compression": "^1.7.4",

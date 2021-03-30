@@ -159,7 +159,7 @@ module.exports.addPost = async (data, ws) => {
                 },
             ],
             parent: {
-                parentId: parent._id,
+                parentId: data.parentId,
                 parentType: data.parentType,
                 progressId: data.progressId,
             },
