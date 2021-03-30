@@ -42,7 +42,7 @@ router.post('/', auth, async (req, res) => {
         s3.getSignedUrl(
             'putObject',
             {
-                Bucket: 'addspiredev',
+                Bucket: AWS_S3_BUCKET,
                 Key: imageName, //filename
                 Expires: 100, //time to expire in seconds
                 ACL: 'public-read',
