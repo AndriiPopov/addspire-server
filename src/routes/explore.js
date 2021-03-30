@@ -6,6 +6,7 @@ const { JoiLength } = require('../constants/fieldLength')
 const { Advice } = require('../models/advice')
 const { Account } = require('../models/account')
 const { Board } = require('../models/board')
+const { Community } = require('../models/community')
 const router = express.Router()
 
 const findProgressesSchema = Joi.object({
@@ -57,6 +58,20 @@ router.post('/search', async (req, res, next) => {
                 followersCount: 1,
                 boardsCount: 1,
                 progressesCount: 1,
+                name: 1,
+                image: 1,
+            }
+        } else if (search.type === 'community') {
+            model = Community
+            sortString = {
+                usersCount: -1,
+                boardsCount: -1,
+                advicesCount: -1,
+            }
+            selectString = {
+                usersCount: 1,
+                boardsCount: 1,
+                advicesCount: 1,
                 name: 1,
                 image: 1,
             }

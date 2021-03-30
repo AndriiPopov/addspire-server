@@ -25,54 +25,63 @@ module.exports.addSuggestedChange = (data, ws) => {
 }
 const addSuggestedChangeResource = async (data, ws) => {
     try {
-        const { resourceId, resourceType, key, action, value, details } = data
-
+        const {
+            resourceId,
+            resourceType,
+            key,
+            action,
+            value,
+            details,
+            isAdmin,
+        } = data
         const newNotificationId = await getNotificationId()
 
         const model = getModelFromType(resourceType)
 
         if (model) {
             const editId = mongoose.Types.ObjectId()
-            const post = new Post({
-                messages: [
-                    {
-                        messageType: 'suggestedEdit',
-                        author: ws.account,
-                        details: {
-                            editId,
-                            resourceId,
-                            resourceType,
-                            communityId: details.communityId,
-                        },
-                    },
-                ],
-                users: [ws.account],
-            })
+            const post = !isAdmin
+                ? new Post({
+                      messages: [
+                          {
+                              messageType: 'suggestedEdit',
+                              author: ws.account,
+                              details: {
+                                  editId,
+                                  resourceId,
+                                  resourceType,
+                                  communityId: details.communityId,
+                              },
+                          },
+                      ],
+                      users: [ws.account],
+                  })
+                : null
 
-            await post.save()
-
+            if (post) await post.save()
+            const change = {
+                suggested: ws.account,
+                action,
+                key,
+                resourceId,
+                value,
+                resourceType,
+                details,
+                _id: editId,
+                post: post?._id,
+            }
             await model.updateOne(
                 { _id: resourceId },
                 {
                     $push: {
-                        suggestedChanges: {
-                            suggested: ws.account,
-                            action,
-                            key,
-                            resourceId,
-                            value,
-                            resourceType,
-                            details,
-                            _id: editId,
-                            post: post._id,
-                        },
-                        posts: post._id,
+                        suggestedChanges: change,
+                        ...(!isAdmin ? { posts: post._id } : {}),
                     },
                     $inc: { suggestedChangesCount: 1 },
                 },
                 { useFindAndModify: false }
             )
-            if (resourceType !== 'community')
+            if (resourceType !== 'community' && !isAdmin)
                 await Community.updateOne(
                     { _id: details.communityId },
                     {
@@ -82,7 +91,19 @@ const addSuggestedChangeResource = async (data, ws) => {
                     },
                     { useFindAndModify: false }
                 )
-            sendSuccess(ws, 'The new Community is created')
+            if (isAdmin)
+                reviewResult(
+                    {
+                        resourceId,
+                        resourceType,
+                        change,
+                        comment: '',
+                        decision: true,
+                        communityId: details.communityId,
+                    },
+                    ws
+                )
+            else sendSuccess(ws, 'The new Community is created')
         }
     } catch (ex) {
         console.log(ex)
@@ -100,6 +121,7 @@ const addSuggestedChangeStep = async (data, ws) => {
             comment,
             value,
             details,
+            isAdmin,
         } = data
 
         const newNotificationId = await getNotificationId()
@@ -161,17 +183,31 @@ const addSuggestedChangeStep = async (data, ws) => {
             },
             { useFindAndModify: false }
         )
-        sendSuccess(ws, 'The new Community is created')
+        if (isAdmin)
+            reviewResult(
+                {
+                    resourceId,
+                    resourceType,
+                    change,
+                    comment: '',
+                    decision: true,
+                    communityId: details.communityId,
+                },
+                ws
+            )
+        else sendSuccess(ws, 'The new Community is created')
     } catch (ex) {
         console.log(ex)
         sendError(ws, 'Bad data!')
     }
 }
 
-module.exports.reviewResult = (data, ws) => {
+const reviewResult = (data, ws) => {
     if (data.resourceType === 'step') reviewResultStep(data, ws)
     else reviewResultResource(data, ws)
 }
+
+module.exports.reviewResult = reviewResult
 
 const reviewResultResource = async (data, ws) => {
     try {
@@ -181,7 +217,7 @@ const reviewResultResource = async (data, ws) => {
             change,
             comment,
             decision,
-            itemId,
+
             communityId,
         } = data
 
@@ -305,7 +341,7 @@ const reviewResultStep = async (data, ws) => {
             change,
             comment,
             decision,
-            itemId,
+
             communityId,
         } = data
         const now = new Date()
@@ -556,6 +592,29 @@ module.exports.createResource = async (data, ws) => {
         //     },
         //     { useFindAndModify: false }
         // )
+
+        sendSuccess(ws, 'The new Advice is created')
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Bad data!')
+    }
+}
+
+module.exports.confirmResource = async (data, ws) => {
+    try {
+        const { resourceId, type, value } = data
+
+        const model = getModelFromType(type)
+
+        const now = new Date()
+
+        await model.updateOne(
+            { _id: resourceId },
+            {
+                $push: { confirmed: { date: now, user: ws.account, value } },
+            },
+            { useFindAndModify: false }
+        )
 
         sendSuccess(ws, 'The new Advice is created')
     } catch (ex) {

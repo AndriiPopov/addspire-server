@@ -58,6 +58,7 @@ module.exports = {
                 default: Date.now,
             },
             user: String,
+            value: Boolean,
         },
     ],
 }

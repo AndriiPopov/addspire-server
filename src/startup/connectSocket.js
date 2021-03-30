@@ -31,6 +31,7 @@ const {
     addSuggestedChange,
     reviewResult,
     createResource,
+    confirmResource,
 } = require('../wsActions/resources')
 const {
     createCommunity,
@@ -92,6 +93,10 @@ const connectSocket = server => {
                             break
                         case 'requestResource':
                             requestResource(data, ws)
+                            break
+
+                        case 'confirmResource':
+                            confirmResource(data, ws)
                             break
                         case 'becomeMember':
                             becomeMember(data, ws)
