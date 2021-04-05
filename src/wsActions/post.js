@@ -17,14 +17,15 @@ const sendMessageSchema = Joi.object({
         .max(JoiLength.progressId)
         .required(),
 
-    messageValue: Joi.any(),
+    // messageValue: Joi.any(),
 }).unknown(true)
 
 module.exports.sendMessage = async (data, ws) => {
     try {
         const { error } = sendMessageSchema.validate(data)
-        if (error) {
+        if (error || (!data.messageValue && !data?.image?.length)) {
             console.log(error)
+            console.log(data)
             sendError(ws, 'Bad data!')
             return
         }

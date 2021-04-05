@@ -10,6 +10,8 @@ const peopleSchema = new mongoose.Schema(
         ...basicModel,
         user: String,
         link: String,
+        shortDescription: String,
+        contact: {},
     },
     { minimize: false }
 )

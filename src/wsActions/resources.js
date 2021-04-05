@@ -217,7 +217,6 @@ const reviewResultResource = async (data, ws) => {
             change,
             comment,
             decision,
-
             communityId,
         } = data
 
@@ -238,10 +237,15 @@ const reviewResultResource = async (data, ws) => {
                 await model.updateOne(
                     { _id: resourceId },
                     {
-                        $pull: { suggestedChanges: { _id: change._id } },
+                        $pull: {
+                            suggestedChanges: { _id: change._id },
+                        },
                         $inc: { suggestedChangesCount: -1 },
                         $push: {
-                            appliedChanges: { ...change, approved: decision },
+                            appliedChanges: {
+                                ...change,
+                                approved: decision,
+                            },
                         },
                         ...(decision
                             ? {
@@ -256,10 +260,15 @@ const reviewResultResource = async (data, ws) => {
                 )
             } else if (change.action === 'delete') {
                 if (decision) {
-                    Community.updateOne(
-                        { _id: change.details.communityId },
+                    await Community.updateOne(
                         {
-                            $inc: { [prefix + 'Count']: -1 },
+                            _id: change.details.communityId,
+                            [prefix]: resourceId,
+                        },
+                        {
+                            $inc: {
+                                [prefix + 'Count']: -1,
+                            },
                             $pull: { [prefix]: resourceId },
                             $set: { updated: now },
                         },
@@ -273,15 +282,32 @@ const reviewResultResource = async (data, ws) => {
                         .exec()
 
                     if (resource) {
-                        Board.updateMany(
-                            { _id: { $in: resource.saved } },
+                        await Board.updateMany(
                             {
-                                $pull: { items: { item: resourceId } },
-                                $inc: { itemsCount: -1 },
+                                _id: {
+                                    $in: resource.saved,
+                                },
+                                items: {
+                                    $elemMatch: {
+                                        item: resourceId,
+                                        itemType: resourceType,
+                                    },
+                                },
+                            },
+                            {
+                                $pull: {
+                                    items: {
+                                        item: resourceId,
+                                        itemType: resourceType,
+                                    },
+                                },
+                                $inc: {
+                                    itemsCount: -1,
+                                },
                             },
                             { useFindAndModify: false }
                         )
-                        Account.updateMany(
+                        await Account.updateMany(
                             {
                                 _id: {
                                     $in: [
@@ -296,7 +322,9 @@ const reviewResultResource = async (data, ws) => {
                                 $pull: {
                                     admin: { item: resourceId },
                                     sadmin: { item: resourceId },
-                                    collaborator: { item: resourceId },
+                                    collaborator: {
+                                        item: resourceId,
+                                    },
                                     owner: { item: resourceId },
                                 },
                             },
@@ -305,13 +333,22 @@ const reviewResultResource = async (data, ws) => {
                         if (resourceType === 'board') {
                             for (let item of resource.items) {
                                 let modelItem = getModelFromType(item.itemType)
-                                modelItem.updateOne(
-                                    { _id: item.item },
+                                await modelItem.updateOne(
                                     {
-                                        $pull: { saved: resourceId },
-                                        $inc: { savedCount: -1 },
+                                        _id: item.item,
+                                        saved: resourceId,
                                     },
-                                    { useFindAndModify: false }
+                                    {
+                                        $pull: {
+                                            saved: resourceId,
+                                        },
+                                        $inc: {
+                                            savedCount: -1,
+                                        },
+                                    },
+                                    {
+                                        useFindAndModify: false,
+                                    }
                                 )
                             }
                         }
@@ -323,6 +360,146 @@ const reviewResultResource = async (data, ws) => {
                                 '/community/' + change.details.communityId,
                         })
                     )
+                }
+            } else if (change.action === 'deleteFromBoard') {
+                await Board.updateOne(
+                    {
+                        _id: resourceId,
+                        'suggestedChanges._id': change._id,
+                    },
+                    {
+                        $pull: {
+                            suggestedChanges: {
+                                _id: change._id,
+                            },
+                        },
+                        $inc: {
+                            suggestedChangesCount: -1,
+                        },
+                        $push: {
+                            appliedChanges: {
+                                ...change,
+                                approved: decision,
+                            },
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+
+                if (decision) {
+                    await Board.updateOne(
+                        {
+                            _id: resourceId,
+                            items: {
+                                $elemMatch: {
+                                    item: change.details.resourceId,
+                                    itemType: change.details.type,
+                                },
+                            },
+                        },
+                        {
+                            $pull: {
+                                items: {
+                                    item: change.details.resourceId,
+                                    itemType: change.details.type,
+                                },
+                            },
+                            $inc: {
+                                itemsCount: -1,
+                            },
+
+                            $set: { updated: now },
+                        },
+                        { useFindAndModify: false }
+                    )
+                    const modelInn = getModelFromType(change.details.type)
+                    if (modelInn)
+                        await modelInn.updateOne(
+                            {
+                                _id: change.details.resourceId,
+                                saved: resourceId,
+                            },
+                            {
+                                $pull: {
+                                    saved: resourceId,
+                                },
+                                $inc: {
+                                    savedCount: -1,
+                                },
+                            },
+                            { useFindAndModify: false }
+                        )
+                }
+            } else if (change.action === 'addToBoard') {
+                await Board.updateOne(
+                    {
+                        _id: resourceId,
+                        'suggestedChanges._id': change._id,
+                    },
+                    {
+                        $pull: {
+                            suggestedChanges: {
+                                _id: change._id,
+                            },
+                        },
+                        $inc: {
+                            suggestedChangesCount: -1,
+                        },
+                        $push: {
+                            appliedChanges: {
+                                ...change,
+                                approved: decision,
+                            },
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+
+                if (decision) {
+                    await Board.updateOne(
+                        {
+                            _id: resourceId,
+                            items: {
+                                $not: {
+                                    $elemMatch: {
+                                        item: change.details.resourceId,
+                                        itemType: change.details.type,
+                                    },
+                                },
+                            },
+                        },
+                        {
+                            $push: {
+                                items: {
+                                    item: change.details.resourceId,
+                                    itemType: change.details.type,
+                                },
+                            },
+                            $inc: {
+                                itemsCount: 1,
+                            },
+
+                            $set: { updated: now },
+                        },
+                        { useFindAndModify: false }
+                    )
+                    const modelInn = getModelFromType(change.details.type)
+                    if (modelInn)
+                        await modelInn.updateOne(
+                            {
+                                _id: change.details.resourceId,
+                                saved: { $ne: resourceId },
+                            },
+                            {
+                                $push: {
+                                    saved: resourceId,
+                                },
+                                $inc: {
+                                    savedCount: 1,
+                                },
+                            },
+                            { useFindAndModify: false }
+                        )
                 }
             }
             sendSuccess(ws, 'Applied')

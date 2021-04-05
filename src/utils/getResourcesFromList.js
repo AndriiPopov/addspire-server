@@ -66,32 +66,32 @@ module.exports = async data => {
             case 'adviceD':
                 model = Advice
                 fields =
-                    'owner suggestedChanges name image notifications likesCount savedCount usersCount suggestedChangesCount date updated version community __v'
+                    'owner appliedChanges suggestedChanges name image notifications likesCount savedCount usersCount suggestedChangesCount date updated version community __v'
                 break
             case 'boardD':
                 model = Board
                 fields =
-                    'admins sadmins name suggestedChanges image itemsCount trend notifications likesCount savedCount suggestedChangesCount date updated version community owner __v'
+                    'admins appliedChanges sadmins name suggestedChanges image itemsCount trend notifications likesCount savedCount suggestedChangesCount date updated version community owner __v'
                 break
             case 'communityD':
                 model = Community
                 fields =
-                    'name boards shortDescription suggestedChanges image itemsCount trend notifications likesCount followersCount usersCount boardsCount advicesCount peopleCount placesCount documentsCount surveysCount  suggestedChangesCount date updated version admins sadmins __v'
+                    'name appliedChanges boards shortDescription suggestedChanges image itemsCount trend notifications likesCount followersCount usersCount boardsCount advicesCount peopleCount placesCount documentsCount surveysCount  suggestedChangesCount date updated version admins sadmins __v'
                 break
             case 'documentD':
                 model = Document
                 fields =
-                    'name suggestedChanges image shortDescription likesCount notifications followersCount  suggestedChangesCount date updated version  __v'
+                    'name appliedChanges suggestedChanges image shortDescription likesCount notifications followersCount  suggestedChangesCount date updated version  __v'
                 break
             case 'peopleD':
                 model = People
                 fields =
-                    'user name image suggestedChanges likesCount shortDescription notifications followersCount  suggestedChangesCount date updated version __v'
+                    'user appliedChanges name image suggestedChanges likesCount shortDescription notifications followersCount  suggestedChangesCount date updated version  owner __v'
                 break
             case 'placeD':
                 model = Place
                 fields =
-                    'name suggestedChanges image shortDescription likesCount notifications followersCount suggestedChangesCount date updated version __v'
+                    'name appliedChanges suggestedChanges image shortDescription likesCount notifications followersCount suggestedChangesCount date updated version owner __v'
                 break
             case 'postD':
                 model = Post
@@ -106,7 +106,7 @@ module.exports = async data => {
             case 'surveyD':
                 model = Structure
                 fields =
-                    'name suggestedChanges image shortDescription likesCount notifications followersCount url suggestedChangesCount date updated version __v'
+                    'name appliedChanges suggestedChanges image shortDescription likesCount notifications followersCount url suggestedChangesCount date updated version __v'
                 break
 
             default:

@@ -7,6 +7,8 @@ const { Advice } = require('../models/advice')
 const { Account } = require('../models/account')
 const { Board } = require('../models/board')
 const { Community } = require('../models/community')
+const { Place } = require('../models/place')
+const { People } = require('../models/people')
 const router = express.Router()
 
 const findProgressesSchema = Joi.object({
@@ -36,45 +38,82 @@ router.post('/search', async (req, res, next) => {
             owner: 1,
             image: 1,
         }
-        if (search.type === 'board') {
-            model = Board
-            sortString = { savedCount: -1, likesCount: -1, itemsCount: -1 }
-            selectString = {
-                savedCount: 1,
-                likesCount: 1,
-                itemsCount: 1,
-                name: 1,
-                owner: 1,
-                image: 1,
-            }
-        } else if (search.type === 'account') {
-            model = Account
-            sortString = {
-                followersCount: -1,
-                boardsCount: -1,
-                progressesCount: -1,
-            }
-            selectString = {
-                followersCount: 1,
-                boardsCount: 1,
-                progressesCount: 1,
-                name: 1,
-                image: 1,
-            }
-        } else if (search.type === 'community') {
-            model = Community
-            sortString = {
-                usersCount: -1,
-                boardsCount: -1,
-                advicesCount: -1,
-            }
-            selectString = {
-                usersCount: 1,
-                boardsCount: 1,
-                advicesCount: 1,
-                name: 1,
-                image: 1,
-            }
+        switch (search.type) {
+            case 'board':
+                model = Board
+                sortString = {
+                    savedCount: -1,
+                    likesCount: -1,
+                    itemsCount: -1,
+                }
+                selectString = {
+                    savedCount: 1,
+                    likesCount: 1,
+                    itemsCount: 1,
+                    name: 1,
+                    owner: 1,
+                    image: 1,
+                }
+                break
+            case 'account':
+                model = Account
+                sortString = {
+                    followersCount: -1,
+                    boardsCount: -1,
+                    communitiesCount: -1,
+                }
+                selectString = {
+                    followersCount: 1,
+                    boardsCount: 1,
+                    communitiesCount: 1,
+                    name: 1,
+                    image: 1,
+                }
+                break
+            case 'community':
+                model = Community
+                sortString = {
+                    usersCount: -1,
+                    boardsCount: -1,
+                    advicesCount: -1,
+                }
+                selectString = {
+                    usersCount: 1,
+                    boardsCount: 1,
+                    advicesCount: 1,
+                    placesCount: 1,
+                    peopleCount: 1,
+                    name: 1,
+                    image: 1,
+                }
+                break
+            case 'people':
+                model = People
+                sortString = {
+                    likesCount: -1,
+                    savedCount: -1,
+                }
+                selectString = {
+                    likesCount: 1,
+                    shortDescription: 1,
+                    name: 1,
+                    owner: 1,
+                    image: 1,
+                }
+                break
+            case 'place':
+                model = Place
+                sortString = {
+                    likesCount: -1,
+                    savedCount: -1,
+                }
+                selectString = {
+                    likesCount: 1,
+                    name: 1,
+                    owner: 1,
+                    image: 1,
+                }
+                break
         }
 
         const query = {}

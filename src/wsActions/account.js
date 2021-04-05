@@ -10,6 +10,7 @@ const { getNotificationId } = require('../models/system')
 const { Advice } = require('../models/advice')
 const { Structure } = require('../models/structure')
 const { Board } = require('../models/board')
+const { Community } = require('../models/community')
 
 const editAccountSchema = Joi.object({
     accountId: Joi.string()
@@ -131,9 +132,30 @@ module.exports.deleteAccount = async (data, ws) => {
             return
         }
 
-        await Account.deleteOne({ _id: account._id })
+        const account = await Account.findOneAndDelete({ _id: account._id })
+            .select('communities')
+            .exec()
 
-        sendSuccess(ws)
+        if (account) {
+            Community.updateMany(
+                {
+                    _id: { $in: account.communities },
+                    users: account._id,
+                },
+                {
+                    $pull: {
+                        users: account._id,
+                        admins: account._id,
+                        sadmins: account._id,
+                        collaborators: account._id,
+                    },
+                    $inc: { usersCount: -1 },
+                },
+                { useFindAndModify: false }
+            )
+
+            sendSuccess(ws)
+        }
         ws.send(
             JSON.stringify({
                 messageCode: 'logout',
@@ -253,7 +275,7 @@ module.exports.like = async (data, ws) => {
         const model = type === 'advice' ? Advice : Board
 
         await model.updateOne(
-            { _id: resourceId },
+            { _id: resourceId, likes: { $ne: ws.account } },
             {
                 $addToSet: { likes: ws.account },
                 $inc: { likesCount: 1 },
@@ -295,7 +317,7 @@ module.exports.unlike = async (data, ws) => {
         const model = type === 'advice' ? Advice : Board
 
         await model.updateOne(
-            { _id: resourceId },
+            { _id: resourceId, likes: ws.account },
             { $pull: { likes: ws.account }, $inc: { likesCount: -1 } },
             { useFindAndModify: false }
         )

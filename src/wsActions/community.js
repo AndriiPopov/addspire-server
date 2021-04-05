@@ -23,7 +23,7 @@ module.exports.createCommunity = async (data, ws) => {
             followersCount: 1,
             ...value,
         })
-        community.save()
+        await community.save()
         const newNotificationId = await getNotificationId()
 
         await Account.updateOne(
@@ -67,7 +67,7 @@ module.exports.becomeMember = async (data, ws) => {
         const { communityId } = data
 
         await Account.updateOne(
-            { _id: ws.account },
+            { _id: ws.account, communities: { $ne: communityId } },
             {
                 $push: {
                     communities: communityId,
@@ -77,7 +77,7 @@ module.exports.becomeMember = async (data, ws) => {
             { useFindAndModify: false }
         )
         await Community.updateOne(
-            { _id: communityId },
+            { _id: communityId, users: { $ne: ws.account } },
             {
                 $push: {
                     users: ws.account,
@@ -98,7 +98,7 @@ module.exports.leave = async (data, ws) => {
         const { communityId } = data
 
         await Account.updateOne(
-            { _id: ws.account },
+            { _id: ws.account, communities: communityId },
             {
                 $pull: {
                     communities: communityId,
@@ -110,7 +110,7 @@ module.exports.leave = async (data, ws) => {
             { useFindAndModify: false }
         )
         await Community.updateOne(
-            { _id: communityId },
+            { _id: communityId, users: ws.account },
             {
                 $pull: {
                     users: ws.account,
