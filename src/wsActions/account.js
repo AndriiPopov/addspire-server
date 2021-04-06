@@ -11,6 +11,7 @@ const { Advice } = require('../models/advice')
 const { Structure } = require('../models/structure')
 const { Board } = require('../models/board')
 const { Community } = require('../models/community')
+const getModelFromType = require('../utils/getModelFromType')
 
 const editAccountSchema = Joi.object({
     accountId: Joi.string()
@@ -272,36 +273,38 @@ module.exports.like = async (data, ws) => {
             return
         }
         const { type, resourceId } = data
-        const model = type === 'advice' ? Advice : Board
+        const model = getModelFromType(type)
 
         await model.updateOne(
             { _id: resourceId, likes: { $ne: ws.account } },
             {
-                $addToSet: { likes: ws.account },
+                $push: { likes: ws.account },
                 $inc: { likesCount: 1 },
-                $push: {
-                    notifications: {
-                        $each: [
-                            {
-                                user: ws.account,
-                                code: 'like',
-                                details: {
-                                    [type === 'advice'
-                                        ? 'adviceId'
-                                        : 'boardId']: resourceId,
-                                },
-                                notId: newNotificationId,
-                            },
-                        ],
-                        $slice: -20,
-                    },
-                },
+                // $push: {
+                //     notifications: {
+                //         $each: [
+                //             {
+                //                 user: ws.account,
+                //                 code: 'like',
+                //                 details: {
+                //                     [type === 'advice'
+                //                         ? 'adviceId'
+                //                         : 'boardId']: resourceId,
+                //                 },
+                //                 notId: newNotificationId,
+                //             },
+                //         ],
+                //         $slice: -20,
+                //     },
+                // },
             },
             { useFindAndModify: false }
         )
 
         sendSuccess(ws)
     } catch (ex) {
+        console.log(ex)
+
         sendError(ws, 'Something failed.')
     }
 }

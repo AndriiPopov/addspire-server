@@ -28,7 +28,7 @@ module.exports.addAdmin = async (data, ws) => {
         sendError(ws, 'Bad data!')
     }
 }
-module.exports.deleteAdmin = async (data, type, ws) => {
+module.exports.deleteAdmin = async (data, ws) => {
     try {
         const { resourceId, type, userId } = data
         const model = getModelFromType(type)
@@ -50,7 +50,7 @@ module.exports.setSAdmin = async (data, ws) => {
         const { resourceId, type, userId, add } = data
         const model = getModelFromType(type)
         if (model && userId !== ws.account) {
-            await Advice.updateOne(
+            await model.updateOne(
                 { _id: resourceId },
                 {
                     $pull: { [add ? 'admins' : 'sadmins']: userId },
