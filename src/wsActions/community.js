@@ -102,8 +102,8 @@ module.exports.leave = async (data, ws) => {
             {
                 $pull: {
                     communities: communityId,
-                    admin: communityId,
-                    sadmin: communityId,
+                    // admin: communityId,
+                    // sadmin: communityId,
                 },
                 $inc: { communitiesCount: -1 },
             },
@@ -114,8 +114,8 @@ module.exports.leave = async (data, ws) => {
             {
                 $pull: {
                     users: ws.account,
-                    admins: ws.account,
-                    sadmins: ws.account,
+                    // admins: ws.account,
+                    // sadmins: ws.account,
                 },
                 $inc: { usersCount: -1 },
             },
