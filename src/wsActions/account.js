@@ -317,7 +317,7 @@ module.exports.unlike = async (data, ws) => {
             return
         }
         const { type, resourceId } = data
-        const model = type === 'advice' ? Advice : Board
+        const model = getModelFromType(type)
 
         await model.updateOne(
             { _id: resourceId, likes: ws.account },
