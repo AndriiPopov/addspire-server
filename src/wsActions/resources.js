@@ -746,29 +746,30 @@ module.exports.createResource = async (data, ws) => {
 
         // await post.save()
 
-        // const newNotificationId = await getNotificationId()
-        // await Account.findOneAndUpdate(
-        //     { _id: ws.account },
-        //     {
-        //         $push: {
-        //             sadmin: advice._id,
-        //             notifications: {
-        //                 $each: [
-        //                     {
-        //                         user: ws.account,
-        //                         code: 'create new advice',
-        //                         details: {
-        //                             adviceId: advice._id,
-        //                         },
-        //                         notId: newNotificationId,
-        //                     },
-        //                 ],
-        //                 $slice: -20,
-        //             },
-        //         },
-        //     },
-        //     { useFindAndModify: false }
-        // )
+        const newNotificationId = await getNotificationId()
+        await Account.findOneAndUpdate(
+            { _id: ws.account },
+            {
+                $push: {
+                    sadmin: { item: resource._id, itemType: type },
+                    owner: { item: resource._id, itemType: type },
+                    // notifications: {
+                    //     $each: [
+                    //         {
+                    //             user: ws.account,
+                    //             code: 'create new advice',
+                    //             details: {
+                    //                 adviceId: advice._id,
+                    //             },
+                    //             notId: newNotificationId,
+                    //         },
+                    //     ],
+                    //     $slice: -20,
+                    // },
+                },
+            },
+            { useFindAndModify: false }
+        )
 
         sendSuccess(ws, 'The new Advice is created')
     } catch (ex) {
