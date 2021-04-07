@@ -104,6 +104,7 @@ module.exports.leave = async (data, ws) => {
                     communities: communityId,
                     // admin: communityId,
                     // sadmin: communityId,
+                    //think aboau admin rights
                 },
                 $inc: { communitiesCount: -1 },
             },
