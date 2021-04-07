@@ -21,6 +21,15 @@ module.exports.addAdmin = async (data, ws) => {
                 },
                 { useFindAndModify: false }
             )
+            await Account.updateOne(
+                { _id: ws.account },
+                {
+                    $addToSet: {
+                        admin: { item: resourceId, itemType: type },
+                    },
+                },
+                { useFindAndModify: false }
+            )
             sendSuccess(ws, 'The new Advice is created')
         }
     } catch (ex) {
@@ -36,6 +45,15 @@ module.exports.deleteAdmin = async (data, ws) => {
             await model.updateOne(
                 { _id: resourceId },
                 { $pull: { admins: userId, sadmins: userId } },
+                { useFindAndModify: false }
+            )
+            await Account.updateOne(
+                { _id: ws.account },
+                {
+                    $pull: {
+                        admin: { item: resourceId, itemType: type },
+                    },
+                },
                 { useFindAndModify: false }
             )
             sendSuccess(ws, 'The new Advice is created')
@@ -56,6 +74,25 @@ module.exports.setSAdmin = async (data, ws) => {
                     $pull: { [add ? 'admins' : 'sadmins']: userId },
                     $addToSet: {
                         [add ? 'sadmins' : 'admins']: userId,
+                    },
+                },
+                { useFindAndModify: false }
+            )
+
+            await Account.updateOne(
+                { _id: ws.account },
+                {
+                    $pull: {
+                        [add ? 'admin' : 'sadmin']: {
+                            item: resourceId,
+                            itemType: type,
+                        },
+                    },
+                    $addToSet: {
+                        [add ? 'sadmin' : 'admin']: {
+                            item: resourceId,
+                            itemType: type,
+                        },
                     },
                 },
                 { useFindAndModify: false }

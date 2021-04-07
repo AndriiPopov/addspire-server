@@ -30,7 +30,7 @@ module.exports.createCommunity = async (data, ws) => {
             { _id: ws.account },
             {
                 $push: {
-                    sadmin: community._id,
+                    sadmin: { item: community._id, itemType: 'community' },
                     following: {
                         item: community._id,
                         itemType: 'community',

@@ -320,12 +320,22 @@ const reviewResultResource = async (data, ws) => {
                             },
                             {
                                 $pull: {
-                                    admin: { item: resourceId },
-                                    sadmin: { item: resourceId },
+                                    admin: {
+                                        item: resourceId,
+                                        itemType: resourceType,
+                                    },
+                                    sadmin: {
+                                        item: resourceId,
+                                        itemType: resourceType,
+                                    },
                                     collaborator: {
                                         item: resourceId,
+                                        itemType: resourceType,
                                     },
-                                    owner: { item: resourceId },
+                                    owner: {
+                                        item: resourceId,
+                                        itemType: resourceType,
+                                    },
                                 },
                             },
                             { useFindAndModify: false }
@@ -747,7 +757,7 @@ module.exports.createResource = async (data, ws) => {
         // await post.save()
 
         const newNotificationId = await getNotificationId()
-        await Account.findOneAndUpdate(
+        await Account.updateOne(
             { _id: ws.account },
             {
                 $push: {
