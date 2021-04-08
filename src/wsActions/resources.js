@@ -810,3 +810,24 @@ module.exports.confirmResource = async (data, ws) => {
         sendError(ws, 'Bad data!')
     }
 }
+
+module.exports.changeModeration = async (data, ws) => {
+    try {
+        const { resourceId, type, value } = data
+
+        const model = getModelFromType(type)
+
+        await model.updateOne(
+            { _id: resourceId },
+            {
+                $set: { moderated: value },
+            },
+            { useFindAndModify: false }
+        )
+
+        sendSuccess(ws, 'The new Advice is created')
+    } catch (ex) {
+        console.log(ex)
+        sendError(ws, 'Bad data!')
+    }
+}

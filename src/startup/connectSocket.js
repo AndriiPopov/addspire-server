@@ -32,6 +32,7 @@ const {
     reviewResult,
     createResource,
     confirmResource,
+    changeModeration,
 } = require('../wsActions/resources')
 const {
     createCommunity,
@@ -95,6 +96,9 @@ const connectSocket = server => {
                             requestResource(data, ws)
                             break
 
+                        case 'changeModeration':
+                            changeModeration(data, ws)
+                            break
                         case 'confirmResource':
                             confirmResource(data, ws)
                             break

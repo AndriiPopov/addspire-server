@@ -61,4 +61,5 @@ module.exports = {
             value: Boolean,
         },
     ],
+    moderated: Boolean,
 }
