@@ -1,12 +1,13 @@
 const { Account } = require('../models/account')
 const express = require('express')
-const { Post } = require('../models/post')
 const { SitemapStream, streamToPromise } = require('sitemap')
 const { createGzip } = require('zlib')
 const { Readable } = require('stream')
-const { Progress } = require('../models/progress')
 const axios = require('axios')
-const { Activity } = require('../models/activity')
+const { Community } = require('../models/community')
+const { Board } = require('../models/board')
+const { Place } = require('../models/place')
+const { People } = require('../models/people')
 const router = express.Router()
 
 let sitemap
@@ -28,40 +29,49 @@ router.get('/', async (req, res) => {
         const pipeline = smStream.pipe(createGzip())
 
         smStream.write({ url: '/' })
-        smStream.write({ url: '/blog' })
-        smStream.write({ url: '/ru/blog' })
+        // smStream.write({ url: '/blog' })
+        // smStream.write({ url: '/ru/blog' })
+
         let ids = await Account.distinct('_id')
         if (ids) for (let id of ids) smStream.write({ url: '/profile/' + id })
-        ids = await Progress.distinct('_id')
-        if (ids) for (let id of ids) smStream.write({ url: '/goals/' + id })
-        ids = await Reward.distinct('_id')
-        if (ids) for (let id of ids) smStream.write({ url: '/rewards/' + id })
-        ids = await Activity.distinct('_id', { wish: true })
-        if (ids)
-            for (let id of ids) smStream.write({ url: '/activities/' + id })
-        const articles = await axios.post(
-            'https://addspire-blog.herokuapp.com/graphql',
-            {
-                query: `
-             query {
-   posts {
-    url
-    language
-    }
-}`,
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        )
-        if (articles)
-            for (let article of articles.data.data.posts)
-                if (article.language === 'en')
-                    smStream.write({ url: '/blog/' + article.url })
-                else if (article.language === 'ru')
-                    smStream.write({ url: '/ru/blog/' + article.url })
+
+        ids = await Community.distinct('_id')
+        if (ids) for (let id of ids) smStream.write({ url: '/community/' + id })
+
+        ids = await Advice.distinct('_id')
+        if (ids) for (let id of ids) smStream.write({ url: '/advice/' + id })
+
+        ids = await Board.distinct('_id')
+        if (ids) for (let id of ids) smStream.write({ url: '/board/' + id })
+
+        ids = await Place.distinct('_id', { wish: true })
+        if (ids) for (let id of ids) smStream.write({ url: '/place/' + id })
+
+        ids = await People.distinct('_id', { wish: true })
+        if (ids) for (let id of ids) smStream.write({ url: '/people/' + id })
+        //         const articles = await axios.post(
+        //             'https://addspire-blog.herokuapp.com/graphql',
+        //             {
+        //                 query: `
+        //              query {
+        //    posts {
+        //     url
+        //     language
+        //     }
+        // }`,
+        //             },
+        //             {
+        //                 headers: {
+        //                     'Content-Type': 'application/json',
+        //                 },
+        //             }
+        //         )
+        //         if (articles)
+        //             for (let article of articles.data.data.posts)
+        //                 if (article.language === 'en')
+        //                     smStream.write({ url: '/blog/' + article.url })
+        //                 else if (article.language === 'ru')
+        //                     smStream.write({ url: '/ru/blog/' + article.url })
 
         streamToPromise(pipeline).then(sm => {
             sitemap = sm

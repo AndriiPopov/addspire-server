@@ -1,44 +1,40 @@
 const winston = require('winston')
 const mongoose = require('mongoose')
 const { System } = require('../models/system')
-const { Account } = require('../models/account')
-const { Advice } = require('../models/advice')
-const { Board } = require('../models/board')
-const { Place } = require('../models/place')
 
 module.exports = function() {
     try {
         const db = process.env.websiter_db
         mongoose.set('useFindAndModify', false)
         mongoose.connect(db, { poolSize: 50 }).then(async () => {
-            Advice.updateMany(
-                {},
-                { moderated: true },
-                { multi: true },
-                function(err, numberAffected) {
-                    console.log(numberAffected)
-                }
-            )
-            Board.updateMany({}, { moderated: true }, { multi: true }, function(
-                err,
-                numberAffected
-            ) {
-                console.log(numberAffected)
-            })
-            Place.updateMany({}, { moderated: true }, { multi: true }, function(
-                err,
-                numberAffected
-            ) {
-                console.log(numberAffected)
-            })
-            Community.updateMany(
-                {},
-                { moderated: true },
-                { multi: true },
-                function(err, numberAffected) {
-                    console.log(numberAffected)
-                }
-            )
+            // Advice.updateMany(
+            //     {},
+            //     { moderated: true },
+            //     { multi: true },
+            //     function(err, numberAffected) {
+            //         console.log(numberAffected)
+            //     }
+            // )
+            // Board.updateMany({}, { moderated: true }, { multi: true }, function(
+            //     err,
+            //     numberAffected
+            // ) {
+            //     console.log(numberAffected)
+            // })
+            // Place.updateMany({}, { moderated: true }, { multi: true }, function(
+            //     err,
+            //     numberAffected
+            // ) {
+            //     console.log(numberAffected)
+            // })
+            // Community.updateMany(
+            //     {},
+            //     { moderated: true },
+            //     { multi: true },
+            //     function(err, numberAffected) {
+            //         console.log(numberAffected)
+            //     }
+            // )
             // System.updateMany(
             //     {},
             //     { notifications: [] },
