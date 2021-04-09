@@ -8,6 +8,7 @@ const { Community } = require('../models/community')
 const { Board } = require('../models/board')
 const { Place } = require('../models/place')
 const { People } = require('../models/people')
+const { Advice } = require('../models/advice')
 const router = express.Router()
 
 let sitemap
