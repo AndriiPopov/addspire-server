@@ -1,6 +1,5 @@
 const passport = require('passport')
 const passportGoogle = require('passport-google-oauth').OAuth2Strategy
-const { User } = require('../models/user')
 const { createUserGG } = require('../authStrategies/createUser')
 
 const passportConfig = {

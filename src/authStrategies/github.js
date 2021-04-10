@@ -1,6 +1,5 @@
 const passport = require('passport')
 const passportGithub = require('passport-github').Strategy
-const { Account } = require('../models/account')
 const { createUserGH } = require('./createUser')
 
 const passportConfig = {
