@@ -5,6 +5,7 @@ require('../authStrategiesApp/google')
 require('../authStrategiesApp/facebook')
 require('../authStrategiesApp/twitter')
 require('../authStrategiesApp/github')
+const { generateAuthToken } = require('../models/account')
 
 // GOOGLE
 router.get(
@@ -20,7 +21,7 @@ router.get(
     '/google/redirect',
     passport.authenticate('googleapp', { session: false }),
     async (req, res) => {
-        const token = req.user.generateAuthToken()
+        const token = generateAuthToken(req.user)
 
         res.redirect(
             process.env.NODE_ENV !== 'production'
@@ -43,7 +44,7 @@ router.get(
     '/facebook/redirect',
     passport.authenticate('facebookapp', { session: false }),
     async (req, res) => {
-        const token = req.user.generateAuthToken()
+        const token = generateAuthToken(req.user)
 
         res.redirect(
             process.env.NODE_ENV !== 'production'
@@ -96,8 +97,7 @@ router.get(
     '/github/redirect',
     passport.authenticate('githubapp', { session: false }),
     async (req, res) => {
-        const token = req.user.generateAuthToken()
-
+        const token = generateAuthToken(req.user)
         res.redirect(
             process.env.NODE_ENV !== 'production'
                 ? 'exp://192.168.0.105:19000?t=' + token
