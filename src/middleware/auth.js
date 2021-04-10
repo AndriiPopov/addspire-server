@@ -12,8 +12,10 @@ const logout = res => {
 module.exports = async (req, res, next) => {
     try {
         const token = req.header('x-auth-token')
-        if (!token)
+        if (!token) {
+            console.log('no token')
             return res.status(412).send('Access denied. No token provided.')
+        }
         await jwt.verify(
             token,
             process.env.jwtPrivateKey,
@@ -39,6 +41,8 @@ module.exports = async (req, res, next) => {
             }
         )
     } catch (ex) {
+        console.log('here')
+        console.log(ex)
         return res.status(412).send('Error.')
     }
 }
