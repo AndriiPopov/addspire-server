@@ -3,7 +3,7 @@ const path = require('path')
 const resources = require('../routes/resources')
 
 // const activateAccount = require('../routes/activateAccount')
-// const account = require('../routes/account')
+const loginApp = require('../routes/loginApp')
 const awsSignS3 = require('../routes/awsSignS3')
 
 const unsplashProxy = require('../routes/unsplashProxy')
@@ -41,7 +41,7 @@ module.exports = function(app) {
 
     app.use(express.static(path.join(__dirname, '/../../client')))
 
-    // app.use('/api/goals', progresses)
+    app.use('/api/login-app', loginApp)
     app.use('/api/resources', resources)
     // app.use('/api/activate-account', activateAccount)
     // app.use('/api/account', account)

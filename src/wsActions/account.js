@@ -64,7 +64,7 @@ module.exports.addImage = async (data, ws) => {
     try {
         await Account.updateOne(
             { _id: ws.account },
-            { $push: { images: data.image } },
+            { $addToSet: { images: data.image } },
             { useFindAndModify: false }
         )
 

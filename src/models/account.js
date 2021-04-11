@@ -105,12 +105,12 @@ accountSchema.pre(
     increaseVersion
 )
 
-module.exports.generateAuthToken = function(account) {
+module.exports.generateAuthToken = function(account, app) {
     try {
         const token = jwt.sign(
             { _id: account._id, issued: new Date().getTime() },
             process.env.jwtPrivateKey,
-            {
+            !app && {
                 expiresIn: '7d',
             }
         )

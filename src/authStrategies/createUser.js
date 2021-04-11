@@ -8,8 +8,7 @@ module.exports.createUserFB = async (
 ) => {
     try {
         let account = await Account.findById('f_' + profile.id)
-            .select('_id')
-            .lean()
+            .select('_id accountInfo image __v')
             .exec()
         if (!account) {
             let name = profile.displayName || profile.username
@@ -20,24 +19,26 @@ module.exports.createUserFB = async (
                 userid: profile.id,
                 platformId: 'facebook',
                 logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
-                accountInfo: {
-                    displayName: profile.displayName,
-                    emails: [profile.email],
-                    photos: [profile.picture],
-                    userid: profile.id,
-                },
+
                 accessToken,
                 refreshToken,
             })
-            if (
-                profile.photos &&
-                profile.photos.length > 0 &&
-                profile.photos[0].value
-            )
-                account.image = profile.photos[0].value
-            account.markModified('accountInfo')
-            account = await account.save()
         }
+
+        account.accountInfo = {
+            displayName: profile.displayName,
+            emails: [profile.email],
+            photos: [profile.picture],
+            userid: profile.id,
+        }
+        if (
+            profile.photos &&
+            profile.photos.length > 0 &&
+            profile.photos[0].value
+        )
+            account.image = profile.photos[0].value
+        account.markModified('accountInfo')
+        account = await account.save()
         if (account) return done(null, account)
         else return done()
     } catch (ex) {
