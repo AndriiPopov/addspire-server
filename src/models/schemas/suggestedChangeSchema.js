@@ -1,6 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoLength } = require('../../constants/fieldLength')
-const types = mongoose.Schema.Types
 
 const suggestedChangeSchema = new mongoose.Schema(
     {
@@ -8,8 +6,8 @@ const suggestedChangeSchema = new mongoose.Schema(
         action: String,
         key: String,
         resourceId: String,
-        value: {},
         resourceType: String,
+        value: {},
         details: {},
         date: {
             type: Date,
@@ -19,10 +17,16 @@ const suggestedChangeSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
-        comment: String,
-        adminComment: String,
+        messages: [String],
         approved: Boolean,
-        post: String,
+        votesUp: {
+            type: Number,
+            default: 0,
+        },
+        votesDown: {
+            type: Number,
+            default: 0,
+        },
     },
     { minimize: false }
 )

@@ -1,26 +1,38 @@
-const { Advice } = require('../models/advice')
-const { Board } = require('../models/board')
-const { Community } = require('../models/community')
-const { People } = require('../models/people')
-const { Place } = require('../models/place')
+const { Account } = require('../models')
+const { Comment } = require('../models/comment.model')
+const { Club } = require('../models/club.model')
+const { Plugin } = require('../models/plugin.model')
+const { Reputation } = require('../models/reputation.model')
+const { Resource } = require('../models/resource.model')
 
-module.exports = type => {
+module.exports = (type) => {
     let model = null
     switch (type) {
-        case 'community':
-            model = Community
+        case 'account':
+        case 'accountD':
+            model = Account
             break
-        case 'advice':
-            model = Advice
+        case 'comment':
+        case 'commentD':
+            model = Comment
             break
-        case 'board':
-            model = Board
+        case 'club':
+        case 'clubD':
+            model = Club
             break
-        case 'people':
-            model = People
+        case 'plugin':
+        case 'pluginD':
+            model = Plugin
             break
-        case 'place':
-            model = Place
+        case 'reputation':
+        case 'reputationD':
+            model = Reputation
+            break
+        case 'resource':
+        case 'resourceD':
+        case 'question':
+        case 'article':
+            model = Resource
             break
         default:
             break
@@ -28,20 +40,14 @@ module.exports = type => {
     return model
 }
 
-module.exports.getPrefix = type => {
+module.exports.getPrefix = (type) => {
     let prefix = ''
     switch (type) {
-        case 'advice':
-            prefix = 'advices'
+        case 'question':
+            prefix = 'questions'
             break
-        case 'board':
-            prefix = 'boards'
-            break
-        case 'people':
-            prefix = 'people'
-            break
-        case 'place':
-            prefix = 'places'
+        case 'article':
+            prefix = 'articles'
             break
         default:
             break

@@ -1,37 +1,40 @@
-const winston = require('winston')
-const express = require('express')
-const logging = require('./startup/logging')
-const routes = require('./startup/routes')
-const db = require('./startup/db')
-const validation = require('./startup/validation')
-const prod = require('./startup/prod')
-const passport = require('passport')
-const rateLimiterMiddleware = require('./middleware/rateLimiter')
-const oneOffTask = require('./startup/oneOffTask')
-const cors = require('cors')
-const connectSocket = require('./startup/connectSocket')
-require('./startup/redis')
-const app = express()
-prod(app)
-app.use(cors())
-app.options('*', cors())
+const mongoose = require('mongoose');
+const app = require('./app');
+const config = require('./config/config');
+const logger = require('./config/logger');
+const { pushChanges } = require('./services/pushChanges.service');
 
-// app.use(rateLimiterMiddleware)
+let server;
+mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
+  logger.info('Connected to MongoDB');
+  server = app.listen(config.port, () => {
+    logger.info(`Listening to port ${config.port}`);
+  });
+  pushChanges();
+});
 
-app.use(passport.initialize())
+const exitHandler = () => {
+  if (server) {
+    server.close(() => {
+      logger.info('Server closed');
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+};
 
-logging()
-routes(app)
-db()
-// sedtTimeout(oneOffTask, 3000)
-validation()
+const unexpectedErrorHandler = (error) => {
+  logger.error(error);
+  exitHandler();
+};
 
-app.use(express.static('./public'))
+process.on('uncaughtException', unexpectedErrorHandler);
+process.on('unhandledRejection', unexpectedErrorHandler);
 
-const port = process.env.PORT
-const server = app.listen(port, () =>
-    winston.info(`Listening on port ${port}...`)
-)
-connectSocket(server)
-
-module.exports = server
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received');
+  if (server) {
+    server.close();
+  }
+});

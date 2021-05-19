@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoLength } = require('../../constants/fieldLength')
 
 const notificationSchema = new mongoose.Schema(
     {

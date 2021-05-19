@@ -1,13 +1,12 @@
 const mongoose = require('mongoose')
-const { mongoLength } = require('../../constants/fieldLength')
 
-const boardItemSchema = new mongoose.Schema(
+const itemSchema = new mongoose.Schema(
     {
+        itemId: String,
         itemType: String,
-        item: String,
         details: {},
     },
     { minimize: false }
 )
 
-module.exports = boardItemSchema
+module.exports = itemSchema
