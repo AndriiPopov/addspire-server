@@ -1,0 +1,29 @@
+{
+    // "parser": "babel-eslint",
+    "env": {
+        "node": true,
+        "jest": true,
+        "jest/globals": true
+    },
+    "extends": [
+        "airbnb-base",
+        "plugin:jest/recommended",
+        "plugin:security/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "plugins": ["jest"],
+    "parserOptions": {
+        "ecmaVersion": 9
+    },
+    "rules": {
+        "no-console": "error",
+        "func-names": "off",
+        "no-underscore-dangle": "off",
+        "consistent-return": "off",
+        "jest/expect-expect": "off",
+        "security/detect-object-injection": "off",
+        "indent": "off",
+        "comma-dangle": "off",
+        "semi": "off"
+    }
+}

@@ -1,9 +1,11 @@
-const { Account } = require('../models')
-const { Comment } = require('../models/comment.model')
-const { Club } = require('../models/club.model')
-const { Plugin } = require('../models/plugin.model')
-const { Reputation } = require('../models/reputation.model')
-const { Resource } = require('../models/resource.model')
+const {
+    Account,
+    Resource,
+    Reputation,
+    Plugin,
+    Comment,
+    Club,
+} = require('../models')
 
 module.exports = (type) => {
     let model = null

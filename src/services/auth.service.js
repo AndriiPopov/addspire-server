@@ -1,6 +1,6 @@
 const httpStatus = require('http-status')
 const tokenService = require('./token.service')
-const userService = require('./user.service')
+const userCreationService = require('./userCreation.service')
 const Token = require('../models/token.model')
 const ApiError = require('../utils/ApiError')
 const { tokenTypes } = require('../config/tokens')
@@ -12,7 +12,7 @@ const { tokenTypes } = require('../config/tokens')
  * @returns {Promise<User>}
  */
 const loginUserWithEmailAndPassword = async (email, password) => {
-    const user = await userService.getUserByEmail(email)
+    const user = await userCreationService.getUserByEmail(email)
     if (!user || !(await user.isPasswordMatch(password))) {
         throw new ApiError(
             httpStatus.UNAUTHORIZED,
@@ -47,7 +47,7 @@ const refreshAuth = async (refreshToken) => {
             refreshToken,
             tokenTypes.REFRESH
         )
-        const user = await userService.getUserById(refreshTokenDoc.user)
+        const user = await userCreationService.getUserById(refreshTokenDoc.user)
         if (!user) {
             throw new Error()
         }
@@ -70,11 +70,15 @@ const resetPassword = async (resetPasswordToken, newPassword) => {
             resetPasswordToken,
             tokenTypes.RESET_PASSWORD
         )
-        const user = await userService.getUserById(resetPasswordTokenDoc.user)
+        const user = await userCreationService.getUserById(
+            resetPasswordTokenDoc.user
+        )
         if (!user) {
             throw new Error()
         }
-        await userService.updateUserById(user.id, { password: newPassword })
+        await userCreationService.updateUserById(user.id, {
+            password: newPassword,
+        })
         await Token.deleteMany({
             user: user.id,
             type: tokenTypes.RESET_PASSWORD,
@@ -95,12 +99,16 @@ const verifyEmail = async (verifyEmailToken) => {
             verifyEmailToken,
             tokenTypes.VERIFY_EMAIL
         )
-        const user = await userService.getUserById(verifyEmailTokenDoc.user)
+        const user = await userCreationService.getUserById(
+            verifyEmailTokenDoc.user
+        )
         if (!user) {
             throw new Error()
         }
         await Token.deleteMany({ user: user.id, type: tokenTypes.VERIFY_EMAIL })
-        await userService.updateUserById(user.id, { isEmailVerified: true })
+        await userCreationService.updateUserById(user.id, {
+            isEmailVerified: true,
+        })
     } catch (error) {
         throw new ApiError(httpStatus.UNAUTHORIZED, 'Email verification failed')
     }

@@ -1,18 +1,18 @@
 const increaseVersion = function () {
-  const update = this.getUpdate();
-  if (update.__v != null) {
-    delete update.__v;
-  }
-  const keys = ['$set', '$setOnInsert'];
-  keys.forEach((key) => {
-    if (update[key] != null && update[key].__v != null) {
-      delete update[key].__v;
-      if (Object.keys(update[key]).length === 0) {
-        delete update[key];
-      }
+    const update = this.getUpdate()
+    if (update.__v != null) {
+        delete update.__v
     }
-  });
-  update.$inc = update.$inc || {};
-  update.$inc.__v = 1;
-};
-module.exports = increaseVersion;
+    const keys = ['$set', '$setOnInsert']
+    keys.forEach((key) => {
+        if (update[key] != null && update[key].__v != null) {
+            delete update[key].__v
+            if (Object.keys(update[key]).length === 0) {
+                delete update[key]
+            }
+        }
+    })
+    update.$inc = update.$inc || {}
+    update.$inc.__v = 1
+}
+module.exports = increaseVersion

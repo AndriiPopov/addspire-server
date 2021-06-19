@@ -1,60 +1,46 @@
 const jwt = require('jsonwebtoken')
-const moment = require('moment')
-const httpStatus = require('http-status')
+const dayjs = require('dayjs')
 const config = require('../config/config')
-const userService = require('./user.service')
 const { Token } = require('../models')
-const ApiError = require('../utils/ApiError')
 const { tokenTypes } = require('../config/tokens')
 
-/**
- * Generate token
- * @param {ObjectId} userId
- * @param {Moment} expires
- * @param {string} [secret]
- * @returns {string}
- */
 const generateToken = (
     userId,
     expires,
     type,
-    secret = process.env.jwtPrivateKey
+    secret = process.env.jwtPrivateKey,
+    club
 ) => {
     const payload = {
         sub: userId,
-        iat: moment().unix(),
+        iat: dayjs().valueOf(),
         exp: expires.unix(),
         type,
+        club,
     }
     return jwt.sign(payload, secret)
 }
 
-/**
- * Save a token
- * @param {string} token
- * @param {ObjectId} userId
- * @param {Moment} expires
- * @param {string} type
- * @param {boolean} [blacklisted]
- * @returns {Promise<Token>}
- */
-const saveToken = async (token, userId, expires, type, blacklisted = false) => {
+const saveToken = async (
+    token,
+    userId,
+    expires,
+    type,
+    blacklisted = false,
+    club
+) => {
     const tokenDoc = await Token.create({
         token,
         user: userId,
         expires: expires.toDate(),
         type,
         blacklisted,
+        club,
     })
+
     return tokenDoc
 }
 
-/**
- * Verify token and return token doc (or throw an error if it is not valid)
- * @param {string} token
- * @param {string} type
- * @returns {Promise<Token>}
- */
 const verifyToken = async (token, type) => {
     const payload = jwt.verify(token, process.env.jwtPrivateKey)
     const tokenDoc = await Token.findOne({
@@ -65,19 +51,12 @@ const verifyToken = async (token, type) => {
         .select('')
         .lean()
         .exec()
-    // if (!tokenDoc) {
-    //     throw new Error('Token not found')
-    // }
+
     return tokenDoc
 }
 
-/**
- * Generate auth tokens
- * @param {User} user
- * @returns {Promise<Object>}
- */
 const generateAuthTokens = async (user) => {
-    const accessTokenExpires = moment().add(
+    const accessTokenExpires = dayjs().add(
         config.jwt.accessExpirationMinutes,
         'minutes'
     )
@@ -87,7 +66,7 @@ const generateAuthTokens = async (user) => {
         tokenTypes.ACCESS
     )
 
-    const refreshTokenExpires = moment().add(
+    const refreshTokenExpires = dayjs().add(
         config.jwt.refreshExpirationDays,
         'days'
     )
@@ -115,54 +94,36 @@ const generateAuthTokens = async (user) => {
     }
 }
 
-/**
- * Generate reset password token
- * @param {string} email
- * @returns {Promise<string>}
- */
-const generateResetPasswordToken = async (email) => {
-    const user = await userService.getUserByEmail(email)
-    if (!user) {
-        throw new ApiError(
-            httpStatus.NOT_FOUND,
-            'No users found with this email'
-        )
-    }
-    const expires = moment().add(
-        config.jwt.resetPasswordExpirationMinutes,
-        'minutes'
-    )
-    const resetPasswordToken = generateToken(
-        user.id,
-        expires,
-        tokenTypes.RESET_PASSWORD
-    )
-    await saveToken(
-        resetPasswordToken,
-        user.id,
-        expires,
-        tokenTypes.RESET_PASSWORD
-    )
-    return resetPasswordToken
+const verifyInviteToken = async (token, type) => {
+    const payload = jwt.verify(token, process.env.jwtPrivateKey)
+    const res = await Token.findOneAndDelete({
+        token,
+        type,
+        user: payload.sub,
+    })
+
+    return res
 }
 
-/**
- * Generate verify email token
- * @param {string} email
- * @returns {Promise<string>}
- */
-const generateVerifyEmailToken = async (user) => {
-    const expires = moment().add(
-        config.jwt.verifyEmailExpirationMinutes,
-        'minutes'
+const generateInviteToken = async (user, clubId) => {
+    const tokenExpires = dayjs().add(config.jwt.inviteExpirationDays, 'days')
+    const inviteToken = generateToken(
+        user._id,
+        tokenExpires,
+        tokenTypes.INVITE,
+        undefined,
+        clubId
     )
-    const verifyEmailToken = generateToken(
-        user.id,
-        expires,
-        tokenTypes.VERIFY_EMAIL
+    await saveToken(
+        inviteToken,
+        user._id,
+        tokenExpires,
+        tokenTypes.INVITE,
+        undefined,
+        clubId
     )
-    await saveToken(verifyEmailToken, user.id, expires, tokenTypes.VERIFY_EMAIL)
-    return verifyEmailToken
+
+    return inviteToken
 }
 
 module.exports = {
@@ -170,6 +131,6 @@ module.exports = {
     saveToken,
     verifyToken,
     generateAuthTokens,
-    generateResetPasswordToken,
-    generateVerifyEmailToken,
+    verifyInviteToken,
+    generateInviteToken,
 }

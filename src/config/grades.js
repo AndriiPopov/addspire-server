@@ -9,13 +9,13 @@ module.exports = {
         min: 0,
         max: 10,
         plus: 5,
-        minus: 1,
+        minus: 0,
     },
     grade2: {
         min: 10,
         max: 50,
         plus: 10,
-        minus: 3,
+        minus: 1,
     },
     grade3: {
         min: 50,

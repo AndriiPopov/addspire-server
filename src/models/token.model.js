@@ -15,11 +15,7 @@ const tokenSchema = mongoose.Schema(
         },
         type: {
             type: String,
-            enum: [
-                tokenTypes.REFRESH,
-                tokenTypes.RESET_PASSWORD,
-                tokenTypes.VERIFY_EMAIL,
-            ],
+            enum: [tokenTypes.REFRESH, tokenTypes.INVITE],
             required: true,
         },
         expires: {
@@ -30,6 +26,7 @@ const tokenSchema = mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        club: String,
     },
     {
         timestamps: true,

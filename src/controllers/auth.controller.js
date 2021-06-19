@@ -3,39 +3,14 @@ const jwt = require('jsonwebtoken')
 const catchAsync = require('../utils/catchAsync')
 const {
     authService,
-    userService,
     tokenService,
-    emailService,
+    userCreationService,
 } = require('../services')
 const { tokenTypes } = require('../config/tokens')
 const { Account, Token, Credential } = require('../models')
 const axios = require('axios')
-
-const register = catchAsync(async (req, res) => {
-    const user = await userService.createUserEM(req.body)
-    const tokens = await tokenService.generateAuthTokens(user)
-    res.status(httpStatus.CREATED)
-        .set({
-            access_token: tokens.access.token,
-            refresh_token: tokens.refresh.token,
-        })
-        .send()
-})
-
-const login = catchAsync(async (req, res) => {
-    const { email, password } = req.body
-    const user = await authService.loginUserWithEmailAndPassword(
-        email,
-        password
-    )
-    const tokens = await tokenService.generateAuthTokens(user)
-    res.status(httpStatus.CREATED)
-        .set({
-            access_token: tokens.access.token,
-            refresh_token: tokens.refresh.token,
-        })
-        .send()
-})
+const ApiError = require('../utils/ApiError')
+const config = require('../config/config')
 
 const logout = catchAsync(async (req, res) => {
     await authService.logout(req.body.refreshToken)
@@ -44,35 +19,6 @@ const logout = catchAsync(async (req, res) => {
 
 const refreshTokens = catchAsync(async (req, res, next) => {
     res.send()
-})
-
-const forgotPassword = catchAsync(async (req, res) => {
-    const resetPasswordToken = await tokenService.generateResetPasswordToken(
-        req.body.email
-    )
-    await emailService.sendResetPasswordEmail(
-        req.body.email,
-        resetPasswordToken
-    )
-    res.status(httpStatus.NO_CONTENT).send()
-})
-
-const resetPassword = catchAsync(async (req, res) => {
-    await authService.resetPassword(req.query.token, req.body.password)
-    res.status(httpStatus.NO_CONTENT).send()
-})
-
-const sendVerificationEmail = catchAsync(async (req, res) => {
-    const verifyEmailToken = await tokenService.generateVerifyEmailToken(
-        req.user
-    )
-    await emailService.sendVerificationEmail(req.user.email, verifyEmailToken)
-    res.status(httpStatus.NO_CONTENT).send()
-})
-
-const verifyEmail = catchAsync(async (req, res) => {
-    await authService.verifyEmail(req.query.token)
-    res.status(httpStatus.NO_CONTENT).send()
 })
 
 const loginApp = catchAsync(async (req, res) => {
@@ -133,7 +79,7 @@ const loginApp = catchAsync(async (req, res) => {
                     creteFunc = (response) => {
                         const profileData = response.data
                         const picture = profileData.picture?.data?.url
-                        userService.createUserFB(
+                        userCreationService.createUserFB(
                             {
                                 ...profileData,
                                 displayName:
@@ -177,10 +123,10 @@ const loginApp = catchAsync(async (req, res) => {
                 const refreshToken = codeResponse?.data.refresh_token
                 const expires = codeResponse?.data.expires_in
                 if (accessToken) {
-                    link = `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${data.accessToken}`
+                    link = `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
                     creteFunc = (response) => {
                         const profileData = response.data
-                        userService.createUserGG(
+                        userCreationService.createUserGG(
                             {
                                 ...profileData,
                                 id: profileData.sub,
@@ -205,25 +151,94 @@ const loginApp = catchAsync(async (req, res) => {
                 }
             }
             break
+        case 'github':
+            {
+                const codeResponse = await axios.post(
+                    'https://github.com/login/oauth/access_token',
+                    {
+                        client_id: process.env.GithubClientID,
+                        client_secret: process.env.GithubClientSecret,
+                        code: data.code,
+                        redirect_uri: 'http://localhost:3000',
+                    },
+                    {
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    }
+                )
+                const accessToken = codeResponse?.data.access_token
+
+                const refreshToken = codeResponse?.data.refresh_token
+                const expires = codeResponse?.data.expires_in
+                if (accessToken) {
+                    link = `https://api.github.com/user`
+                    creteFunc = (response) => {
+                        const profileData = response.data
+
+                        userCreationService.createUserGH(
+                            {
+                                ...profileData,
+                                displayName: profileData.login,
+                                emails: profileData.email,
+                                photos: [
+                                    {
+                                        value: profileData.avatar_url,
+                                    },
+                                ],
+                            },
+                            (empty, account) =>
+                                done(
+                                    empty,
+                                    account,
+                                    accessToken,
+                                    expires,
+                                    refreshToken
+                                )
+                        )
+                    }
+                    axios
+                        .get(link, {
+                            headers: {
+                                Authorization: 'token ' + accessToken,
+                            },
+                        })
+                        .then(creteFunc)
+                    // .catch((err) => {
+                    //     throw new ApiError(
+                    //         httpStatus.CONFLICT,
+                    //         'Not created'
+                    //     )
+                    // })
+                }
+            }
+            return
+        case 'dev': {
+            if (config.env === 'development') {
+                const account = await Account.findOne({
+                    facebookProfile: data.code,
+                })
+                const tokens = await tokenService.generateAuthTokens(account)
+
+                res.set({
+                    accesstoken: tokens.access.token,
+                    refreshtoken: tokens.refresh.token,
+                }).send({
+                    success: true,
+                })
+                return
+            }
+        }
     }
 
-    axios
-        .get(link)
-        .then(creteFunc)
-        .catch((err) => {
-            resSendError(res, 'bad data')
-            return
-        })
+    axios.get(link).then(creteFunc)
+    // .catch((err) => {
+    //     throw new ApiError(httpStatus.CONFLICT, 'Not created')
+    // })
 })
 
 module.exports = {
-    register,
-    login,
     logout,
     refreshTokens,
-    forgotPassword,
-    resetPassword,
-    sendVerificationEmail,
-    verifyEmail,
     loginApp,
 }

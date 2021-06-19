@@ -1,3 +1,7 @@
 module.exports.authValidation = require('./auth.validation')
 module.exports.documentValidation = require('./document.validation')
 module.exports.clubValidation = require('./club.validation')
+module.exports.commentValidation = require('./comment.validation')
+module.exports.resourceValidation = require('./resource.validation')
+module.exports.accountValidation = require('./account.validation')
+module.exports.tagValidation = require('./tag.validation')

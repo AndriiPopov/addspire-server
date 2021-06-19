@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
-const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const { mongoLength } = require('../config/fieldLength')
 
@@ -8,14 +7,15 @@ const notificationSchema = require('./schemas/notification')
 const increaseVersion = require('./plugins/increaseVersion.plugin')
 const boardItemSchema = require('./schemas/boardItem')
 const { toJSON, paginate } = require('./plugins')
+const basicTag = require('./basicModel/basicTag')
 
 const accountSchema = new mongoose.Schema(
     {
         name: {
             type: String,
-            minlength: 2,
             required: true,
-            maxlength: mongoLength.name,
+            maxlength: mongoLength.name.max,
+            minlength: mongoLength.name.min,
             index: true,
         },
         googleProfile: {
@@ -46,7 +46,6 @@ const accountSchema = new mongoose.Schema(
         lastSeenNot: { type: Number, default: 0 },
         tokens: [String],
         language: { type: String, default: 'en' },
-        description: String,
         userid: {
             type: String,
             required: true,
@@ -60,7 +59,13 @@ const accountSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        reputations: [String],
+        reputations: [
+            {
+                clubId: { type: String, required: true },
+                reputationId: { type: String, required: true },
+                admin: Boolean,
+            },
+        ],
         reputationsCount: {
             type: Number,
             default: 0,
@@ -72,12 +77,26 @@ const accountSchema = new mongoose.Schema(
         bookmarks: [boardItemSchema],
         history: [boardItemSchema],
         followers: [String],
+        followersCount: {
+            type: Number,
+            default: 0,
+        },
         following: [String],
         followingClubs: [String],
         followingResources: [String],
         bookmarked: Number,
         views: Number,
-        admin: [String],
+        tags: [basicTag],
+        description: {
+            type: String,
+            maxlength: mongoLength.description.max,
+            minlength: mongoLength.description.min,
+        },
+        contact: {
+            type: String,
+            maxlength: mongoLength.description.max,
+            minlength: mongoLength.description.min,
+        },
     },
     { minimize: false }
 )

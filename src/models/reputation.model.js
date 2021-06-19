@@ -10,8 +10,8 @@ const reputationSchema = new mongoose.Schema(
         user: { type: String, index: true },
         history: [reputationHistorySchema],
         reputation: { type: Number, default: 0 },
-        plusToday: { type: Number, default: 5 },
-        minusToday: { type: Number, default: 1 },
+        plusToday: { type: Number, default: 0 },
+        minusToday: { type: Number, default: 0 },
         admin: Boolean,
         invitedBy: String,
         userSince: {
@@ -22,8 +22,13 @@ const reputationSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
-        myContent: [itemSchema],
+        // myContent: [itemSchema],
         banned: Boolean,
+        bannedUntil: { type: Date },
+        questions: [String],
+        articles: [String],
+        answers: [String],
+        comments: [String],
     },
     { minimize: false }
 )

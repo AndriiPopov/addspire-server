@@ -14,10 +14,21 @@ const auth = () => async (req, res, next) => {
         // return res.send()
     }
     try {
+        if (process.env.NODE_ENV === 'test') {
+            const accountId = req.get('accountId')
+            req.account = await Account.findOne({ facebookProfile: accountId })
+                .select('logoutAllDate')
+                .lean()
+                .exec()
+
+            if (req.account) next()
+            else return logout()
+            return
+        }
         const accessToken = req.get('accesstoken')
 
         if (!accessToken) {
-            throw new ApiError(httpStatus.NOT_FOUND, 'No token')
+            return logout()
         }
         await jwt.verify(
             accessToken,
@@ -64,9 +75,10 @@ const auth = () => async (req, res, next) => {
                             }
 
                             await Token.deleteOne({ token: refreshToken })
-                            const tokens = await tokenService.generateAuthTokens(
-                                req.account
-                            )
+                            const tokens =
+                                await tokenService.generateAuthTokens(
+                                    req.account
+                                )
                             res.set({
                                 accesstoken: tokens.access.token,
                                 refreshtoken: tokens.refresh.token,

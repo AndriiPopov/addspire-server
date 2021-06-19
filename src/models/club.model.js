@@ -2,13 +2,29 @@ const mongoose = require('mongoose')
 const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
 const increaseVersion = require('./plugins/increaseVersion.plugin')
 const basicModel = require('./basicModel/basicModel')
-const inviteSchema = require('./schemas/inviteSchema')
+const { mongoLength } = require('../config/fieldLength')
 
 const clubSchema = new mongoose.Schema(
     {
         ...basicModel,
-        reputations: [String],
+        reputations: [
+            {
+                accountId: { type: String, required: true },
+                reputationId: { type: String, required: true },
+                admin: Boolean,
+            },
+        ],
         reputationsCount: {
+            type: Number,
+            default: 0,
+        },
+        adminReputations: [
+            {
+                accountId: { type: String, required: true },
+                reputationId: { type: String, required: true },
+            },
+        ],
+        adminsCount: {
             type: Number,
             default: 0,
         },
@@ -22,13 +38,29 @@ const clubSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        tagsList: [String],
-        private: Boolean,
+
         responseTime: Number,
-        admins: [String],
-        description: String,
-        invites: [inviteSchema],
-        activated: Boolean,
+        startConversation: {
+            type: String,
+            default: 'any',
+        },
+        residenceRequests: [
+            {
+                accountId: String,
+                message: {
+                    type: String,
+                    maxlength: mongoLength.message.max,
+                    minlength: mongoLength.message.min,
+                    required: true,
+                },
+                contact: {
+                    type: String,
+                    maxlength: mongoLength.message.max,
+                    minlength: mongoLength.message.min,
+                    required: true,
+                },
+            },
+        ],
     },
     { minimize: false }
 )
