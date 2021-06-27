@@ -12,9 +12,7 @@ const createClub = {
             .min(JoiLength.description.min)
             .max(JoiLength.description.max),
         image: Joi.string().optional(),
-        startConversation: Joi.string()
-            .valid('any', '10', '100', 'resident')
-            .optional(),
+
         tags: Joi.array().items(Joi.string()).optional(),
     }),
 }
@@ -29,11 +27,8 @@ const editClub = {
             .required()
             .min(JoiLength.description.min)
             .max(JoiLength.description.max),
-        image: Joi.string().required(),
+        image: Joi.string().optional(),
         clubId: Joi.string().required(),
-        startConversation: Joi.string()
-            .valid('any', '10', '100', 'resident')
-            .required(),
         tags: Joi.array().items(Joi.string()).optional(),
     }),
 }
@@ -93,6 +88,32 @@ const declineResidenceRequest = {
     }),
 }
 
+const editStartRule = {
+    body: Joi.object().keys({
+        clubId: Joi.string().required(),
+        value: Joi.string().required().valid('any', '10', '100', 'resident'),
+    }),
+}
+
+const ban = {
+    body: Joi.object().keys({
+        clubId: Joi.string().required(),
+        reputationId: Joi.string().required(),
+        banning: Joi.boolean().optional(),
+    }),
+}
+
+const editReputation = {
+    body: Joi.object().keys({
+        reputationId: Joi.string().required(),
+        description: Joi.string()
+            .required()
+            .min(JoiLength.description.min)
+            .max(JoiLength.description.max),
+        tags: Joi.array().items(Joi.string()).optional(),
+    }),
+}
+
 module.exports = {
     createClub,
     editClub,
@@ -103,4 +124,7 @@ module.exports = {
     requestResidence,
     acceptResidenceRequest,
     declineResidenceRequest,
+    editStartRule,
+    ban,
+    editReputation,
 }

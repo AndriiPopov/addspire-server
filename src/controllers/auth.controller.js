@@ -17,8 +17,9 @@ const logout = catchAsync(async (req, res) => {
     res.send({ logout: true })
 })
 
+// Tokens are refreshed in auth middleware
 const refreshTokens = catchAsync(async (req, res, next) => {
-    res.send()
+    res.status(httpStatus.OK).send()
 })
 
 const loginApp = catchAsync(async (req, res) => {
@@ -47,12 +48,12 @@ const loginApp = catchAsync(async (req, res) => {
         await credential.save()
         const tokens = await tokenService.generateAuthTokens(account)
 
-        res.set({
-            accesstoken: tokens.access.token,
-            refreshtoken: tokens.refresh.token,
-        }).send({
-            success: true,
-        })
+        res.status(httpStatus.OK)
+            .set({
+                accesstoken: tokens.access.token,
+                refreshtoken: tokens.refresh.token,
+            })
+            .send({ message: 'success' })
     }
 
     let link = ''

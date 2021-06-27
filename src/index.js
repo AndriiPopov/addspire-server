@@ -6,7 +6,6 @@ const logger = require('./config/logger')
 const { pushChanges } = require('./services/pushChanges.service')
 const replenish = require('./utils/replenish')
 const { System } = require('./models')
-const { tagService } = require('./services')
 const createDevUsers = require('../dev/createDevUsers')
 
 let server

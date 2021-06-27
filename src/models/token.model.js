@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { toJSON } = require('./plugins')
+const privatePaths = require('mongoose-private-paths')
 const { tokenTypes } = require('../config/tokens')
 
 const tokenSchema = mongoose.Schema(
@@ -34,7 +34,7 @@ const tokenSchema = mongoose.Schema(
 )
 
 // add plugin that converts mongoose to json
-tokenSchema.plugin(toJSON)
+tokenSchema.plugin(privatePaths)
 
 /**
  * @typedef Token

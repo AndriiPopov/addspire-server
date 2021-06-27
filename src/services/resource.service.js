@@ -1,50 +1,20 @@
 const httpStatus = require('http-status')
-const { tagService } = require('.')
 const value = require('../config/value')
 const {
-    Resource,
     System,
     Club,
     Account,
     Reputation,
     Comment,
+    Question,
+    Answer,
 } = require('../models')
 const ApiError = require('../utils/ApiError')
 
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const { saveTags } = require('./tag.service')
-
-const searchResources = async (req) => {
-    const { body } = req
-    const { text, page, type, owner, clubId } = body
-
-    const query = {}
-    if (text) query.text = text
-    if (owner) query.owner = owner
-    query.resourceType = type || 'question'
-    if (clubId) query.club = clubId
-
-    const options = { lean: true, sort: { date: -1 } }
-    if (page) options.page = page + 1
-    const result = await Resource.paginate(query, options)
-    return result
-}
-
-const searchAnswers = async (req) => {
-    const { body } = req
-    const { questionId, page, sortBy } = body
-
-    if (!questionId) return null
-
-    const query = { question: questionId }
-
-    const options = { lean: true, sort: 'vote' }
-    if (page) options.page = page + 1
-    if (sortBy) options.sort = 'vote'
-    const result = await Resource.paginate(query, options)
-    return result
-}
+const getModelFromType = require('../utils/getModelFromType')
 
 const createResource = async (req) => {
     try {
@@ -55,22 +25,29 @@ const createResource = async (req) => {
         const reputationLean = await getReputationId(accountId, clubId, true)
         const rights = await checkVote(reputationLean, 'start')
         if (!rights) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not enough rights')
+            throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
 
-        const resource = new Resource({
-            name,
+        const isAnswer = type === 'answer'
+
+        const resourceData = {
             images,
             description,
-            tags,
-            followers: [accountId],
-            followersCount: 1,
             owner: accountId,
             club: clubId,
             resourceType: type,
-            question: questionId,
-        })
-        saveTags(tags)
+            reputation: reputationLean._id,
+            ...(isAnswer
+                ? { question: questionId }
+                : { name, tags, followers: [accountId], followersCount: 1 }),
+        }
+
+        const resource = isAnswer
+            ? new Answer(resourceData)
+            : new Question(resourceData)
+
+        if (tags) saveTags(tags)
+
         const newNotificationId = await System.getNotificationId()
         const notification = {
             $each: [
@@ -78,22 +55,17 @@ const createResource = async (req) => {
                     user: accountId,
                     code:
                         // eslint-disable-next-line no-nested-ternary
-                        type === 'question'
-                            ? 'asked question'
-                            : type === 'answer'
-                            ? 'answered question'
-                            : 'added article',
+                        isAnswer ? 'answered question' : 'asked question',
                     details: { id: resource._id, clubId, questionId },
                     notId: newNotificationId,
                 },
             ],
-            $slice: 5,
+            $slice: -20,
         }
-        let prefix = 'questions'
+
         let success
         switch (type) {
             case 'question': {
-                prefix = 'questions'
                 await Club.updateOne(
                     { _id: clubId },
                     {
@@ -109,9 +81,7 @@ const createResource = async (req) => {
                 break
             }
             case 'answer': {
-                prefix = 'answers'
-
-                const res = await Resource.updateOne(
+                const res = await Question.updateOne(
                     {
                         _id: questionId,
                         answered: { $ne: accountId },
@@ -133,22 +103,6 @@ const createResource = async (req) => {
 
                 break
             }
-            case 'article': {
-                prefix = 'articles'
-                await Club.updateOne(
-                    { _id: clubId },
-                    {
-                        $push: {
-                            articles: resource._id,
-                            notifications: notification,
-                        },
-                        $inc: { articlesCount: 1 },
-                    },
-                    { useFindAndModify: false }
-                )
-                success = true
-                break
-            }
             default:
                 break
         }
@@ -159,17 +113,16 @@ const createResource = async (req) => {
         await Reputation.updateOne(
             { _id: reputationLean._id },
             {
-                $push: { [prefix]: resource._id },
+                $push: {
+                    [isAnswer ? 'answers' : 'questions']: resource._id,
+                    notifications: notification,
+                },
             },
             { useFindAndModify: false }
         )
         await Account.updateOne(
             { _id: accountId },
-            {
-                $addToSet: {
-                    followingResources: questionId || resource._id,
-                },
-            },
+            { $addToSet: { followingQuestions: questionId || resource._id } },
             { useFindAndModify: false }
         )
         return { success: true }
@@ -185,36 +138,37 @@ const editResource = async (req) => {
         const { account, body } = req
         const { _id: accountId } = account
 
-        const { resourceId, name, description, images, tags } = body
+        const { resourceId, name, description, images, tags, type } = body
 
-        const question = await Resource.findById(resourceId)
+        const isAnswer = type === 'answer'
+        const model = getModelFromType(type)
+        const resource = await model
+            .findById(resourceId)
             .select('club')
             .lean()
             .exec()
-        if (!question) {
+        if (!resource) {
             throw new ApiError(httpStatus.CONFLICT, 'No club')
         }
 
-        const clubId = question.club
+        const clubId = resource.club
 
         const reputationLean = await getReputationId(accountId, clubId, true)
         const rights = await checkVote(reputationLean, 'create')
         if (!rights) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not enough rights')
+            throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
 
-        const res = await Resource.updateOne(
+        const res = await model.updateOne(
             {
                 _id: resourceId,
-                club: clubId,
                 ...(reputationLean.admin ? {} : { owner: accountId }),
             },
             {
                 $set: {
-                    name,
                     description,
                     images,
-                    tags,
+                    ...(isAnswer ? {} : { name, tags }),
                 },
             },
             { useFindAndModify: false }
@@ -222,7 +176,7 @@ const editResource = async (req) => {
         saveTags(tags)
 
         if (!res.nModified) {
-            throw new ApiError(httpStatus.UNAUTHORIZED, 'Not created')
+            throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
         return { success: true }
     } catch (error) {
@@ -239,42 +193,33 @@ const deleteResource = async (req) => {
 
         const { resourceId, type } = body
 
-        const question = await Resource.findById(resourceId)
-            .select('club question')
+        const isAnswer = type === 'answer'
+        const model = getModelFromType(type)
+        const resource = await model
+            .findById(resourceId)
+            .select('club question reputation')
             .lean()
             .exec()
-        if (!question) {
-            throw new ApiError(httpStatus.CONFLICT, 'No club')
+        if (!resource) {
+            throw new ApiError(httpStatus.CONFLICT, 'No resource')
         }
 
-        const clubId = question.club
-        const questionId = question.question
+        const clubId = resource.club
+        const questionId = resource.question
 
         const reputationLean = await getReputationId(accountId, clubId, true)
 
         if (!reputationLean.admin) {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
-        // const newNotificationId = await System.getNotificationId()
-        // const notification = {
-        //     $each: [
-        //         {
-        //             user: accountId,
-        //             code: 'delete',
-        //             details: { id: resourceId },
-        //             notId: newNotificationId,
-        //         },
-        //     ],
-        //     $slice: 5,
-        // }
 
-        await Resource.deleteOne(
+        await model.deleteOne(
             { _id: resourceId, club: clubId },
             { useFindAndModify: false }
         )
 
-        if (questionId && type === 'answer') {
-            await Resource.updateOne(
+        if (questionId && isAnswer) {
+            await Question.updateOne(
                 {
                     _id: questionId,
                     club: clubId,
@@ -285,23 +230,28 @@ const deleteResource = async (req) => {
                 },
                 { useFindAndModify: false }
             )
-        } else if (type === 'question' || type === 'article') {
+        } else {
             await Club.updateOne(
                 { _id: clubId },
                 {
                     $pull: {
-                        [type === 'question' ? 'questions' : 'articles']:
-                            resourceId,
+                        questions: resourceId,
                     },
-                    $inc: {
-                        [type === 'question'
-                            ? 'questionsCount'
-                            : 'articlesCount']: -1,
-                    },
+                    $inc: { questionsCount: -1 },
                 },
                 { useFindAndModify: false }
             )
         }
+        await Reputation.updateOne(
+            { _id: resource.reputation },
+            {
+                $pull: {
+                    questions: resourceId,
+                    answers: resourceId,
+                },
+            },
+            { useFindAndModify: false }
+        )
 
         return { success: true }
     } catch (error) {
@@ -317,13 +267,13 @@ const acceptAnswer = async (req) => {
         const { _id: accountId } = account
         const { answerId } = body
 
-        const answer = await Resource.findById(answerId)
+        const answer = await Answer.findById(answerId)
             .select('owner question club')
             .lean()
             .exec()
 
         if (!answer) {
-            throw new ApiError(httpStatus.BAD_REQUEST, 'Not created')
+            throw new ApiError(httpStatus.CONFLICT, 'No answer')
         }
 
         const questionId = answer.question
@@ -339,10 +289,10 @@ const acceptAnswer = async (req) => {
                     notId: newNotificationId,
                 },
             ],
-            $slice: 5,
+            $slice: -20,
         }
 
-        const result = await Resource.updateOne(
+        const result = await Question.updateOne(
             {
                 _id: questionId,
                 owner: accountId,
@@ -361,11 +311,26 @@ const acceptAnswer = async (req) => {
             await Reputation.updateOne(
                 { _id: reputationLean._id },
                 { $inc: { reputation: value.acceptedAnswer } },
+                {
+                    $push: {
+                        gains: {
+                            $each: [
+                                {
+                                    reputation: value.acceptedAnswer,
+                                    resourceType: 'answer',
+                                    actionType: 'accepted',
+                                    resourceId: answerId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
+                    },
+                },
                 { useFindAndModify: false }
             )
             return { success: true }
         }
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Not created')
+        throw new ApiError(httpStatus.CONFLICT, 'Already accepted')
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -379,15 +344,16 @@ const vote = async (req) => {
         const { _id: accountId } = account
         const { resourceId, type, minus } = body
 
-        const model = type === 'resource' ? Resource : Comment
+        const model = getModelFromType(type)
 
-        const resource = await Resource.findById(resourceId)
-            .select('question club owner')
+        const resource = await model
+            .findById(resourceId)
+            .select('club owner')
             .lean()
             .exec()
 
         if (!resource) {
-            throw new ApiError(httpStatus.BAD_REQUEST, 'Not created')
+            throw new ApiError(httpStatus.CONFLICT, 'No resource')
         }
 
         const clubId = resource.club
@@ -395,7 +361,7 @@ const vote = async (req) => {
         const reputationLean = await getReputationId(accountId, clubId, true)
         const rights = await checkVote(reputationLean, minus ? 'minus' : 'plus')
         if (!rights) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not enough rights')
+            throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
 
         const newNotificationId = await System.getNotificationId()
@@ -429,6 +395,7 @@ const vote = async (req) => {
                 },
                 $inc: {
                     [minus ? 'votesDownCount' : 'votesUpCount']: 1,
+                    vote: minus ? -1 : 1,
                 },
             },
             { useFindAndModify: false }
@@ -456,14 +423,25 @@ const vote = async (req) => {
             await Reputation.updateOne(
                 { _id: reputationLeanReciever._id },
                 {
-                    $inc: {
-                        reputation: repChange,
+                    $inc: { reputation: repChange },
+                    $push: {
+                        gains: {
+                            $each: [
+                                {
+                                    reputation: repChange,
+                                    resourceType: type,
+                                    actionType: minus ? 'voteDown' : 'voteUp',
+                                    resourceId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
                     },
                 },
                 { useFindAndModify: false }
             )
         } else {
-            throw new ApiError(httpStatus.BAD_REQUEST, 'Already voted')
+            throw new ApiError(httpStatus.CONFLICT, 'Already voted')
         }
     } catch (error) {
         if (!error.isOperational) {
@@ -472,8 +450,6 @@ const vote = async (req) => {
     }
 }
 module.exports = {
-    searchResources,
-    searchAnswers,
     createResource,
     editResource,
     deleteResource,

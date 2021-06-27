@@ -1,14 +1,16 @@
 module.exports = [
     'account',
+    'answer',
     'comment',
     'club',
     'plugin',
+    'question',
     'reputation',
-    'resource',
     'accountD',
+    'answer',
     'commentD',
     'clubD',
     'pluginD',
+    'questionD',
     'reputationD',
-    'resourceD',
 ]

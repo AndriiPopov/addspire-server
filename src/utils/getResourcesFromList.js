@@ -1,4 +1,4 @@
-const { get, client } = require('../services/redis.service')
+const { client } = require('../services/redis.service')
 
 const {
     Account,
@@ -6,9 +6,10 @@ const {
     Comment,
     Plugin,
     Reputation,
-    Resource,
+    Question,
+    Answer,
 } = require('../models')
-// const { redis } = require('../services')
+const { selectFields } = require('../config/selectFields')
 
 module.exports = async (data) => {
     if (data.type && data.ids && data.ids.length > 0) {
@@ -21,21 +22,12 @@ module.exports = async (data) => {
             case 'account':
                 type = 'account'
                 model = Account
-                await Promise.all(
-                    data.ids.map(async (user) => {
-                        if (await get(user)) onlineUsers.push(user)
-                    })
-                )
+
                 break
             case 'accountD':
                 type = 'account'
                 model = Account
-                fields = 'name image notifications reputations clubsCount __v'
-                await Promise.all(
-                    data.ids.map(async (user) => {
-                        if (await get(user)) onlineUsers.push(user)
-                    })
-                )
+                fields = selectFields.accountD
 
                 break
 
@@ -52,8 +44,7 @@ module.exports = async (data) => {
             case 'clubD':
                 type = 'club'
                 model = Club
-                fields =
-                    'name image articlesCount questionsCount usersCount notifications admins  __v'
+                fields = selectFields.clubD
                 break
 
             case 'plugin':
@@ -63,20 +54,33 @@ module.exports = async (data) => {
                 break
 
             case 'reputation':
-            case 'reputationD':
                 type = 'reputation'
                 model = Reputation
                 break
-
-            case 'resource':
-                type = 'resource'
-                model = Resource
+            case 'reputationD':
+                type = 'reputation'
+                model = Reputation
+                fields = selectFields.reputationD
                 break
-            case 'resourceD':
-                type = 'resource'
-                model = Resource
-                fields =
-                    'name description appliedChanges suggestedChanges image shortDescription likesCount notifications followersCount  suggestedChangesCount date updated version  __v'
+
+            case 'question':
+                type = 'question'
+                model = Question
+                break
+            case 'questionD':
+                type = 'question'
+                model = Question
+                fields = selectFields.questionD
+                break
+
+            case 'answer':
+                type = 'answer'
+                model = Answer
+                break
+            case 'answerD':
+                type = 'answer'
+                model = Answer
+                fields = selectFields.answerD
                 break
 
             default:
@@ -91,6 +95,9 @@ module.exports = async (data) => {
                     })
                     .lean()
                     .exec()
+                if (data.type === 'account') {
+                    result.map((doc) => doc.toJSON())
+                }
             } else {
                 result = await model
                     .find({

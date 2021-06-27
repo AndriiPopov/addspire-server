@@ -1,6 +1,5 @@
 const { mongoLength } = require('../../config/fieldLength')
 const notificationSchema = require('../schemas/notification')
-const suggestedChangeSchema = require('../schemas/suggestedChangeSchema')
 const basicTag = require('./basicTag')
 
 module.exports = {
@@ -11,7 +10,6 @@ module.exports = {
     },
     image: String,
     notifications: [notificationSchema],
-    edits: [suggestedChangeSchema],
     date: {
         type: Date,
         default: Date.now,

@@ -1,16 +1,17 @@
 const mongoose = require('mongoose')
-const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
 const mongoosePaginate = require('mongoose-paginate-v2')
-const increaseVersion = require('./plugins/increaseVersion.plugin')
+const privatePaths = require('mongoose-private-paths')
 const basicModel = require('./basicModel/basicModel')
 const boardItem = require('./schemas/boardItem')
 const basicVotes = require('./basicModel/basicVotes')
+const { increaseVersion } = require('./plugins')
 
-const resourceSchema = new mongoose.Schema(
+const questionSchema = new mongoose.Schema(
     {
         ...basicModel,
         ...basicVotes,
         owner: String,
+        reputation: String,
         images: [String],
         plugins: [boardItem],
         club: String,
@@ -18,8 +19,6 @@ const resourceSchema = new mongoose.Schema(
         collaborators: [String],
         answers: [String],
         answersCount: { type: Number, default: 0 },
-        resourceType: String,
-        question: String,
         comments: [String],
         commentsCount: { type: Number, default: 0 },
         answered: [String],
@@ -28,15 +27,13 @@ const resourceSchema = new mongoose.Schema(
             default: 'no',
         },
         bookmarksCount: { type: Number, default: 0 },
-        vote: { type: Number, default: 0 },
     },
     { minimize: false }
 )
 
-resourceSchema.plugin(updateIfCurrentPlugin)
-resourceSchema.plugin(mongoosePaginate)
-
-resourceSchema.pre(
+questionSchema.plugin(mongoosePaginate)
+questionSchema.plugin(privatePaths, { prefix: '-' })
+questionSchema.pre(
     [
         'update',
         'updateOne',
@@ -47,4 +44,4 @@ resourceSchema.pre(
     increaseVersion
 )
 
-module.exports = mongoose.model('Resource', resourceSchema)
+module.exports = mongoose.model('Question', questionSchema)

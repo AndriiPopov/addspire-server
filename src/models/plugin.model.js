@@ -1,9 +1,9 @@
 const mongoose = require('mongoose')
-const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
+const privatePaths = require('mongoose-private-paths')
 const boardItemSchema = require('./schemas/boardItem')
-const increaseVersion = require('./plugins/increaseVersion.plugin')
 const suggestedChangeSchema = require('./schemas/suggestedChangeSchema')
 const { mongoLength } = require('../config/fieldLength')
+const { increaseVersion } = require('./plugins')
 
 const pluginSchema = new mongoose.Schema(
     {
@@ -38,8 +38,7 @@ const pluginSchema = new mongoose.Schema(
     },
     { minimize: false }
 )
-
-pluginSchema.plugin(updateIfCurrentPlugin)
+pluginSchema.plugin(privatePaths, { prefix: '-' })
 
 pluginSchema.pre(
     [

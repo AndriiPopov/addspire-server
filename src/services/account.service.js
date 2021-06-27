@@ -4,17 +4,16 @@ const ApiError = require('../utils/ApiError')
 
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
-const { tagService } = require('.')
 const { saveTags } = require('./tag.service')
 
 const getFollowingPrefix = (type) => {
     switch (type) {
-        case 'account':
+        case 'reputation':
             return 'following'
         case 'club':
             return 'followingClubs'
-        case 'resource':
-            return 'followingResources'
+        case 'question':
+            return 'followingQuestions'
         default:
             return ''
     }
@@ -33,63 +32,57 @@ const follow = async (req) => {
             type === 'account' &&
             accountId.toString() === resourceId.toString()
         ) {
-            throw new ApiError(httpStatus.BAD_REQUEST, 'Follow self')
+            throw new ApiError(httpStatus.CONFLICT, 'Follow self')
         }
 
         const result = await Account.updateOne(
             { _id: accountId, [prefix]: { $ne: resourceId } },
-            {
-                $push: {
-                    [prefix]: resourceId,
-                    myNotifications: {
-                        $each: [
-                            {
-                                user: accountId,
-                                code: 'follow',
-                                details: {
-                                    accountId: resourceId,
-                                },
-                                notId: newNotificationId,
-                                type,
-                            },
-                        ],
-                        $slice: -50,
-                    },
-                },
-            },
+            { $push: { [prefix]: resourceId } },
             { useFindAndModify: false }
         )
         if (result.nModified) {
             const model = getModelFromType(type)
-            await model.updateOne(
-                { _id: resourceId, followers: { $ne: accountId } },
-                {
-                    $push: {
-                        followers: accountId,
-                        ...(type === 'account'
-                            ? {
-                                  myNotifications: {
-                                      $each: [
-                                          {
-                                              user: accountId,
-                                              code: 'follow',
-                                              details: {
-                                                  accountId: resourceId,
-                                              },
-                                              notId: newNotificationId,
-                                          },
-                                      ],
-                                      $slice: -50,
-                                  },
-                              }
-                            : {}),
+            const resource = await model
+                .findOneAndUpdate(
+                    {
+                        _id: resourceId,
+                        followers: { $ne: accountId },
+                        user: { $ne: accountId },
                     },
-                    $inc: { followersCount: 1 },
-                },
-                { useFindAndModify: false }
-            )
+                    {
+                        $push: { followers: accountId },
+                        $inc: { followersCount: 1 },
+                    },
+                    { useFindAndModify: false }
+                )
+                .select('user')
+                .lean()
+                .exec()
+            if (resource && resource.user && type === 'reputation') {
+                await Account.updateOne(
+                    { _id: resource.user },
+                    {
+                        push: {
+                            myNotifications: {
+                                $each: [
+                                    {
+                                        user: accountId,
+                                        code: 'follow',
+                                        details: {
+                                            accountId: resourceId,
+                                        },
+                                        notId: newNotificationId,
+                                    },
+                                ],
+                                $slice: -50,
+                            },
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+            }
         } else {
-            throw new ApiError(httpStatus.BAD_REQUEST, 'Already follows')
+            throw new ApiError(httpStatus.CONFLICT, 'Already follows')
         }
     } catch (error) {
         if (!error.isOperational) {
@@ -103,13 +96,6 @@ const unfollow = async (req) => {
         const { account, body } = req
         const { _id: accountId } = account
         const { type, resourceId } = body
-
-        if (
-            type === 'account' &&
-            accountId.toString() === resourceId.toString()
-        ) {
-            throw new ApiError(httpStatus.BAD_REQUEST, 'Unfollow self')
-        }
 
         const prefix = getFollowingPrefix(type)
 
@@ -129,7 +115,7 @@ const unfollow = async (req) => {
                 { useFindAndModify: false }
             )
         } else {
-            throw new ApiError(httpStatus.BAD_REQUEST, 'Not following')
+            throw new ApiError(httpStatus.CONFLICT, 'Not following')
         }
     } catch (error) {
         if (!error.isOperational) {

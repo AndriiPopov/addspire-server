@@ -1,8 +1,9 @@
 const mongoose = require('mongoose')
-const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
-const increaseVersion = require('./plugins/increaseVersion.plugin')
+const mongoosePaginate = require('mongoose-paginate-v2')
+const privatePaths = require('mongoose-private-paths')
 const basicModel = require('./basicModel/basicModel')
 const { mongoLength } = require('../config/fieldLength')
+const { increaseVersion } = require('./plugins')
 
 const clubSchema = new mongoose.Schema(
     {
@@ -28,18 +29,12 @@ const clubSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        banned: [String],
         questions: [String],
         questionsCount: {
             type: Number,
             default: 0,
         },
-        articles: [String],
-        articlesCount: {
-            type: Number,
-            default: 0,
-        },
-
-        responseTime: Number,
         startConversation: {
             type: String,
             default: 'any',
@@ -47,6 +42,7 @@ const clubSchema = new mongoose.Schema(
         residenceRequests: [
             {
                 accountId: String,
+                reputationId: String,
                 message: {
                     type: String,
                     maxlength: mongoLength.message.max,
@@ -64,7 +60,9 @@ const clubSchema = new mongoose.Schema(
     },
     { minimize: false }
 )
-clubSchema.plugin(updateIfCurrentPlugin)
+
+clubSchema.plugin(mongoosePaginate)
+clubSchema.plugin(privatePaths, { prefix: '-' })
 
 clubSchema.pre(
     [

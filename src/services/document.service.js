@@ -10,16 +10,9 @@ const poll = {}
 const responseIds = {}
 let currentId = 0
 
-const headers = {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    Connection: 'keep-alive',
-}
-
 const getResource = async (req) => {
     try {
         const data = req.body
-        console.log('data', data)
         const [result, onlineUsers] = await getResourcesFromList(data)
 
         if (result && result.length > 0) {
@@ -149,8 +142,6 @@ const pollResource = async (req, res) => {
 const sendUpdatedData = (data, keys) => {
     if (keys.length < 1) return
 
-    console.log(keys)
-
     if (data.updateDescription.updatedFields.__v)
         client.set(
             `${keys[0]}_${data.documentKey._id}`,
@@ -163,7 +154,6 @@ const sendUpdatedData = (data, keys) => {
         if (ids && ids.length > 0) {
             ids = [...new Set(ids)]
             poll[`${key}_${data.documentKey._id.toString()}`] = []
-            console.log('ids', ids)
             ids.forEach((id) => {
                 const response = responseIds[id]
 

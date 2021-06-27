@@ -4,7 +4,8 @@ const {
     Club,
     Plugin,
     Reputation,
-    Resource,
+    Question,
+    Answer,
 } = require('../models')
 const { sendUpdatedData } = require('./document.service')
 
@@ -31,5 +32,6 @@ module.exports.pushChanges = () => {
     watchCollection(Club, 'club')
     watchCollection(Plugin, 'plugin')
     watchCollection(Reputation, 'reputation')
-    watchCollection(Resource, 'resource')
+    watchCollection(Question, 'question')
+    watchCollection(Answer, 'answer')
 }

@@ -3,14 +3,14 @@ const { JoiLength } = require('../config/fieldLength')
 
 const follow = {
     body: Joi.object().keys({
-        type: Joi.string().valid('account', 'club', 'resource').required(),
+        type: Joi.string().valid('reputation', 'club', 'question').required(),
         resourceId: Joi.string().required(),
     }),
 }
 
 const unfollow = {
     body: Joi.object().keys({
-        type: Joi.string().valid('account', 'club', 'resource').required(),
+        type: Joi.string().valid('reputation', 'club', 'question').required(),
         resourceId: Joi.string().required(),
     }),
 }
@@ -29,7 +29,7 @@ const deleteAccount = {
 
 const addBookmark = {
     body: Joi.object().keys({
-        type: Joi.string().valid('account', 'club', 'resource').required(),
+        type: Joi.string().valid('account', 'club', 'question').required(),
         resourceId: Joi.string().required(),
     }),
 }

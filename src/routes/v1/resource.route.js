@@ -7,20 +7,6 @@ const { resourceValidation } = require('../../validations')
 const router = express.Router()
 
 router
-    .route('/search')
-    .post(
-        validate(resourceValidation.searchResources),
-        resourceController.searchResources
-    )
-
-router
-    .route('/search-answers')
-    .post(
-        validate(resourceValidation.searchAnswers),
-        resourceController.searchAnswers
-    )
-
-router
     .route('/create')
     .post(
         validate(resourceValidation.createResource),

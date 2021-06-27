@@ -1,19 +1,6 @@
 const Joi = require('joi')
 const { JoiLength } = require('../config/fieldLength')
 
-const searchResources = {
-    body: Joi.object(),
-    // .keys({
-    //     name: Joi.string().required(),
-    //     description: Joi.string().required(),
-    //     image: Joi.string().required(),
-    // }),
-}
-
-const searchAnswers = {
-    body: Joi.object(),
-}
-
 const createResource = {
     body: Joi.object()
         .keys({
@@ -27,9 +14,7 @@ const createResource = {
                 .min(JoiLength.description.min),
             images: Joi.array().items(Joi.string()).optional(),
             clubId: Joi.string().required(),
-            type: Joi.string()
-                .valid('answer', 'question', 'article')
-                .required(),
+            type: Joi.string().valid('answer', 'question').required(),
             questionId: Joi.string().optional(),
             tags: Joi.array().items(Joi.string()).optional(),
         })
@@ -48,8 +33,9 @@ const editResource = {
                 .max(JoiLength.description.max)
                 .min(JoiLength.description.min),
             images: Joi.array().items(Joi.string()).optional(),
-            resourceId: Joi.string().required(),
             tags: Joi.array().items(Joi.string()).optional(),
+            resourceId: Joi.string().required(),
+            type: Joi.string().valid('answer', 'question').required(),
         })
         .unknown(true),
 }
@@ -58,9 +44,7 @@ const deleteResource = {
     body: Joi.object()
         .keys({
             resourceId: Joi.string().required(),
-            type: Joi.string()
-                .valid('answer', 'question', 'article')
-                .required(),
+            type: Joi.string().valid('answer', 'question').required(),
         })
         .unknown(true),
 }
@@ -78,15 +62,15 @@ const vote = {
         .keys({
             minus: Joi.boolean().optional(),
             resourceId: Joi.string().required(),
-            type: Joi.string().valid('resource', 'comment').required(),
+            type: Joi.string()
+                .valid('question', 'answer', 'comment')
+                .required(),
         })
         .unknown(true),
 }
 
 module.exports = {
-    searchResources,
     createResource,
-    searchAnswers,
     editResource,
     deleteResource,
     vote,

@@ -1,14 +1,14 @@
 const mongoose = require('mongoose')
-const { updateIfCurrentPlugin } = require('mongoose-update-if-current')
-const increaseVersion = require('./plugins/increaseVersion.plugin')
-const reputationHistorySchema = require('./schemas/reputationHistory')
-const itemSchema = require('./schemas/boardItem')
+const mongoosePaginate = require('mongoose-paginate-v2')
+const privatePaths = require('mongoose-private-paths')
+const basicModel = require('./basicModel/basicModel')
+const { increaseVersion } = require('./plugins')
 
 const reputationSchema = new mongoose.Schema(
     {
+        ...basicModel,
         club: { type: String, index: true },
-        user: { type: String, index: true },
-        history: [reputationHistorySchema],
+        owner: { type: String, index: true },
         reputation: { type: Number, default: 0 },
         plusToday: { type: Number, default: 0 },
         minusToday: { type: Number, default: 0 },
@@ -22,19 +22,38 @@ const reputationSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
-        // myContent: [itemSchema],
         banned: Boolean,
         bannedUntil: { type: Date },
         questions: [String],
-        articles: [String],
         answers: [String],
         comments: [String],
+        gains: [
+            {
+                reputation: Number,
+                resourceId: String,
+                resourceType: String,
+                actionType: String,
+                date: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
+        reputationHistory: [
+            {
+                reputation: Number,
+                date: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     { minimize: false }
 )
 
-reputationSchema.plugin(updateIfCurrentPlugin)
-
+reputationSchema.plugin(mongoosePaginate)
+reputationSchema.plugin(privatePaths, { prefix: '-' })
 reputationSchema.pre(
     [
         'update',

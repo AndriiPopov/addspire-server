@@ -1,10 +1,11 @@
 const {
     Account,
-    Resource,
     Reputation,
     Plugin,
     Comment,
     Club,
+    Question,
+    Answer,
 } = require('../models')
 
 module.exports = (type) => {
@@ -30,11 +31,13 @@ module.exports = (type) => {
         case 'reputationD':
             model = Reputation
             break
-        case 'resource':
-        case 'resourceD':
         case 'question':
-        case 'article':
-            model = Resource
+        case 'questionD':
+            model = Question
+            break
+        case 'answer':
+        case 'answerD':
+            model = Answer
             break
         default:
             break
@@ -48,8 +51,8 @@ module.exports.getPrefix = (type) => {
         case 'question':
             prefix = 'questions'
             break
-        case 'article':
-            prefix = 'articles'
+        case 'answer':
+            prefix = 'answers'
             break
         default:
             break

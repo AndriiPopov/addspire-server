@@ -70,4 +70,24 @@ router
         clubController.declineResidenceRequest
     )
 
+router
+    .route('/edit-start-rule')
+    .post(
+        validate(clubValidation.editStartRule),
+        auth(),
+        clubController.editStartRule
+    )
+
+router
+    .route('/ban')
+    .post(validate(clubValidation.ban), auth(), clubController.ban)
+
+router
+    .route('/edit-reputation')
+    .post(
+        validate(clubValidation.editReputation),
+        auth(),
+        clubController.editReputation
+    )
+
 module.exports = router

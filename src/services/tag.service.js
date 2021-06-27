@@ -24,7 +24,6 @@ const findTags = async (req) => {
     try {
         const { tag } = req.query
         if (tag) {
-            console.log('tag', tag)
             const tags = await Tag.find({
                 _id: { $regex: tag, $options: 'gi' },
             })
@@ -34,7 +33,7 @@ const findTags = async (req) => {
                 .lean()
             return tags.map((i) => i._id)
         }
-        throw new ApiError(httpStatus.BAD_REQUEST, 'No tag')
+        throw new ApiError(httpStatus.CONFLICT, 'No tag')
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not found')
