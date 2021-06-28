@@ -2,7 +2,7 @@ const { Club, Reputation, Account } = require('../models')
 
 module.exports = async (accountId, clubId, withData) => {
     let reputation = await Reputation.findOne({
-        user: accountId,
+        owner: accountId,
         club: clubId,
     })
         .select(
@@ -16,7 +16,7 @@ module.exports = async (accountId, clubId, withData) => {
         .exec()
     if (!reputation) {
         reputation = new Reputation({
-            user: accountId,
+            owner: accountId,
             club: clubId,
         })
         await reputation.save()

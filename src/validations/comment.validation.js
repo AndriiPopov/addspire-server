@@ -8,7 +8,7 @@ const createComment = {
             .max(JoiLength.message.max)
             .required(),
         resourceId: Joi.string().required(),
-        resouyrceType: Joi.string().valid('answer', 'question').required(),
+        resourceType: Joi.string().valid('answer', 'question').required(),
     }),
 }
 

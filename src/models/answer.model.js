@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
 const privatePaths = require('mongoose-private-paths')
-const boardItem = require('./schemas/boardItem')
 const basicVotes = require('./basicModel/basicVotes')
 const { increaseVersion } = require('./plugins')
 const { mongoLength } = require('../config/fieldLength')
@@ -24,14 +23,12 @@ const answerSchema = new mongoose.Schema(
         owner: String,
         reputation: String,
         images: [String],
-        plugins: [boardItem],
         club: String,
         wiki: Boolean,
         collaborators: [String],
         question: String,
         comments: [String],
         commentsCount: { type: Number, default: 0 },
-        bookmarksCount: { type: Number, default: 0 },
     },
     { minimize: false }
 )

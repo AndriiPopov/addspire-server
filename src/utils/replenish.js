@@ -27,12 +27,20 @@ const unban = () => {
 module.exports = () => {
     Reputation.updateMany(
         {},
-        {
-            $set: {
-                plusToday: 0,
-                minusToday: 0,
+        [
+            {
+                $set: {
+                    plusToday: 0,
+                    minusToday: 0,
+                    reputationHistory: {
+                        $concatArrays: [
+                            '$reputationHistory',
+                            { reputation: '$reputation' },
+                        ],
+                    },
+                },
             },
-        },
+        ],
         { useFindAndModify: false }
     )
 

@@ -12,7 +12,7 @@ const reputationSchema = new mongoose.Schema(
         reputation: { type: Number, default: 0 },
         plusToday: { type: Number, default: 0 },
         minusToday: { type: Number, default: 0 },
-        admin: Boolean,
+        admin: { type: Boolean, default: false },
         invitedBy: String,
         userSince: {
             type: Date,

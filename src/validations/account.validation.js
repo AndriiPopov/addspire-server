@@ -15,28 +15,14 @@ const unfollow = {
     }),
 }
 
-const ban = {
-    body: Joi.object().keys({
-        banUserId: Joi.string().required(),
-        clubId: Joi.string().required(),
-        banned: Joi.boolean().required(),
-    }),
-}
-
 const deleteAccount = {
     body: Joi.object().keys({}),
 }
 
-const addBookmark = {
+const starClub = {
     body: Joi.object().keys({
-        type: Joi.string().valid('account', 'club', 'question').required(),
-        resourceId: Joi.string().required(),
-    }),
-}
-
-const removeBookmark = {
-    body: Joi.object().keys({
-        bookmarkId: Joi.string().required(),
+        add: Joi.boolean().required(),
+        clubId: Joi.string().required(),
     }),
 }
 
@@ -59,12 +45,17 @@ const editAccount = {
     }),
 }
 
+const seenNotification = {
+    body: Joi.object().keys({
+        notId: Joi.string().required(),
+    }),
+}
+
 module.exports = {
     follow,
     unfollow,
-    ban,
     deleteAccount,
-    addBookmark,
-    removeBookmark,
+    starClub,
     editAccount,
+    seenNotification,
 }

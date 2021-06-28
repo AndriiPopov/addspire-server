@@ -1,13 +1,7 @@
 const httpStatus = require('http-status')
-const { tokenService } = require('.')
-const config = require('../config/config')
 const { selectFields } = require('../config/selectFields')
-const { tokenTypes } = require('../config/tokens')
-const value = require('../config/value')
-const { Account, Club, Reputation, System } = require('../models')
+const { Reputation, Answer, Question } = require('../models')
 const ApiError = require('../utils/ApiError')
-const getReputationId = require('../utils/getReputationId')
-const { saveTags } = require('./tag.service')
 const getModelFromType = require('../utils/getModelFromType')
 
 const general = async (req) => {
@@ -71,7 +65,9 @@ const reputation = async (req) => {
             options
         )
         return result
-    } catch (error) {}
+    } catch (error) {
+        throw new ApiError(httpStatus.CONFLICT)
+    }
 }
 
 const question = async (req) => {
@@ -90,7 +86,7 @@ const question = async (req) => {
         select: selectFields.resourceD,
     }
     if (page) options.page = page + 1
-    const result = await Resource.paginate(query, options)
+    const result = await Question.paginate(query, options)
     return result
 }
 
@@ -105,7 +101,7 @@ const answer = async (req) => {
     const options = { lean: true, sort: 'vote' }
     if (page) options.page = page + 1
     if (sortBy) options.sort = 'vote'
-    const result = await Resource.paginate(query, options)
+    const result = await Answer.paginate(query, options)
     return result
 }
 

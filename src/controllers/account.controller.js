@@ -12,23 +12,13 @@ const unfollow = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send()
 })
 
-const ban = catchAsync(async (req, res) => {
-    await accountService.ban(req)
-    res.status(httpStatus.OK).send({ message: 'success' })
-})
-
 const deleteAccount = catchAsync(async (req, res) => {
     await accountService.deleteAccount(req)
     res.status(httpStatus.OK).send({ message: 'deleted' })
 })
 
-const addBookmark = catchAsync(async (req, res) => {
-    await accountService.addBookmark(req)
-    res.status(httpStatus.OK).send({ message: 'success' })
-})
-
-const removeBookmark = catchAsync(async (req, res) => {
-    await accountService.removeBookmark(req)
+const starClub = catchAsync(async (req, res) => {
+    await accountService.starClub(req)
     res.status(httpStatus.OK).send({ message: 'success' })
 })
 
@@ -37,12 +27,16 @@ const editAccount = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send({ message: 'saved' })
 })
 
+const seenNotification = catchAsync(async (req, res) => {
+    await accountService.seenNotification(req)
+    res.status(httpStatus.OK).send()
+})
+
 module.exports = {
     follow,
     unfollow,
-    ban,
     deleteAccount,
-    addBookmark,
-    removeBookmark,
+    starClub,
     editAccount,
+    seenNotification,
 }

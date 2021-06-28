@@ -16,13 +16,13 @@ describe('POST /api/club/create', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: '10',
                 tags: ['club1', 'club2'],
             })
             .expect(httpStatus.CREATED)
 
         expect(res.body).toEqual({
             redirect: expect.anything(),
+            message: 'created',
         })
 
         const dbClub = await Club.findOne({ name: 'Rollers of US' }).lean()
@@ -47,7 +47,7 @@ describe('POST /api/club/create', () => {
         const reputationObj = await Reputation.findById(reputation.reputationId)
         expect(reputationObj).toBeDefined()
         expect(reputationObj.club).toEqual(clubId)
-        expect(reputationObj.user).toEqual(user._id.toString())
+        expect(reputationObj.owner).toEqual(user._id.toString())
         expect(reputationObj.plusToday).toEqual(0)
         expect(reputationObj.minusToday).toEqual(0)
         expect(reputationObj.reputation).toEqual(0)
@@ -60,7 +60,6 @@ describe('POST /api/club/create', () => {
         expect(dbClub.followers).toContain(user._id.toString())
         expect(dbClub.reputationsCount).toEqual(1)
         expect(dbClub.adminsCount).toEqual(1)
-        expect(dbClub.startConversation).toEqual('10')
         expect(dbClub.tags).toEqual(['club1', 'club2'])
 
         const reputationClub = dbClub.reputations.find(
@@ -85,7 +84,6 @@ describe('POST /api/club/create', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: 'resident',
             })
             .expect(httpStatus.CREATED)
 
@@ -100,7 +98,6 @@ describe('POST /api/club/create', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: 'resident',
             })
             .expect(httpStatus.UNAUTHORIZED)
     })
@@ -113,7 +110,6 @@ describe('POST /api/club/create', () => {
                 name: 'Rol',
                 description: 'For ',
                 image: 'roller.jpeg',
-                startConversation: 'resident',
             })
             .expect(httpStatus.BAD_REQUEST)
     })

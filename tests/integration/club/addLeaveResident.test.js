@@ -39,7 +39,6 @@ describe('POST /api/club/invite', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: 'any',
             })
             .expect(httpStatus.CREATED)
 
@@ -59,7 +58,7 @@ describe('POST /api/club/invite', () => {
         }
 
         await addResident(1, userId1, httpStatus.UNAUTHORIZED)
-        await addResident(0, userId0, httpStatus.BAD_REQUEST)
+        await addResident(0, userId0, httpStatus.CONFLICT)
         await addResident(0, userId1)
         const club1 = await Club.findById(clubId)
         expect(club1).not.toBeNull()
@@ -76,6 +75,12 @@ describe('POST /api/club/invite', () => {
             reputation1.reputationId
         )
         expect(reputationObj.admin).toBeTruthy()
+
+        const user1 = await Account.findById(userId1).lean()
+        const reputationInUser1 = user1.reputations.find(
+            (rep) => rep.clubId === clubId
+        )
+        expect(reputationInUser1.admin).toBeTruthy()
 
         await addResident(0, userId2)
         await addResident(0, userId3)
@@ -124,5 +129,11 @@ describe('POST /api/club/invite', () => {
 
         expect(club2.adminsCount - club3.adminsCount).toEqual(1)
         expect(club3.adminsCount).toEqual(club3.adminReputations.length)
+
+        const newUser1 = await Account.findById(userId1).lean()
+        const newReputationInUser1 = newUser1.reputations.find(
+            (rep) => rep.clubId === clubId
+        )
+        expect(newReputationInUser1.admin).toBeFalsy()
     })
 })

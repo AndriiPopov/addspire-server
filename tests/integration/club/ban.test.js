@@ -12,9 +12,8 @@ describe('POST /api/account/ban', () => {
         const clubId = oldClub._id.toString()
 
         const user = await Account.findOne({
-            facebookProfile: 'f_1',
+            facebookProfile: 'f_2',
         }).lean()
-        const banUserId = user._id.toString()
 
         const oldReputation = user.reputations.find(
             (item) => item.clubId === clubId
@@ -25,23 +24,21 @@ describe('POST /api/account/ban', () => {
         expect(oldReputationObj).not.toBeNull()
 
         await request(app)
-            .post('/api/account/ban')
+            .post('/api/club/ban')
             .set('accountId', 'f_0')
             .send({
-                banUserId,
                 clubId,
-                banned: true,
+                banning: true,
+                reputationId,
             })
             .expect(httpStatus.OK)
 
         const reputationObj = await Reputation.findById(reputationId).lean()
-        expect(reputationObj).not.toBeNull()
-
         expect(reputationObj.banned).toBeTruthy()
 
         await request(app)
             .post('/api/resource/create')
-            .set('accountId', 'f_1')
+            .set('accountId', 'f_2')
             .send({
                 clubId,
                 type: 'question',
@@ -49,15 +46,15 @@ describe('POST /api/account/ban', () => {
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
             })
-            .expect(httpStatus.CONFLICT)
+            .expect(httpStatus.UNAUTHORIZED)
 
         await request(app)
-            .post('/api/account/ban')
+            .post('/api/club/ban')
             .set('accountId', 'f_0')
             .send({
-                banUserId,
                 clubId,
-                banned: false,
+                banning: false,
+                reputationId,
             })
             .expect(httpStatus.OK)
 
@@ -68,7 +65,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/resource/create')
-            .set('accountId', 'f_1')
+            .set('accountId', 'f_2')
             .send({
                 clubId,
                 type: 'question',
@@ -76,7 +73,7 @@ describe('POST /api/account/ban', () => {
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
             })
-            .expect(httpStatus.CREATED)
+            .expect(httpStatus.OK)
     })
 
     test('should return 400 user is not admin', async () => {
@@ -86,7 +83,6 @@ describe('POST /api/account/ban', () => {
         const user = await Account.findOne({
             facebookProfile: 'f_1',
         }).lean()
-        const banUserId = user._id.toString()
 
         const oldReputation = user.reputations.find(
             (item) => item.clubId === clubId
@@ -97,12 +93,12 @@ describe('POST /api/account/ban', () => {
         expect(oldReputationObj).not.toBeNull()
 
         await request(app)
-            .post('/api/account/ban')
+            .post('/api/club/ban')
             .set('accountId', 'f_2')
             .send({
-                banUserId,
                 clubId,
-                banned: true,
+                banning: true,
+                reputationId,
             })
             .expect(httpStatus.UNAUTHORIZED)
 
@@ -119,7 +115,6 @@ describe('POST /api/account/ban', () => {
         const user = await Account.findOne({
             facebookProfile: 'f_0',
         }).lean()
-        const banUserId = user._id.toString()
 
         const oldReputation = user.reputations.find(
             (item) => item.clubId === clubId
@@ -130,14 +125,14 @@ describe('POST /api/account/ban', () => {
         expect(oldReputationObj).not.toBeNull()
 
         await request(app)
-            .post('/api/account/ban')
+            .post('/api/club/ban')
             .set('accountId', 'f_0')
             .send({
-                banUserId,
                 clubId,
-                banned: true,
+                banning: false,
+                reputationId,
             })
-            .expect(httpStatus.UNAUTHORIZED)
+            .expect(httpStatus.CONFLICT)
 
         const reputationObj = await Reputation.findById(reputationId).lean()
         expect(reputationObj).not.toBeNull()
@@ -152,7 +147,6 @@ describe('POST /api/account/ban', () => {
         const user = await Account.findOne({
             facebookProfile: 'f_1',
         }).lean()
-        const banUserId = user._id.toString()
 
         const oldReputation = user.reputations.find(
             (item) => item.clubId === clubId
@@ -163,11 +157,30 @@ describe('POST /api/account/ban', () => {
         expect(oldReputationObj).not.toBeNull()
 
         await request(app)
-            .post('/api/account/ban')
+            .post('/api/club/ban')
             .set('accountId', 'f_0')
             .send({
-                banUserId,
-                banned: true,
+                clubId,
+                banning: false,
+            })
+            .expect(httpStatus.BAD_REQUEST)
+
+        await request(app)
+            .post('/api/club/ban')
+            .set('accountId', 'f_0')
+            .send({
+                banning: false,
+                reputationId,
+            })
+            .expect(httpStatus.BAD_REQUEST)
+
+        await request(app)
+            .post('/api/club/ban')
+            .set('accountId', 'f_0')
+            .send({
+                clubId,
+                banning: 'asdas',
+                reputationId,
             })
             .expect(httpStatus.BAD_REQUEST)
 

@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
 const privatePaths = require('mongoose-private-paths')
-const boardItemSchema = require('./schemas/boardItem')
-const suggestedChangeSchema = require('./schemas/suggestedChangeSchema')
 const { mongoLength } = require('../config/fieldLength')
 const { increaseVersion } = require('./plugins')
 
@@ -14,7 +12,6 @@ const pluginSchema = new mongoose.Schema(
             default: 'New goal',
             maxlength: mongoLength.name,
         },
-        edits: [suggestedChangeSchema],
         date: {
             type: Date,
             default: Date.now,
@@ -25,7 +22,6 @@ const pluginSchema = new mongoose.Schema(
         },
         tags: [String],
         pluginType: { type: String, required: true, default: 'desc' },
-        items: [boardItemSchema],
         itemsCount: {
             type: Number,
             default: 0,

@@ -98,6 +98,20 @@ module.exports = async (data) => {
                 if (data.type === 'account') {
                     result.map((doc) => doc.toJSON())
                 }
+                if (
+                    [
+                        'account',
+                        'reputation',
+                        'club',
+                        'question',
+                        'answer',
+                    ].includes(data.type)
+                ) {
+                    model.updateMany(
+                        { _id: { $in: data.ids } },
+                        { $inc: { views: 1 } }
+                    )
+                }
             } else {
                 result = await model
                     .find({

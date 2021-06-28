@@ -45,7 +45,6 @@ describe('POST /api/club/invite', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: 'any',
             })
             .expect(httpStatus.CREATED)
 
@@ -102,10 +101,10 @@ describe('POST /api/club/invite', () => {
         )
         expect(reputationObj.admin).toBeTruthy()
         await acceptInvite(1, `${code1}gty`, httpStatus.CONFLICT)
-        await acceptInvite(1, code1, httpStatus.BAD_REQUEST)
-        await acceptInvite(1, code20, httpStatus.BAD_REQUEST)
+        await acceptInvite(1, code1, httpStatus.CONFLICT)
+        await acceptInvite(1, code20, httpStatus.CONFLICT)
         await acceptInvite(1, undefined, httpStatus.BAD_REQUEST)
-        await acceptInvite(2, code20, httpStatus.BAD_REQUEST)
+        await acceptInvite(2, code20, httpStatus.CONFLICT)
 
         const code2 = await createInvite('1')
         expect(code2).toBeDefined()

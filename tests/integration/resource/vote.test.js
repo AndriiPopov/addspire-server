@@ -2,7 +2,13 @@ const request = require('supertest')
 const httpStatus = require('http-status')
 const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
-const { Club, Account, Reputation, Resource } = require('../../../src/models')
+const {
+    Club,
+    Account,
+    Reputation,
+    Question,
+    Answer,
+} = require('../../../src/models')
 const value = require('../../../src/config/value')
 const { votesDownCount } = require('../../../src/models/basicModel/basicVotes')
 
@@ -13,7 +19,7 @@ describe('POST /api/resource/vote', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' }).lean()
         const clubId = oldClub._id.toString()
 
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
@@ -62,11 +68,11 @@ describe('POST /api/resource/vote', () => {
             .set('accountId', 'f_1')
             .send({
                 resourceId: questionId,
-                type: 'resource',
+                type: 'question',
             })
             .expect(httpStatus.OK)
 
-        const question = await Resource.findById(questionId).lean()
+        const question = await Question.findById(questionId).lean()
         expect(question).toBeDefined()
 
         const reputationObjR = await Reputation.findById(reputationIdR).lean()
@@ -92,27 +98,31 @@ describe('POST /api/resource/vote', () => {
             reputationObjR.reputation - oldReputationObjR.reputation
         ).toEqual(value.plusResource)
 
+        expect(
+            reputationObjR.gains.length - oldReputationObjR.gains.length
+        ).toEqual(1)
+
         await request(app)
             .post('/api/resource/vote')
             .set('accountId', 'f_1')
             .send({
                 resourceId: questionId,
-                type: 'resource',
+                type: 'question',
                 minus: true,
             })
-            .expect(httpStatus.CONFLICT)
+            .expect(httpStatus.UNAUTHORIZED)
 
         await request(app)
             .post('/api/resource/vote')
             .set('accountId', 'f_2')
             .send({
                 resourceId: questionId,
-                type: 'resource',
+                type: 'question',
                 minus: true,
             })
             .expect(httpStatus.OK)
 
-        const newQuestion = await Resource.findById(questionId).lean()
+        const newQuestion = await Question.findById(questionId).lean()
         expect(newQuestion).toBeDefined()
 
         const newReputationObjR = await Reputation.findById(
@@ -142,21 +152,41 @@ describe('POST /api/resource/vote', () => {
             newReputationObjR.reputation - reputationObjR.reputation
         ).toEqual(value.minusResource)
 
+        expect(
+            newReputationObjR.gains.length - reputationObjR.gains.length
+        ).toEqual(1)
+
         await request(app)
             .post('/api/resource/vote')
             .set('accountId', 'f_2')
             .send({
                 resourceId: questionId,
-                type: 'resource',
+                type: 'question',
             })
-            .expect(httpStatus.BAD_REQUEST)
+            .expect(httpStatus.CONFLICT)
+    })
+
+    test('should return 201 and successfully vote up question but not add reputation ifself vote', async () => {
+        const oldQuestion = await Question.findOne({
+            name: 'Test question',
+        }).lean()
+        const questionId = oldQuestion._id.toString()
+
+        await request(app)
+            .post('/api/resource/vote')
+            .set('accountId', 'f_0')
+            .send({
+                resourceId: questionId,
+                type: 'question',
+            })
+            .expect(httpStatus.CONFLICT)
     })
 
     test('should return 400 error if  validation fails', async () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' }).lean()
         const clubId = oldClub._id.toString()
 
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()

@@ -17,7 +17,6 @@ describe('POST /api/club/edit', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: '100',
                 tags: ['club1', 'club2'],
             })
             .expect(httpStatus.CREATED)
@@ -29,7 +28,6 @@ describe('POST /api/club/edit', () => {
         expect(dbClub.description).toEqual('For all of us')
         expect(dbClub.image).toEqual('roller.jpeg')
         expect(dbClub.activated).toBeFalsy()
-        expect(dbClub.startConversation).toEqual('100')
         expect(dbClub.tags).toEqual(['club1', 'club2'])
     })
 
@@ -42,7 +40,6 @@ describe('POST /api/club/edit', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: '100',
             })
             .expect(httpStatus.UNAUTHORIZED)
     })
@@ -57,7 +54,6 @@ describe('POST /api/club/edit', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: '100',
             })
             .expect(httpStatus.UNAUTHORIZED)
     })
@@ -72,18 +68,15 @@ describe('POST /api/club/edit', () => {
                 name: 'Rol',
                 description: 'For',
                 image: 'roller.jpeg',
-                startConversation: '100',
             })
             .expect(httpStatus.BAD_REQUEST)
         await request(app)
             .post('/api/club/edit')
             .set('accountId', 'f_0')
             .send({
-                clubId: oldClub._id,
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: '101',
             })
             .expect(httpStatus.BAD_REQUEST)
     })

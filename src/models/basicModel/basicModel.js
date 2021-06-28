@@ -18,7 +18,6 @@ module.exports = {
         type: Date,
     },
     followers: [String],
-    bookmarked: Number,
     views: Number,
     description: {
         type: String,

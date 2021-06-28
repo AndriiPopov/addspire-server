@@ -6,8 +6,9 @@ const {
     Club,
     Account,
     Reputation,
-    Resource,
     Comment,
+    Question,
+    Answer,
 } = require('../../../src/models')
 
 setupTestDB()
@@ -17,7 +18,7 @@ describe('POST /api/comment/create', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
 
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
@@ -40,6 +41,7 @@ describe('POST /api/comment/create', () => {
             .send({
                 text: 'This is a very nice article!',
                 resourceId: questionId,
+                resourceType: 'question',
             })
             .expect(httpStatus.OK)
 
@@ -51,8 +53,8 @@ describe('POST /api/comment/create', () => {
 
         const user = await Account.findById(userId).lean()
         expect(user).toBeDefined()
-        expect(oldUser.followingResources).not.toContain(questionId)
-        expect(user.followingResources).toContain(questionId)
+        expect(oldUser.followingQuestions).not.toContain(questionId)
+        expect(user.followingQuestions).toContain(questionId)
 
         const reputationObj = await Reputation.findById(reputationId).lean()
         expect(reputationObj).toBeDefined()
@@ -60,7 +62,7 @@ describe('POST /api/comment/create', () => {
         expect(oldReputationObj.comments).not.toContain(commentId)
         expect(reputationObj.comments).toContain(commentId)
 
-        const question = await Resource.findById(questionId).lean()
+        const question = await Question.findById(questionId).lean()
 
         expect(oldQuestion.comments).not.toContain(commentId)
         expect(question.comments).toContain(commentId)
@@ -75,13 +77,13 @@ describe('POST /api/comment/create', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
 
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldAnswer = await Resource.findOne({
-            name: 'Test answer',
+        const oldAnswer = await Answer.findOne({
+            _id: oldQuestion.answers[0],
         }).lean()
         const answerId = oldAnswer._id.toString()
 
@@ -103,6 +105,7 @@ describe('POST /api/comment/create', () => {
             .send({
                 text: 'This is a very nice answer!',
                 resourceId: answerId,
+                resourceType: 'answer',
             })
             .expect(httpStatus.OK)
 
@@ -114,8 +117,8 @@ describe('POST /api/comment/create', () => {
 
         const user = await Account.findById(userId).lean()
         expect(user).toBeDefined()
-        expect(oldUser.followingResources).not.toContain(questionId)
-        expect(user.followingResources).toContain(questionId)
+        expect(oldUser.followingQuestions).not.toContain(questionId)
+        expect(user.followingQuestions).toContain(questionId)
 
         const reputationObj = await Reputation.findById(reputationId).lean()
         expect(reputationObj).toBeDefined()
@@ -123,13 +126,13 @@ describe('POST /api/comment/create', () => {
         expect(oldReputationObj.comments).not.toContain(commentId)
         expect(reputationObj.comments).toContain(commentId)
 
-        const answer = await Resource.findById(answerId).lean()
+        const answer = await Answer.findById(answerId).lean()
 
         expect(oldAnswer.comments).not.toContain(commentId)
         expect(answer.comments).toContain(commentId)
         expect(answer.commentsCount - oldAnswer.commentsCount).toEqual(1)
 
-        const question = await Resource.findById(questionId).lean()
+        const question = await Question.findById(questionId).lean()
 
         expect(oldQuestion.followers).not.toContain(userId)
         expect(question.followers).toContain(userId)
@@ -140,18 +143,16 @@ describe('POST /api/comment/create', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
 
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
-        const questionId = oldQuestion._id.toString()
 
-        const oldAnswer = await Resource.findOne({
-            name: 'Test answer',
+        const oldAnswer = await Answer.findOne({
+            _id: oldQuestion.answers[0],
         }).lean()
         const answerId = oldAnswer._id.toString()
 
         const oldUser = await Account.findOne({ facebookProfile: 'f_2' })
-        const userId = oldUser._id.toString()
 
         const reputation = oldUser.reputations.find(
             (item) => item.clubId === clubId

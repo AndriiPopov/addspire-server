@@ -1,13 +1,6 @@
 const httpStatus = require('http-status')
 
-const {
-    Account,
-    Reputation,
-    System,
-    Comment,
-    Question,
-    Answer,
-} = require('../models')
+const { Account, Reputation, System, Comment, Question } = require('../models')
 const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
@@ -37,7 +30,7 @@ const createComment = async (req) => {
         }
 
         const clubId = resource.club
-        const questionId = resource.question
+        const questionId = isQuestion ? resourceId : resource.question
 
         const reputationLean = await getReputationId(accountId, clubId, true)
         const rights = await checkVote(reputationLean, 'create')
@@ -72,7 +65,11 @@ const createComment = async (req) => {
         }
         await Account.updateOne(
             { _id: accountId },
-            { $push: { followingQuestions: questionId } },
+            {
+                $push: {
+                    followingQuestions: { $each: [questionId], $slice: -100 },
+                },
+            },
             { useFindAndModify: false }
         )
 

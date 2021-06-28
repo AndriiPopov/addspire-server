@@ -5,7 +5,6 @@ const {
     Club,
     Account,
     Reputation,
-    Comment,
     Question,
     Answer,
 } = require('../models')
@@ -35,7 +34,6 @@ const createResource = async (req) => {
             description,
             owner: accountId,
             club: clubId,
-            resourceType: type,
             reputation: reputationLean._id,
             ...(isAnswer
                 ? { question: questionId }
@@ -110,6 +108,7 @@ const createResource = async (req) => {
             throw new ApiError(httpStatus.CONFLICT, 'Have answered')
         }
         await resource.save()
+
         await Reputation.updateOne(
             { _id: reputationLean._id },
             {
@@ -120,12 +119,22 @@ const createResource = async (req) => {
             },
             { useFindAndModify: false }
         )
+
         await Account.updateOne(
-            { _id: accountId },
-            { $addToSet: { followingQuestions: questionId || resource._id } },
+            {
+                _id: accountId,
+                followingQuestions: { $ne: questionId || resource._id },
+            },
+            {
+                $push: {
+                    followingQuestions: {
+                        $each: [questionId || resource._id],
+                        $slice: -100,
+                    },
+                },
+            },
             { useFindAndModify: false }
         )
-        return { success: true }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -178,7 +187,6 @@ const editResource = async (req) => {
         if (!res.nModified) {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
-        return { success: true }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -252,8 +260,6 @@ const deleteResource = async (req) => {
             },
             { useFindAndModify: false }
         )
-
-        return { success: true }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -304,33 +310,31 @@ const acceptAnswer = async (req) => {
             },
             { useFindAndModify: false }
         )
-
         if (result.nModified) {
             const reputationLean = await getReputationId(answer.owner, clubId)
-
-            await Reputation.updateOne(
-                { _id: reputationLean._id },
-                { $inc: { reputation: value.acceptedAnswer } },
-                {
-                    $push: {
-                        gains: {
-                            $each: [
-                                {
-                                    reputation: value.acceptedAnswer,
-                                    resourceType: 'answer',
-                                    actionType: 'accepted',
-                                    resourceId: answerId,
-                                },
-                            ],
-                            $slice: -50,
+            if (answer.owner !== accountId) {
+                await Reputation.updateOne(
+                    { _id: reputationLean._id },
+                    {
+                        $inc: { reputation: value.acceptedAnswer },
+                        $push: {
+                            gains: {
+                                $each: [
+                                    {
+                                        reputation: value.acceptedAnswer,
+                                        resourceType: 'answer',
+                                        actionType: 'accepted',
+                                        resourceId: answerId,
+                                    },
+                                ],
+                                $slice: -50,
+                            },
                         },
                     },
-                },
-                { useFindAndModify: false }
-            )
-            return { success: true }
-        }
-        throw new ApiError(httpStatus.CONFLICT, 'Already accepted')
+                    { useFindAndModify: false }
+                )
+            }
+        } else throw new ApiError(httpStatus.CONFLICT, 'Already accepted')
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -413,33 +417,38 @@ const vote = async (req) => {
                 clubId
             )
             let repChange = 0
-            if (type === 'resource') {
+            if (type === 'question' || type === 'answer') {
                 if (minus) repChange = value.minusResource
                 else repChange = value.plusResource
             } else if (type === 'comment') {
                 if (minus) repChange = value.minusComment
                 else repChange = value.plusComment
             }
-            await Reputation.updateOne(
-                { _id: reputationLeanReciever._id },
-                {
-                    $inc: { reputation: repChange },
-                    $push: {
-                        gains: {
-                            $each: [
-                                {
-                                    reputation: repChange,
-                                    resourceType: type,
-                                    actionType: minus ? 'voteDown' : 'voteUp',
-                                    resourceId,
-                                },
-                            ],
-                            $slice: -50,
+
+            if (resource.owner !== accountId) {
+                await Reputation.updateOne(
+                    { _id: reputationLeanReciever._id },
+                    {
+                        $inc: { reputation: repChange },
+                        $push: {
+                            gains: {
+                                $each: [
+                                    {
+                                        reputation: repChange,
+                                        resourceType: type,
+                                        actionType: minus
+                                            ? 'voteDown'
+                                            : 'voteUp',
+                                        resourceId,
+                                    },
+                                ],
+                                $slice: -50,
+                            },
                         },
                     },
-                },
-                { useFindAndModify: false }
-            )
+                    { useFindAndModify: false }
+                )
+            }
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'Already voted')
         }

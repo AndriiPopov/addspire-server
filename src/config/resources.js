@@ -1,4 +1,4 @@
-module.exports = [
+const basicNames = [
     'account',
     'answer',
     'comment',
@@ -6,11 +6,9 @@ module.exports = [
     'plugin',
     'question',
     'reputation',
-    'accountD',
-    'answer',
-    'commentD',
-    'clubD',
-    'pluginD',
-    'questionD',
-    'reputationD',
 ]
+
+module.exports = basicNames.reduce(
+    (res, current) => res.concat([current, `${current}D`]),
+    []
+)

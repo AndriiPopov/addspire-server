@@ -4,7 +4,6 @@ const privatePaths = require('mongoose-private-paths')
 const { mongoLength } = require('../config/fieldLength')
 
 const notificationSchema = require('./schemas/notification')
-const boardItemSchema = require('./schemas/boardItem')
 const { increaseVersion } = require('./plugins')
 const basicTag = require('./basicModel/basicTag')
 
@@ -67,7 +66,7 @@ const accountSchema = new mongoose.Schema(
             {
                 clubId: { type: String, required: true },
                 reputationId: { type: String, required: true },
-                admin: Boolean,
+                admin: { type: Boolean, default: false },
             },
         ],
         reputationsCount: {
@@ -78,12 +77,9 @@ const accountSchema = new mongoose.Schema(
         accessToken: { type: String, private: true },
         refreshToken: { type: String, private: true },
         code: { type: String, private: true },
-        bookmarks: [boardItemSchema],
-        history: [boardItemSchema],
         following: [String],
         followingClubs: [String],
         followingQuestions: [String],
-        bookmarked: Number,
         views: Number,
         tags: [basicTag],
         description: {

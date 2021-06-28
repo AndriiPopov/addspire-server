@@ -15,7 +15,7 @@ const createClub = async (req) => {
         const { _id: accountId } = account
 
         const reputation = new Reputation({
-            user: accountId,
+            owner: accountId,
             admin: true,
         })
 
@@ -633,11 +633,11 @@ const ban = async (req) => {
         }
 
         const reputation = await Reputation.findOneAndUpdate(
-            { _id: reputationId, club: clubId },
+            { _id: reputationId, club: clubId, admin: false },
             { $set: { banned: banning } },
             { useFindAndModify: false }
         )
-            .select('user')
+            .select('owner')
             .lean()
             .exec()
         if (reputation) {
@@ -647,7 +647,7 @@ const ban = async (req) => {
                 { useFindAndModify: false }
             )
             await Account.updateOne(
-                { _id: reputation.user },
+                { _id: reputation.owner },
                 { $push: { notifications: notification } },
                 { useFindAndModify: false }
             )
@@ -668,7 +668,7 @@ const editReputation = async (req) => {
         const { _id: accountId } = account
 
         const result = await Reputation.updateOne(
-            { _id: reputationId, user: accountId },
+            { _id: reputationId, owner: accountId },
             { $set: { description, tags } },
             { useFindAndModify: false }
         )

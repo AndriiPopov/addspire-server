@@ -19,23 +19,11 @@ router
     )
 
 router
-    .route('/ban')
-    .post(validate(accountValidation.ban), auth(), accountController.ban)
-
-router
-    .route('/add-bookmark')
+    .route('/star-club')
     .post(
-        validate(accountValidation.addBookmark),
+        validate(accountValidation.starClub),
         auth(),
-        accountController.addBookmark
-    )
-
-router
-    .route('/remove-bookmark')
-    .post(
-        validate(accountValidation.removeBookmark),
-        auth(),
-        accountController.removeBookmark
+        accountController.starClub
     )
 
 router
@@ -52,6 +40,14 @@ router
         validate(accountValidation.editAccount),
         auth(),
         accountController.editAccount
+    )
+
+router
+    .route('/seen-notification')
+    .post(
+        validate(accountValidation.seenNotification),
+        auth(),
+        accountController.seenNotification
     )
 
 module.exports = router

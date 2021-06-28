@@ -2,28 +2,16 @@ const request = require('supertest')
 const httpStatus = require('http-status')
 const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
-const {
-    Club,
-    Account,
-    Reputation,
-    Resource,
-    Comment,
-} = require('../../../src/models')
+const { Comment, Question } = require('../../../src/models')
 
 setupTestDB()
 
 describe('POST /api/comment/delete', () => {
     test('should return 201 and successfully delete comment if data is ok and the user is author', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' })
-        const clubId = oldClub._id.toString()
-
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
-
-        const oldUser = await Account.findOne({ facebookProfile: 'f_2' })
-        const userId = oldUser._id.toString()
 
         const oldComment = await Comment.findOne({
             text: 'Test comment',
@@ -41,7 +29,7 @@ describe('POST /api/comment/delete', () => {
         const comment = await Comment.findById(commentId).lean()
         expect(comment).toBeNull()
 
-        const question = await Resource.findById(questionId).lean()
+        const question = await Question.findById(questionId).lean()
 
         expect(oldQuestion.comments).toContain(commentId)
         expect(question.comments).not.toContain(commentId)
@@ -50,16 +38,10 @@ describe('POST /api/comment/delete', () => {
         expect(question.followersCount).toEqual(oldQuestion.followersCount)
     })
     test('should return 201 and successfully delete comment if data is ok and the user is admin', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' })
-        const clubId = oldClub._id.toString()
-
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
-
-        const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
-        const userId = oldUser._id.toString()
 
         const oldComment = await Comment.findOne({
             text: 'Test comment',
@@ -77,7 +59,7 @@ describe('POST /api/comment/delete', () => {
         const comment = await Comment.findById(commentId).lean()
         expect(comment).toBeNull()
 
-        const question = await Resource.findById(questionId).lean()
+        const question = await Question.findById(questionId).lean()
 
         expect(oldQuestion.comments).toContain(commentId)
         expect(question.comments).not.toContain(commentId)
@@ -86,22 +68,6 @@ describe('POST /api/comment/delete', () => {
         expect(question.followersCount).toEqual(oldQuestion.followersCount)
     })
     test('should return 400 error if validation fails', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' })
-        const clubId = oldClub._id.toString()
-
-        const oldQuestion = await Resource.findOne({
-            name: 'Test question',
-        }).lean()
-        const questionId = oldQuestion._id.toString()
-
-        const oldUser = await Account.findOne({ facebookProfile: 'f_2' })
-        const userId = oldUser._id.toString()
-
-        const oldComment = await Comment.findOne({
-            text: 'Test comment',
-        }).lean()
-        const commentId = oldComment._id.toString()
-
         await request(app)
             .post('/api/comment/delete')
             .set('accountId', 'f_2')
@@ -109,17 +75,6 @@ describe('POST /api/comment/delete', () => {
             .expect(httpStatus.BAD_REQUEST)
     })
     test('should return 401 error if not admin', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' })
-        const clubId = oldClub._id.toString()
-
-        const oldQuestion = await Resource.findOne({
-            name: 'Test question',
-        }).lean()
-        const questionId = oldQuestion._id.toString()
-
-        const oldUser = await Account.findOne({ facebookProfile: 'f_1' })
-        const userId = oldUser._id.toString()
-
         const oldComment = await Comment.findOne({
             text: 'Test comment',
         }).lean()

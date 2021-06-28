@@ -1,6 +1,5 @@
-const mongoose = require('mongoose')
 const url = require('url')
-const { Club, Resource } = require('../../src/models')
+const { Club, Question, Answer } = require('../../src/models')
 const { System } = require('../../src/models/system.model')
 
 const {
@@ -38,7 +37,7 @@ const createUser = async (id, cb) => {
 
 const createInvite = async (id, clubId) => {
     const inviteLink = await clubService.invite({
-        account: id,
+        account: { _id: id },
         body: { clubId },
     })
     if (inviteLink) {
@@ -49,7 +48,7 @@ const createInvite = async (id, clubId) => {
 
 const acceptInvite = async (id, code) => {
     await clubService.acceptInvite({
-        account: id,
+        account: { _id: id },
         body: { code },
     })
 }
@@ -102,7 +101,7 @@ const setupTestDB = () => {
         await createUser(11, () => {})
 
         await clubService.createClub({
-            account: user0._id,
+            account: { _id: user0._id },
             body: {
                 name: 'Test club 1',
                 description: 'This is a test club',
@@ -119,7 +118,7 @@ const setupTestDB = () => {
         await acceptInvite(user5._id, await createInvite(user0._id, clubId))
 
         await resourceService.createResource({
-            account: user0._id,
+            account: { _id: user0._id },
             body: {
                 clubId,
                 type: 'question',
@@ -129,15 +128,14 @@ const setupTestDB = () => {
             },
         })
 
-        const question = await Resource.findOne({ name: 'Test question' })
+        const question = await Question.findOne({ name: 'Test question' })
         const questionId = question._id.toString()
 
         await resourceService.createResource({
-            account: user1._id,
+            account: { _id: user1._id },
             body: {
                 clubId,
                 type: 'answer',
-                name: 'Test answer',
                 description: 'Here is how to test.',
                 images: ['test2.jpg'],
                 questionId,
@@ -145,11 +143,22 @@ const setupTestDB = () => {
         })
 
         await resourceService.createResource({
-            account: user2._id,
+            account: { _id: user0._id },
             body: {
                 clubId,
                 type: 'answer',
-                name: 'Test answer number 2',
+                description: 'Self answer to question',
+                images: ['test2.jpg'],
+                questionId,
+            },
+        })
+
+        await resourceService.createResource({
+            account: { _id: user2._id },
+            body: {
+                clubId,
+                type: 'answer',
+
                 description: 'Here is how to test 2.',
                 images: ['test7.jpg'],
                 questionId,
@@ -157,17 +166,18 @@ const setupTestDB = () => {
         })
 
         await commentService.createComment({
-            account: user2._id,
+            account: { _id: user2._id },
             body: {
                 text: 'Test comment',
                 clubId,
                 questionId,
                 resourceId: questionId,
+                resourceType: 'question',
             },
         })
 
         await resourceService.createResource({
-            account: user2._id,
+            account: { _id: user2._id },
             body: {
                 clubId,
                 type: 'question',
@@ -178,7 +188,7 @@ const setupTestDB = () => {
         })
 
         await resourceService.createResource({
-            account: user1._id,
+            account: { _id: user1._id },
             body: {
                 clubId,
                 type: 'question',
@@ -187,29 +197,28 @@ const setupTestDB = () => {
                 images: ['test6.jpg'],
             },
         })
-        const question3 = await Resource.findOne({ name: 'Test question 3' })
+        const question3 = await Question.findOne({ name: 'Test question 3' })
         const questionId3 = question3._id.toString()
 
         await resourceService.createResource({
-            account: user2._id,
+            account: { _id: user2._id },
             body: {
                 clubId,
                 type: 'answer',
-                name: 'Test answer number 3',
-                description: 'Here is how to test 2.',
+                description: 'Here is how to test 3.',
                 images: ['test7.jpg'],
                 questionId: questionId3,
             },
         })
 
-        const answer3 = await Resource.findOne({ name: 'Test answer number 3' })
+        const answer3 = await Answer.findOne({
+            description: 'Here is how to test 3.',
+        })
         const answerId3 = answer3._id.toString()
 
         await resourceService.acceptAnswer({
-            account: user1._id,
+            account: { _id: user1._id },
             body: {
-                clubId,
-                questionId: questionId3,
                 answerId: answerId3,
             },
         })

@@ -43,7 +43,6 @@ describe('POST /api/club/invite', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                startConversation: 'any',
             })
             .expect(httpStatus.CREATED)
 
@@ -173,6 +172,12 @@ describe('POST /api/club/invite', () => {
             club4.residenceRequests.length - club3.residenceRequests.length
         ).toEqual(-1)
 
+        const user1 = await Account.findById(userId1).lean()
+        const reputationInUser1 = user1.reputations.find(
+            (rep) => rep.clubId === clubId
+        )
+        expect(reputationInUser1.admin).toBeTruthy()
+
         const req4 = club4.residenceRequests.find(
             (i) => i.accountId === userId1
         )
@@ -250,6 +255,6 @@ describe('POST /api/club/invite', () => {
         expect(club6.adminReputations.length).toEqual(club6.adminsCount)
 
         await requestResidence(8, httpStatus.CONFLICT)
-        await accept(2, userId9, req_9._id, httpStatus.BAD_REQUEST)
+        await accept(2, userId9, req_9._id, httpStatus.CONFLICT)
     })
 })

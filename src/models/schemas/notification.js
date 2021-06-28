@@ -10,6 +10,7 @@ const notificationSchema = new mongoose.Schema(
         link: String,
         date: { type: Date, default: Date.now, required: true },
         notId: String,
+        seen: { type: Boolean, default: false },
     },
     { minimize: false, _id: false, id: false }
 )

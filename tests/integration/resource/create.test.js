@@ -2,7 +2,13 @@ const request = require('supertest')
 const httpStatus = require('http-status')
 const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
-const { Club, Account, Reputation, Resource } = require('../../../src/models')
+const {
+    Club,
+    Account,
+    Reputation,
+    Question,
+    Answer,
+} = require('../../../src/models')
 
 setupTestDB()
 
@@ -24,7 +30,7 @@ describe('POST /api/resource/create', () => {
                 images: ['test1.jpg', 'test2.jpg'],
                 tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
             })
-            .expect(httpStatus.CREATED)
+            .expect(httpStatus.OK)
 
         const club = await Club.findById(clubId)
         expect(club).toBeDefined()
@@ -32,7 +38,7 @@ describe('POST /api/resource/create', () => {
         const user = await Account.findById(userId)
         expect(user).toBeDefined()
 
-        const resource = await Resource.findOne({
+        const resource = await Question.findOne({
             name: 'How to drive a car?',
         }).lean()
         expect(resource).toBeDefined()
@@ -50,7 +56,7 @@ describe('POST /api/resource/create', () => {
         expect(club.questions).toContain(resourceId)
         expect(club.questionsCount - oldClub.questionsCount).toEqual(1)
 
-        expect(user.followingResources).toContain(resourceId)
+        expect(user.followingQuestions).toContain(resourceId)
 
         expect(reputationObj.questions).toContain(resourceId)
 
@@ -63,7 +69,6 @@ describe('POST /api/resource/create', () => {
         expect(resource.followersCount).toEqual(1)
         expect(resource.owner).toEqual(userId)
         expect(resource.club).toEqual(clubId)
-        expect(resource.resourceType).toEqual('question')
         expect(resource.answersCount).toEqual(0)
         expect(resource.answers.length).toEqual(0)
         expect(resource.answered.length).toEqual(0)
@@ -90,7 +95,7 @@ describe('POST /api/resource/create', () => {
     test('should return 201 and successfully create new answer if data is ok', async () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         })
         const questionId = oldQuestion._id.toString()
@@ -103,12 +108,11 @@ describe('POST /api/resource/create', () => {
             .send({
                 clubId,
                 type: 'answer',
-                name: 'I know how to help',
                 description: 'Here is the information',
                 images: ['test2.jpg'],
                 questionId,
             })
-            .expect(httpStatus.CREATED)
+            .expect(httpStatus.OK)
 
         const club = await Club.findById(clubId)
         expect(club).toBeDefined()
@@ -116,11 +120,11 @@ describe('POST /api/resource/create', () => {
         const user = await Account.findById(userId)
         expect(user).toBeDefined()
 
-        const question = await Resource.findById(questionId)
+        const question = await Question.findById(questionId)
         expect(question).toBeDefined()
 
-        const resource = await Resource.findOne({
-            name: 'I know how to help',
+        const resource = await Answer.findOne({
+            description: 'Here is the information',
         })
         expect(resource).toBeDefined()
         const resourceId = resource._id.toString()
@@ -137,8 +141,8 @@ describe('POST /api/resource/create', () => {
         expect(club.questions).toContain(questionId)
         expect(club.questionsCount).toEqual(oldClub.questionsCount)
 
-        expect(user.followingResources).toContain(questionId)
-        expect(user.followingResources).not.toContain(resourceId)
+        expect(user.followingQuestions).toContain(questionId)
+        expect(user.followingQuestions).not.toContain(resourceId)
 
         expect(reputationObj.answers).toContain(resourceId)
 
@@ -146,7 +150,6 @@ describe('POST /api/resource/create', () => {
         expect(question.followersCount - oldQuestion.followersCount).toEqual(1)
         expect(resource.owner).toEqual(userId)
         expect(resource.club).toEqual(clubId)
-        expect(resource.resourceType).toEqual('answer')
         expect(resource.question).toEqual(questionId)
         expect(question.answersCount - oldQuestion.answersCount).toEqual(1)
         expect(question.answers.length - oldQuestion.answers.length).toEqual(1)
@@ -161,7 +164,7 @@ describe('POST /api/resource/create', () => {
     test('should return conflict if the user already answered', async () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
-        const oldQuestion = await Resource.findOne({
+        const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
@@ -174,7 +177,7 @@ describe('POST /api/resource/create', () => {
         expect(oldReputation).toBeDefined()
         const { reputationId } = oldReputation
 
-        const oldReputationObj = await Reputation.findById(reputationId)
+        const oldReputationObj = await Reputation.findById(reputationId).lean()
         expect(oldReputationObj).toBeDefined()
 
         await request(app)
@@ -183,7 +186,6 @@ describe('POST /api/resource/create', () => {
             .send({
                 clubId,
                 type: 'answer',
-                name: 'I know how to help',
                 description: 'Here is the information',
                 images: ['test2.jpg'],
                 questionId,
@@ -196,15 +198,15 @@ describe('POST /api/resource/create', () => {
         const user = await Account.findById(userId)
         expect(user).toBeDefined()
 
-        const question = await Resource.findById(questionId).lean()
+        const question = await Question.findById(questionId).lean()
         expect(question).toBeDefined()
 
-        const resource = await Resource.findOne({
-            name: 'I know how to help',
+        const resource = await Answer.findOne({
+            description: 'Here is the information',
         })
         expect(resource).toBeNull()
 
-        const reputationObj = await Reputation.findById(reputationId)
+        const reputationObj = await Reputation.findById(reputationId).lean()
         expect(reputationObj).toBeDefined()
 
         expect(club.answers).toEqual(oldClub.answers)
@@ -224,16 +226,13 @@ describe('POST /api/resource/create', () => {
         const clubId = oldClub._id.toString()
 
         await request(app)
-            .post('/api/club/edit')
+            .post('/api/club/edit-start-rule')
             .set('accountId', 'f_0')
             .send({
                 clubId: oldClub._id,
-                name: 'Rollers of US',
-                description: 'For all of us',
-                image: 'roller.jpeg',
-                startConversation: '100',
+                value: '100',
             })
-            .expect(httpStatus.CREATED)
+            .expect(httpStatus.OK)
 
         await request(app)
             .post('/api/resource/create')
@@ -245,6 +244,6 @@ describe('POST /api/resource/create', () => {
                 description: 'Here is the information',
                 images: ['test2.jpg'],
             })
-            .expect(httpStatus.CONFLICT)
+            .expect(httpStatus.UNAUTHORIZED)
     })
 })

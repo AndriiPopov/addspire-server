@@ -28,18 +28,12 @@ const follow = async (req) => {
         const newNotificationId = await System.getNotificationId()
         const prefix = getFollowingPrefix(type)
 
-        if (
-            type === 'account' &&
-            accountId.toString() === resourceId.toString()
-        ) {
-            throw new ApiError(httpStatus.CONFLICT, 'Follow self')
-        }
-
         const result = await Account.updateOne(
             { _id: accountId, [prefix]: { $ne: resourceId } },
             { $push: { [prefix]: resourceId } },
             { useFindAndModify: false }
         )
+
         if (result.nModified) {
             const model = getModelFromType(type)
             const resource = await model
@@ -124,64 +118,6 @@ const unfollow = async (req) => {
     }
 }
 
-const ban = async (req) => {
-    try {
-        const { account, body } = req
-        const { _id: accountId } = account
-        const { banUserId, clubId, banned } = body
-
-        const newNotificationId = await System.getNotificationId()
-
-        const reputationLeanAccount = await getReputationId(
-            accountId,
-            clubId,
-            true
-        )
-
-        const reputationLeanBanned = await getReputationId(
-            banUserId,
-            clubId,
-            true
-        )
-        if (!reputationLeanAccount.admin || reputationLeanBanned.admin) {
-            throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
-        }
-
-        await Account.updateOne(
-            { _id: banUserId },
-            {
-                $push: {
-                    myNotifications: {
-                        $each: [
-                            {
-                                user: accountId,
-                                code: 'ban',
-                                details: {
-                                    clubId,
-                                    banned,
-                                },
-                                notId: newNotificationId,
-                            },
-                        ],
-                        $slice: -50,
-                    },
-                },
-            },
-            { useFindAndModify: false }
-        )
-
-        await Reputation.updateOne(
-            { _id: reputationLeanBanned._id },
-            { $set: { banned } },
-            { useFindAndModify: false }
-        )
-    } catch (error) {
-        if (!error.isOperational) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not created')
-        } else throw error
-    }
-}
-
 const deleteAccount = async (req) => {
     try {
         const { account } = req
@@ -224,41 +160,21 @@ const deleteAccount = async (req) => {
     }
 }
 
-const addBookmark = async (req) => {
+const starClub = async (req) => {
     try {
         const { account, body } = req
         const { _id: accountId } = account
-        const { resourceId, type } = body
+        const { clubId, add } = body
 
         await Account.updateOne(
             { _id: accountId },
             {
-                $addToSet: {
-                    bookmarks: { itemId: resourceId, itemType: type },
+                [add ? '$addToSet' : '$pull']: {
+                    starredClubs: clubId,
                 },
             },
             { useFindAndModify: false }
         )
-        return { success: true }
-    } catch (error) {
-        if (!error.isOperational) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not created')
-        } else throw error
-    }
-}
-
-const removeBookmark = async (req) => {
-    try {
-        const { account, body } = req
-        const { _id: accountId } = account
-        const { bookmarkId } = body
-
-        await Account.updateOne(
-            { _id: accountId },
-            { $pull: { bookmarks: { _id: bookmarkId } } },
-            { useFindAndModify: false }
-        )
-        return { success: true }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -285,12 +201,40 @@ const editAccount = async (req) => {
     }
 }
 
+const seenNotification = async (req) => {
+    try {
+        const { account, body } = req
+        const { _id: accountId } = account
+        const { notId } = body
+
+        if (notId === 'all') {
+            await Account.updateOne(
+                { _id: accountId },
+                { $set: { 'myNotifications.$.seen': true } },
+                { useFindAndModify: false }
+            )
+        } else {
+            await Account.updateOne(
+                {
+                    _id: accountId,
+                    'myNotifications._id': notId,
+                },
+                { $set: { 'myNotifications.$.seen': true } },
+                { useFindAndModify: false }
+            )
+        }
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
 module.exports = {
     follow,
     unfollow,
-    ban,
-    addBookmark,
-    removeBookmark,
+    starClub,
     deleteAccount,
     editAccount,
+    seenNotification,
 }

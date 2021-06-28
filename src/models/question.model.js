@@ -2,7 +2,6 @@ const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
 const privatePaths = require('mongoose-private-paths')
 const basicModel = require('./basicModel/basicModel')
-const boardItem = require('./schemas/boardItem')
 const basicVotes = require('./basicModel/basicVotes')
 const { increaseVersion } = require('./plugins')
 
@@ -13,7 +12,6 @@ const questionSchema = new mongoose.Schema(
         owner: String,
         reputation: String,
         images: [String],
-        plugins: [boardItem],
         club: String,
         wiki: Boolean,
         collaborators: [String],
@@ -26,7 +24,6 @@ const questionSchema = new mongoose.Schema(
             type: String,
             default: 'no',
         },
-        bookmarksCount: { type: Number, default: 0 },
     },
     { minimize: false }
 )
