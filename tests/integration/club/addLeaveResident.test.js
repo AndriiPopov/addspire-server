@@ -63,24 +63,16 @@ describe('POST /api/club/invite', () => {
         const club1 = await Club.findById(clubId)
         expect(club1).not.toBeNull()
         expect(club1.adminsCount - club0.adminsCount).toEqual(1)
-        const reputation1 = club1.adminReputations.find(
-            (i) => i.accountId === userId1
-        )
-        expect(reputation1).toBeDefined()
-        const reputationId1 = reputation1.reputationId.toString()
-        expect(
-            club1.reputations.find((i) => i.reputationId === reputationId1)
-        ).toBeDefined()
-        const reputationObj = await Reputation.findById(
-            reputation1.reputationId
-        )
-        expect(reputationObj.admin).toBeTruthy()
 
-        const user1 = await Account.findById(userId1).lean()
-        const reputationInUser1 = user1.reputations.find(
-            (rep) => rep.clubId === clubId
-        )
-        expect(reputationInUser1.admin).toBeTruthy()
+        const reputation1 = await Reputation.findOne({
+            club: clubId,
+            owner: userId1,
+        }).lean()
+        const reputationId1 = reputation1._id.toString()
+
+        expect(club1.adminReputations).toContain(reputationId1)
+
+        expect(reputation1.admin).toBeTruthy()
 
         await addResident(0, userId2)
         await addResident(0, userId3)
@@ -120,20 +112,9 @@ describe('POST /api/club/invite', () => {
         expect(reputationObj3).toBeDefined()
         expect(reputationObj3.admin).toBeFalsy()
 
-        expect(
-            club3.reputations.find((i) => i.reputationId === reputationId1)
-        ).toBeDefined()
-        expect(
-            club3.adminReputations.find((i) => i.reputationId === reputationId1)
-        ).not.toBeDefined()
+        expect(club3.adminReputations).not.toContain(reputationId1)
 
         expect(club2.adminsCount - club3.adminsCount).toEqual(1)
         expect(club3.adminsCount).toEqual(club3.adminReputations.length)
-
-        const newUser1 = await Account.findById(userId1).lean()
-        const newReputationInUser1 = newUser1.reputations.find(
-            (rep) => rep.clubId === clubId
-        )
-        expect(newReputationInUser1.admin).toBeFalsy()
     })
 })

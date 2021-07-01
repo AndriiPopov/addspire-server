@@ -1,5 +1,4 @@
 const { mongoLength } = require('../../config/fieldLength')
-const notificationSchema = require('../schemas/notification')
 const basicTag = require('./basicTag')
 
 module.exports = {
@@ -9,7 +8,6 @@ module.exports = {
         type: String,
     },
     image: String,
-    notifications: [notificationSchema],
     date: {
         type: Date,
         default: Date.now,
@@ -17,8 +15,8 @@ module.exports = {
     editedDate: {
         type: Date,
     },
+    editedBy: String,
     followers: [String],
-    views: Number,
     description: {
         type: String,
         maxlength: mongoLength.description.max,

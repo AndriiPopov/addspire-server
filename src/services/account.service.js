@@ -2,7 +2,6 @@ const httpStatus = require('http-status')
 const { System, Club, Account, Reputation } = require('../models')
 const ApiError = require('../utils/ApiError')
 
-const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
 const { saveTags } = require('./tag.service')
 
@@ -123,31 +122,34 @@ const deleteAccount = async (req) => {
         const { account } = req
         const { _id: accountId } = account
 
-        const accountObj = await Account.findOneAndDelete({ _id: accountId })
-            .select('reputations')
-            .exec()
+        const res1 = await Account.deleteOne(
+            { _id: accountId },
+            { useFindAndModify: false }
+        )
 
-        if (accountObj) {
-            const clubs = accountObj.reputations.map((item) => item.clubId)
-            const reputations = accountObj.reputations.map(
-                (item) => item.reputationId
-            )
-            await Club.updateMany(
-                {
-                    _id: { $in: clubs },
-                },
-                {
-                    $pull: {
-                        reputations: { accountId },
-                        adminReputations: { accountId },
+        if (res1.deletedCount) {
+            const reputations = await Reputation.find({
+                owner: accountId,
+                admin: true,
+            })
+                .select('club')
+                .lean()
+                .exec()
+            if (reputations.length) {
+                const reputationsClubs = reputations.map((rep) => rep.club)
+                const reputationsIds = reputations.map((rep) => rep._id)
+                await Club.updateMany(
+                    { _id: { $in: reputationsClubs } },
+                    {
+                        $pullAll: { adminReputations: reputationsIds },
+                        $inc: { adminsCount: -1 },
                     },
-                    $inc: { reputationsCount: -1 },
-                },
-                { useFindAndModify: false }
-            )
+                    { useFindAndModify: false }
+                )
+            }
 
             await Reputation.deleteMany(
-                { _id: { $in: reputations } },
+                { owner: accountId },
                 { useFindAndModify: false }
             )
             return { success: true }
@@ -166,15 +168,12 @@ const starClub = async (req) => {
         const { _id: accountId } = account
         const { clubId, add } = body
 
-        await Account.updateOne(
-            { _id: accountId },
-            {
-                [add ? '$addToSet' : '$pull']: {
-                    starredClubs: clubId,
-                },
-            },
+        await Reputation.updateOne(
+            { owner: accountId, club: clubId },
+            { $set: { starred: add } },
             { useFindAndModify: false }
         )
+        return add
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -188,12 +187,30 @@ const editAccount = async (req) => {
         const { _id: accountId } = account
         const { name, description, contact, image, tags } = body
 
-        await Account.updateOne(
+        const res1 = await Account.updateOne(
             { _id: accountId },
             { $set: { name, description, contact, image, tags } },
             { useFindAndModify: false }
         )
+
         saveTags(tags)
+        if (res1.nModified) {
+            await Reputation.updateMany(
+                {
+                    owner: accountId,
+                },
+                {
+                    $set: {
+                        name,
+                        image,
+                        profileTags: tags,
+                    },
+                },
+                { useFindAndModify: false }
+            )
+        } else {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')

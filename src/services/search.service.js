@@ -52,7 +52,7 @@ const general = async (req) => {
 const reputation = async (req) => {
     try {
         const { body } = req
-        const { reputationIds, page } = body
+        const { ids, page } = body
 
         const options = {
             lean: true,
@@ -60,11 +60,8 @@ const reputation = async (req) => {
             select: selectFields.reputationD,
         }
         if (page) options.page = page + 1
-        const result = await Reputation.paginate(
-            { $in: reputationIds },
-            options
-        )
-        return result
+        if (ids.length > 0)
+            return await Reputation.paginate({ _id: { $in: ids } }, options)
     } catch (error) {
         throw new ApiError(httpStatus.CONFLICT)
     }

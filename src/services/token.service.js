@@ -96,11 +96,14 @@ const generateAuthTokens = async (user) => {
 
 const verifyInviteToken = async (token, type) => {
     const payload = jwt.verify(token, process.env.jwtPrivateKey)
-    const res = await Token.findOneAndDelete({
-        token,
-        type,
-        user: payload.sub,
-    })
+    const res = await Token.findOneAndDelete(
+        {
+            token,
+            type,
+            user: payload.sub,
+        },
+        { useFindAndModify: false }
+    )
 
     return res
 }

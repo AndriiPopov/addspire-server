@@ -47,58 +47,60 @@ const createResource = async (req) => {
         if (tags) saveTags(tags)
 
         const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    user: accountId,
-                    code:
-                        // eslint-disable-next-line no-nested-ternary
-                        isAnswer ? 'answered question' : 'asked question',
-                    details: { id: resource._id, clubId, questionId },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: -20,
-        }
 
         let success
+        let notificationData = {}
+        let followers = []
         switch (type) {
             case 'question': {
-                await Club.updateOne(
+                const club = await Club.findOneAndUpdate(
                     { _id: clubId },
-                    {
-                        $push: {
-                            questions: resource._id,
-                            notifications: notification,
-                        },
-                        $inc: { questionsCount: 1 },
-                    },
+                    { $inc: { questionsCount: 1 } },
                     { useFindAndModify: false }
                 )
+                    .select('followers')
+                    .lean()
+                    .exec()
                 success = true
+                notificationData = {
+                    user: accountId,
+                    code: 'asked question',
+                    details: { question: resource._id, club: clubId },
+                    notId: newNotificationId,
+                }
+                followers = club.followers
                 break
             }
             case 'answer': {
-                const res = await Question.updateOne(
+                const question = await Question.findOneAndUpdate(
                     {
                         _id: questionId,
                         answered: { $ne: accountId },
                     },
                     {
-                        $push: {
-                            answers: resource._id,
-                            answered: accountId,
-                            notifications: notification,
-                        },
+                        $push: { answered: accountId },
                         $inc: { answersCount: 1, followersCount: 1 },
                         $addToSet: { followers: accountId },
                     },
                     { useFindAndModify: false }
                 )
-                if (res.nModified) {
+                    .select('followers')
+                    .lean()
+                    .exec()
+                if (question) {
                     success = true
                 }
-
+                notificationData = {
+                    user: accountId,
+                    code: 'answered question',
+                    details: {
+                        answer: resource._id,
+                        club: clubId,
+                        question: questionId,
+                    },
+                    notId: newNotificationId,
+                }
+                followers = question.followers
                 break
             }
             default:
@@ -108,17 +110,6 @@ const createResource = async (req) => {
             throw new ApiError(httpStatus.CONFLICT, 'Have answered')
         }
         await resource.save()
-
-        await Reputation.updateOne(
-            { _id: reputationLean._id },
-            {
-                $push: {
-                    [isAnswer ? 'answers' : 'questions']: resource._id,
-                    notifications: notification,
-                },
-            },
-            { useFindAndModify: false }
-        )
 
         await Account.updateOne(
             {
@@ -135,6 +126,19 @@ const createResource = async (req) => {
             },
             { useFindAndModify: false }
         )
+        if (followers.length)
+            await Account.updateMany(
+                { _id: { $in: followers } },
+                {
+                    $push: {
+                        feed: {
+                            $each: [notificationData],
+                            $slice: -50,
+                        },
+                    },
+                },
+                { useFindAndModify: false }
+            )
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -285,32 +289,19 @@ const acceptAnswer = async (req) => {
         const questionId = answer.question
         const clubId = answer.club
 
-        const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    user: accountId,
-                    code: 'accepted answer',
-                    details: { id: questionId, answerId, clubId },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: -20,
-        }
-
-        const result = await Question.updateOne(
+        const question = await Question.findOneAndUpdate(
             {
                 _id: questionId,
                 owner: accountId,
                 acceptedAnswer: 'no',
             },
-            {
-                $set: { acceptedAnswer: answerId },
-                $push: { notifications: notification },
-            },
+            { $set: { acceptedAnswer: answerId } },
             { useFindAndModify: false }
         )
-        if (result.nModified) {
+            .select('followers')
+            .lean()
+            .exec()
+        if (question) {
             const reputationLean = await getReputationId(answer.owner, clubId)
             if (answer.owner !== accountId) {
                 await Reputation.updateOne(
@@ -325,6 +316,33 @@ const acceptAnswer = async (req) => {
                                         resourceType: 'answer',
                                         actionType: 'accepted',
                                         resourceId: answerId,
+                                    },
+                                ],
+                                $slice: -50,
+                            },
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+            }
+            if (question.followers.length) {
+                const newNotificationId = await System.getNotificationId()
+
+                await Account.updateMany(
+                    { _id: { $in: question.followers } },
+                    {
+                        $push: {
+                            feed: {
+                                $each: [
+                                    {
+                                        user: accountId,
+                                        code: 'accepted answer',
+                                        details: {
+                                            id: questionId,
+                                            answerId,
+                                            clubId,
+                                        },
+                                        notId: newNotificationId,
                                     },
                                 ],
                                 $slice: -50,
@@ -368,23 +386,6 @@ const vote = async (req) => {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
 
-        const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    code: 'voted',
-                    details: {
-                        id: resourceId,
-                        resourceId,
-                        type,
-                        minus,
-                    },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: 5,
-        }
-
         const res = await model.updateOne(
             {
                 _id: resourceId,
@@ -394,7 +395,6 @@ const vote = async (req) => {
             },
             {
                 $push: {
-                    notifications: notification,
                     [minus ? 'votesDown' : 'votesUp']: accountId,
                 },
                 $inc: {
@@ -440,6 +440,30 @@ const vote = async (req) => {
                                             ? 'voteDown'
                                             : 'voteUp',
                                         resourceId,
+                                    },
+                                ],
+                                $slice: -50,
+                            },
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+                const newNotificationId = await System.getNotificationId()
+                await Account.updateOne(
+                    { _id: resource.owner },
+                    {
+                        $push: {
+                            feed: {
+                                $each: [
+                                    {
+                                        code: 'voted',
+                                        details: {
+                                            id: resourceId,
+                                            resourceId,
+                                            type,
+                                            minus,
+                                        },
+                                        notId: newNotificationId,
                                     },
                                 ],
                                 $slice: -50,

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const privatePaths = require('mongoose-private-paths')
 
 const credentialSchema = mongoose.Schema(
     {
@@ -40,7 +39,6 @@ const credentialSchema = mongoose.Schema(
 )
 
 // add plugin that converts mongoose to json
-credentialSchema.plugin(privatePaths)
 
 const Credential = mongoose.model('Credential', credentialSchema)
 

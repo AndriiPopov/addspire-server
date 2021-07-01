@@ -1,17 +1,18 @@
 const Joi = require('joi')
 const { JoiLength } = require('../config/fieldLength')
+Joi.objectId = require('joi-objectid')(Joi)
 
 const follow = {
     body: Joi.object().keys({
         type: Joi.string().valid('reputation', 'club', 'question').required(),
-        resourceId: Joi.string().required(),
+        resourceId: Joi.objectId().required(),
     }),
 }
 
 const unfollow = {
     body: Joi.object().keys({
         type: Joi.string().valid('reputation', 'club', 'question').required(),
-        resourceId: Joi.string().required(),
+        resourceId: Joi.objectId().required(),
     }),
 }
 
@@ -22,7 +23,7 @@ const deleteAccount = {
 const starClub = {
     body: Joi.object().keys({
         add: Joi.boolean().required(),
-        clubId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
     }),
 }
 
@@ -47,7 +48,7 @@ const editAccount = {
 
 const seenNotification = {
     body: Joi.object().keys({
-        notId: Joi.string().required(),
+        notId: Joi.objectId().required(),
     }),
 }
 

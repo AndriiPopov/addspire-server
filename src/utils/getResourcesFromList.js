@@ -10,6 +10,7 @@ const {
     Answer,
 } = require('../models')
 const { selectFields } = require('../config/selectFields')
+const removePriveteFields = require('./removePriveteFields')
 
 module.exports = async (data) => {
     if (data.type && data.ids && data.ids.length > 0) {
@@ -22,7 +23,6 @@ module.exports = async (data) => {
             case 'account':
                 type = 'account'
                 model = Account
-
                 break
             case 'accountD':
                 type = 'account'
@@ -96,22 +96,23 @@ module.exports = async (data) => {
                     .lean()
                     .exec()
                 if (data.type === 'account') {
-                    result.map((doc) => doc.toJSON())
+                    result.map((doc) => removePriveteFields(doc))
                 }
-                if (
-                    [
-                        'account',
-                        'reputation',
-                        'club',
-                        'question',
-                        'answer',
-                    ].includes(data.type)
-                ) {
-                    model.updateMany(
-                        { _id: { $in: data.ids } },
-                        { $inc: { views: 1 } }
-                    )
-                }
+                // Increase views count. This approach has issues with performance as each view initiates update operation
+                // if (
+                //     [
+                //         'account',
+                //         'reputation',
+                //         'club',
+                //         'question',
+                //         'answer',
+                //     ].includes(data.type)
+                // ) {
+                //     model.updateMany(
+                //         { _id: { $in: data.ids } },
+                //         { $inc: { views: 1 } }
+                //     )
+                // }
             } else {
                 result = await model
                     .find({

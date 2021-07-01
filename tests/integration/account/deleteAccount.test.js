@@ -16,13 +16,13 @@ describe('POST /api/account/delete', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
 
-        const oldReputation = oldUser.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).toBeDefined()
-        const { reputationId } = oldReputation
-        const oldReputationObj = await Reputation.findById(reputationId)
-        expect(oldReputationObj).toBeDefined()
+        const oldReputation = await Reputation.findOne({
+            club: clubId,
+            owner: userId,
+            admin: true,
+        }).lean()
+        expect(oldReputation).not.toBeNull()
+        const reputationId = oldReputation._id.toString()
 
         await request(app)
             .post('/api/account/delete')
@@ -39,21 +39,10 @@ describe('POST /api/account/delete', () => {
         const club = await Club.findById(clubId).lean()
         expect(club).not.toBeNull()
 
-        expect(club.reputationsCount - oldClub.reputationsCount).toEqual(-1)
-        expect(
-            oldClub.reputations.find((i) => i.reputationId === reputationId)
-        ).toBeDefined()
-        expect(
-            oldClub.adminReputations.find(
-                (i) => i.reputationId === reputationId
-            )
-        ).toBeDefined()
-        expect(
-            club.reputations.find((i) => i.reputationId === reputationId)
-        ).not.toBeDefined()
-        expect(
-            club.adminReputations.find((i) => i.reputationId === reputationId)
-        ).not.toBeDefined()
+        expect(oldClub.adminReputations).toContain(reputationId)
+        expect(club.adminReputations).not.toContain(reputationId)
+        expect(oldClub.adminsCount - club.adminsCount).toEqual(1)
+
         await request(app)
             .post('/api/account/delete')
             .set('accountId', 'f_0')

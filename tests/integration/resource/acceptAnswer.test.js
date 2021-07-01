@@ -31,13 +31,11 @@ describe('POST /api/resource/accept', () => {
         const oldUser = await Account.findOne({ facebookProfile: 'f_1' }).lean()
         const userId = oldUser._id.toString()
 
-        const oldReputation = oldUser.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).toBeDefined()
-        const { reputationId } = oldReputation
-        const oldReputationObj = await Reputation.findById(reputationId).lean()
-        expect(oldReputationObj).toBeDefined()
+        const oldReputationObj = await Reputation.findOne({
+            owner: userId,
+            club: clubId,
+        }).lean()
+        const reputationId = oldReputationObj._id.toString()
 
         await request(app)
             .post('/api/resource/accept')
@@ -111,13 +109,11 @@ describe('POST /api/resource/accept', () => {
         const oldUser = await Account.findOne({ facebookProfile: 'f_1' }).lean()
         const userId = oldUser._id.toString()
 
-        const oldReputation = oldUser.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).toBeDefined()
-        const { reputationId } = oldReputation
-        const oldReputationObj = await Reputation.findById(reputationId).lean()
-        expect(oldReputationObj).toBeDefined()
+        const oldReputationObj = await Reputation.findOne({
+            owner: userId,
+            club: clubId,
+        }).lean()
+        const reputationId = oldReputationObj._id.toString()
 
         await request(app)
             .post('/api/resource/accept')
@@ -151,30 +147,6 @@ describe('POST /api/resource/accept', () => {
     })
 
     test('should return 400 error if  validation fails', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' }).lean()
-        const clubId = oldClub._id.toString()
-
-        const oldQuestion = await Question.findOne({
-            name: 'Test question',
-        }).lean()
-        const questionId = oldQuestion._id.toString()
-
-        const oldAnswer = await Answer.findOne({
-            description: 'Here is how to test.',
-        }).lean()
-        const answerId = oldAnswer._id.toString()
-
-        const oldUser = await Account.findOne({ facebookProfile: 'f_1' }).lean()
-        const userId = oldUser._id.toString()
-
-        const oldReputation = oldUser.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).toBeDefined()
-        const { reputationId } = oldReputation
-        const oldReputationObj = await Reputation.findById(reputationId)
-        expect(oldReputationObj).toBeDefined()
-
         await request(app)
             .post('/api/resource/accept')
             .set('accountId', 'f_0')

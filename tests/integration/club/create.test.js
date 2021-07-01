@@ -8,7 +8,8 @@ setupTestDB()
 
 describe('POST /api/club/create', () => {
     test('should return 201 and successfully create new club if data is ok', async () => {
-        const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
+        const oldUser = await Account.findOne({ facebookProfile: 'f_0' }).lean()
+        const userId = oldUser._id
         const res = await request(app)
             .post('/api/club/create')
             .set('accountId', 'f_0')
@@ -30,29 +31,28 @@ describe('POST /api/club/create', () => {
 
         const clubId = dbClub._id.toString()
 
-        const user = await Account.findOne({ facebookProfile: 'f_0' })
+        const user = await Account.findOne({ facebookProfile: 'f_0' }).lean()
 
         expect(oldUser.reputationsCount - user.reputationsCount).toEqual(-1)
-        expect(oldUser.reputations.length).toEqual(oldUser.reputationsCount)
-        expect(user.reputations.length).toEqual(user.reputationsCount)
         expect(user.followingClubs).toContain(clubId)
 
-        const reputation = user.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(reputation).toBeDefined()
+        const reputation = await Reputation.findOne({
+            club: clubId,
+            owner: userId,
+        }).lean()
+        expect(reputation).not.toBeNull()
+        expect(reputation.plusToday).toEqual(0)
+        expect(reputation.minusToday).toEqual(0)
+        expect(reputation.reputation).toEqual(0)
         expect(reputation.admin).toBeTruthy()
-        expect(reputation.admin).toBeTruthy()
-
-        const reputationObj = await Reputation.findById(reputation.reputationId)
-        expect(reputationObj).toBeDefined()
-        expect(reputationObj.club).toEqual(clubId)
-        expect(reputationObj.owner).toEqual(user._id.toString())
-        expect(reputationObj.plusToday).toEqual(0)
-        expect(reputationObj.minusToday).toEqual(0)
-        expect(reputationObj.reputation).toEqual(0)
-        expect(reputationObj.admin).toBeTruthy()
-        expect(reputationObj.banned).toBeFalsy()
+        expect(reputation.banned).toBeFalsy()
+        expect(reputation.member).toBeTruthy()
+        expect(reputation.starred).toBeFalsy()
+        expect(reputation.clubName).toEqual(dbClub.name)
+        expect(reputation.clubImage).toEqual(dbClub.image)
+        expect(reputation.name).toEqual(user.name)
+        expect(reputation.image).toEqual(user.image)
+        expect(reputation.profileTags).toEqual(user.tags)
 
         expect(dbClub.description).toEqual('For all of us')
         expect(dbClub.image).toEqual('roller.jpeg')
@@ -62,33 +62,7 @@ describe('POST /api/club/create', () => {
         expect(dbClub.adminsCount).toEqual(1)
         expect(dbClub.tags).toEqual(['club1', 'club2'])
 
-        const reputationClub = dbClub.reputations.find(
-            (item) => item.reputationId === reputation.reputationId
-        )
-        expect(reputationClub).toBeDefined()
-        expect(reputationClub.accountId).toEqual(user._id.toString())
-        expect(reputationClub.admin).toBeTruthy()
-
-        const reputationClubA = dbClub.adminReputations.find(
-            (item) => item.reputationId === reputation.reputationId
-        )
-        expect(reputationClubA).toBeDefined()
-        expect(reputationClubA.accountId).toEqual(user._id.toString())
-    })
-
-    test('should return 201 and successfully create new club with startConversation resident', async () => {
-        await request(app)
-            .post('/api/club/create')
-            .set('accountId', 'f_0')
-            .send({
-                name: 'Rollers of US',
-                description: 'For all of us',
-                image: 'roller.jpeg',
-            })
-            .expect(httpStatus.CREATED)
-
-        const dbClub = await Club.findOne({ name: 'Rollers of US' })
-        expect(dbClub).toBeDefined()
+        expect(dbClub.adminReputations).toContain(reputation._id.toString())
     })
 
     test('should return 403 error if  user  not logged', async () => {

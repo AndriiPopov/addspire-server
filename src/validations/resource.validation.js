@@ -1,5 +1,6 @@
 const Joi = require('joi')
 const { JoiLength } = require('../config/fieldLength')
+Joi.objectId = require('joi-objectid')(Joi)
 
 const createResource = {
     body: Joi.object()
@@ -13,9 +14,9 @@ const createResource = {
                 .max(JoiLength.description.max)
                 .min(JoiLength.description.min),
             images: Joi.array().items(Joi.string()).optional(),
-            clubId: Joi.string().required(),
+            clubId: Joi.objectId().required(),
             type: Joi.string().valid('answer', 'question').required(),
-            questionId: Joi.string().optional(),
+            questionId: Joi.objectId().optional(),
             tags: Joi.array().items(Joi.string()).optional(),
         })
         .unknown(true),
@@ -34,7 +35,7 @@ const editResource = {
                 .min(JoiLength.description.min),
             images: Joi.array().items(Joi.string()).optional(),
             tags: Joi.array().items(Joi.string()).optional(),
-            resourceId: Joi.string().required(),
+            resourceId: Joi.objectId().required(),
             type: Joi.string().valid('answer', 'question').required(),
         })
         .unknown(true),
@@ -43,7 +44,7 @@ const editResource = {
 const deleteResource = {
     body: Joi.object()
         .keys({
-            resourceId: Joi.string().required(),
+            resourceId: Joi.objectId().required(),
             type: Joi.string().valid('answer', 'question').required(),
         })
         .unknown(true),
@@ -52,7 +53,7 @@ const deleteResource = {
 const acceptAnswer = {
     body: Joi.object()
         .keys({
-            answerId: Joi.string().required(),
+            answerId: Joi.objectId().required(),
         })
         .unknown(true),
 }
@@ -61,7 +62,7 @@ const vote = {
     body: Joi.object()
         .keys({
             minus: Joi.boolean().optional(),
-            resourceId: Joi.string().required(),
+            resourceId: Joi.objectId().required(),
             type: Joi.string()
                 .valid('question', 'answer', 'comment')
                 .required(),

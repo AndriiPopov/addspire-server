@@ -2,22 +2,12 @@ const request = require('supertest')
 const httpStatus = require('http-status')
 const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
-const {
-    Club,
-    Account,
-    Reputation,
-    Comment,
-    Question,
-    Answer,
-} = require('../../../src/models')
+const { Account, Comment, Question, Answer } = require('../../../src/models')
 
 setupTestDB()
 
 describe('POST /api/comment/create', () => {
     test('should return 201 and successfully create new comment to question if data is ok', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' })
-        const clubId = oldClub._id.toString()
-
         const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
@@ -25,15 +15,6 @@ describe('POST /api/comment/create', () => {
 
         const oldUser = await Account.findOne({ facebookProfile: 'f_5' })
         const userId = oldUser._id.toString()
-
-        const reputation = oldUser.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(reputation).toBeDefined()
-        const { reputationId } = reputation
-
-        const oldReputationObj = await Reputation.findById(reputationId).lean()
-        expect(oldReputationObj).toBeDefined()
 
         await request(app)
             .post('/api/comment/create')
@@ -56,12 +37,6 @@ describe('POST /api/comment/create', () => {
         expect(oldUser.followingQuestions).not.toContain(questionId)
         expect(user.followingQuestions).toContain(questionId)
 
-        const reputationObj = await Reputation.findById(reputationId).lean()
-        expect(reputationObj).toBeDefined()
-
-        expect(oldReputationObj.comments).not.toContain(commentId)
-        expect(reputationObj.comments).toContain(commentId)
-
         const question = await Question.findById(questionId).lean()
 
         expect(oldQuestion.comments).not.toContain(commentId)
@@ -74,30 +49,16 @@ describe('POST /api/comment/create', () => {
     })
 
     test('should return 201 and successfully create new comment to answer if data is ok', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' })
-        const clubId = oldClub._id.toString()
+        const oldAnswer = await Answer.findOne({}).lean()
+        const answerId = oldAnswer._id.toString()
 
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            _id: oldAnswer.question,
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldAnswer = await Answer.findOne({
-            _id: oldQuestion.answers[0],
-        }).lean()
-        const answerId = oldAnswer._id.toString()
-
         const oldUser = await Account.findOne({ facebookProfile: 'f_5' })
         const userId = oldUser._id.toString()
-
-        const reputation = oldUser.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(reputation).toBeDefined()
-        const { reputationId } = reputation
-
-        const oldReputationObj = await Reputation.findById(reputationId).lean()
-        expect(oldReputationObj).toBeDefined()
 
         await request(app)
             .post('/api/comment/create')
@@ -120,12 +81,6 @@ describe('POST /api/comment/create', () => {
         expect(oldUser.followingQuestions).not.toContain(questionId)
         expect(user.followingQuestions).toContain(questionId)
 
-        const reputationObj = await Reputation.findById(reputationId).lean()
-        expect(reputationObj).toBeDefined()
-
-        expect(oldReputationObj.comments).not.toContain(commentId)
-        expect(reputationObj.comments).toContain(commentId)
-
         const answer = await Answer.findById(answerId).lean()
 
         expect(oldAnswer.comments).not.toContain(commentId)
@@ -140,28 +95,8 @@ describe('POST /api/comment/create', () => {
     })
 
     test('should return 400 error if  validation fails', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' })
-        const clubId = oldClub._id.toString()
-
-        const oldQuestion = await Question.findOne({
-            name: 'Test question',
-        }).lean()
-
-        const oldAnswer = await Answer.findOne({
-            _id: oldQuestion.answers[0],
-        }).lean()
+        const oldAnswer = await Answer.findOne({}).lean()
         const answerId = oldAnswer._id.toString()
-
-        const oldUser = await Account.findOne({ facebookProfile: 'f_2' })
-
-        const reputation = oldUser.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(reputation).toBeDefined()
-        const { reputationId } = reputation
-
-        const oldReputationObj = await Reputation.findById(reputationId).lean()
-        expect(oldReputationObj).toBeDefined()
 
         await request(app)
             .post('/api/comment/create')

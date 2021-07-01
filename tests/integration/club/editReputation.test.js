@@ -8,10 +8,12 @@ setupTestDB()
 
 describe('POST /api/club/edit-reputation', () => {
     test('should return 200 and successfully edit reputation', async () => {
-        const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
+        const oldUser = await Account.findOne({ facebookProfile: 'f_0' }).lean()
 
-        const { reputationId } = oldUser.reputations[0]
-        const oldReputationObj = await Reputation.findById(reputationId).lean()
+        const oldReputationObj = await Reputation.findOne({
+            owner: oldUser._id,
+        }).lean()
+        const reputationId = oldReputationObj._id.toString()
         expect(oldReputationObj).not.toBeNull()
 
         await request(app)
@@ -39,9 +41,10 @@ describe('POST /api/club/edit-reputation', () => {
     test('should return 400 error if  validation fails except for tags. They can be empty', async () => {
         const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
 
-        const { reputationId } = oldUser.reputations[0]
-        const oldReputationObj = await Reputation.findById(reputationId).lean()
-
+        const oldReputationObj = await Reputation.findOne({
+            owner: oldUser._id,
+        }).lean()
+        const reputationId = oldReputationObj._id.toString()
         expect(oldReputationObj).not.toBeNull()
         await request(app)
             .post('/api/club/edit-reputation')

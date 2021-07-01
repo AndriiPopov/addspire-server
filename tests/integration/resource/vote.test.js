@@ -29,39 +29,33 @@ describe('POST /api/resource/vote', () => {
         }).lean()
         const userIdG = oldUserG._id.toString()
 
-        const oldReputationG = oldUserG.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputationG).not.toBeNull()
-        const { reputationId: reputationIdG } = oldReputationG
-        const oldReputationObjG = await Reputation.findById(reputationIdG)
-        expect(oldReputationObjG).not.toBeNull()
+        const oldReputationObjG = await Reputation.findOne({
+            owner: userIdG,
+            club: clubId,
+        }).lean()
+        const reputationIdG = oldReputationObjG._id.toString()
 
         const oldUserG2 = await Account.findOne({
             facebookProfile: 'f_2',
         }).lean()
         const userIdG2 = oldUserG2._id.toString()
 
-        const oldReputationG2 = oldUserG2.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputationG2).toBeDefined()
-        const { reputationId: reputationIdG2 } = oldReputationG2
-        const oldReputationObjG2 = await Reputation.findById(reputationIdG2)
-        expect(oldReputationObjG2).toBeDefined()
+        const oldReputationObjG2 = await Reputation.findOne({
+            owner: userIdG2,
+            club: clubId,
+        }).lean()
+        const reputationIdG2 = oldReputationObjG2._id.toString()
 
         const oldUserR = await Account.findOne({
             facebookProfile: 'f_0',
         }).lean()
         const userIdR = oldUserR._id.toString()
 
-        const oldReputationR = oldUserR.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputationR).toBeDefined()
-        const { reputationId: reputationIdR } = oldReputationR
-        const oldReputationObjR = await Reputation.findById(reputationIdR)
-        expect(oldReputationObjR).toBeDefined()
+        const oldReputationObjR = await Reputation.findOne({
+            owner: userIdR,
+            club: clubId,
+        }).lean()
+        const reputationIdR = oldReputationObjR._id.toString()
 
         await request(app)
             .post('/api/resource/vote')
@@ -183,52 +177,10 @@ describe('POST /api/resource/vote', () => {
     })
 
     test('should return 400 error if  validation fails', async () => {
-        const oldClub = await Club.findOne({ name: 'Test club 1' }).lean()
-        const clubId = oldClub._id.toString()
-
         const oldQuestion = await Question.findOne({
             name: 'Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
-
-        const oldUserG = await Account.findOne({
-            facebookProfile: 'f_1',
-        }).lean()
-        const userIdG = oldUserG._id.toString()
-
-        const oldReputationG = oldUserG.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputationG).not.toBeNull()
-        const { reputationId: reputationIdG } = oldReputationG
-        const oldReputationObjG = await Reputation.findById(reputationIdG)
-        expect(oldReputationObjG).not.toBeNull()
-
-        const oldUserG2 = await Account.findOne({
-            facebookProfile: 'f_2',
-        }).lean()
-        const userIdG2 = oldUserG2._id.toString()
-
-        const oldReputationG2 = oldUserG2.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputationG2).toBeDefined()
-        const { reputationId: reputationIdG2 } = oldReputationG2
-        const oldReputationObjG2 = await Reputation.findById(reputationIdG2)
-        expect(oldReputationObjG2).toBeDefined()
-
-        const oldUserR = await Account.findOne({
-            facebookProfile: 'f_0',
-        }).lean()
-        const userIdR = oldUserR._id.toString()
-
-        const oldReputationR = oldUserR.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputationR).toBeDefined()
-        const { reputationId: reputationIdR } = oldReputationR
-        const oldReputationObjR = await Reputation.findById(reputationIdR)
-        expect(oldReputationObjR).toBeDefined()
 
         await request(app)
             .post('/api/resource/vote')

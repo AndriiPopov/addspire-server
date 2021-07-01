@@ -1,13 +1,16 @@
 const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
-const privatePaths = require('mongoose-private-paths')
 const basicModel = require('./basicModel/basicModel')
+const basicTag = require('./basicModel/basicTag')
 const { increaseVersion } = require('./plugins')
 
 const reputationSchema = new mongoose.Schema(
     {
         ...basicModel,
         club: { type: String, index: true },
+        clubName: { type: String },
+        clubImage: { type: String },
+        profileTags: [basicTag],
         owner: { type: String, index: true },
         reputation: { type: Number, default: 0 },
         plusToday: { type: Number, default: 0 },
@@ -22,11 +25,8 @@ const reputationSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
-        banned: Boolean,
+        banned: { type: Boolean, default: false },
         bannedUntil: { type: Date },
-        questions: [String],
-        answers: [String],
-        comments: [String],
         gains: [
             {
                 reputation: Number,
@@ -48,12 +48,13 @@ const reputationSchema = new mongoose.Schema(
                 },
             },
         ],
+        starred: { type: Boolean, default: false },
+        member: { type: Boolean, default: false },
     },
     { minimize: false }
 )
 
 reputationSchema.plugin(mongoosePaginate)
-reputationSchema.plugin(privatePaths, { prefix: '-' })
 reputationSchema.pre(
     [
         'update',

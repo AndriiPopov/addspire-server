@@ -88,18 +88,14 @@ describe('POST /api/club/invite', () => {
         const club1 = await Club.findById(clubId)
         expect(club1).not.toBeNull()
         expect(club1.adminsCount - club0.adminsCount).toEqual(1)
-        const reputation1 = club1.adminReputations.find(
-            (i) => i.accountId === userId1
-        )
+        const reputation1 = await Reputation.findOne({
+            owner: userId1,
+            club: clubId,
+        }).lean()
+
         expect(reputation1).toBeDefined()
-        const reputationId1 = reputation1.reputationId.toString()
-        expect(
-            club1.reputations.find((i) => i.reputationId === reputationId1)
-        ).toBeDefined()
-        const reputationObj = await Reputation.findById(
-            reputation1.reputationId
-        )
-        expect(reputationObj.admin).toBeTruthy()
+
+        expect(reputation1.admin).toBeTruthy()
         await acceptInvite(1, `${code1}gty`, httpStatus.CONFLICT)
         await acceptInvite(1, code1, httpStatus.CONFLICT)
         await acceptInvite(1, code20, httpStatus.CONFLICT)

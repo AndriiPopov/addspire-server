@@ -2,7 +2,7 @@ const request = require('supertest')
 const httpStatus = require('http-status')
 const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
-const { Account, Tag } = require('../../../src/models')
+const { Account, Tag, Reputation } = require('../../../src/models')
 
 setupTestDB()
 
@@ -26,6 +26,14 @@ describe('POST /api/account/edit', () => {
 
         expect(oldUser.name).not.toEqual(user1.name)
         expect(user1.name).toEqual('Test Tester')
+
+        const oldReputation = await Reputation.findOne({ owner: userId }).lean()
+        const reputationId = oldReputation._id.toString()
+
+        expect(oldReputation).not.toBeNull()
+        expect(oldReputation.name).not.toEqual('Test Tester1')
+        expect(oldReputation.image).not.toEqual('testImage.jpeg')
+        expect(oldReputation.profileTags).not.toEqual(['tag1', 'newTagTester'])
 
         await request(app)
             .post('/api/account/edit')
@@ -55,6 +63,13 @@ describe('POST /api/account/edit', () => {
 
         expect(tags.find((i) => i._id === 'tag1')).toBeDefined()
         expect(oldTags.find((i) => i._id === 'tag1')).toBeDefined()
+
+        const reputation = await Reputation.findById(reputationId).lean()
+
+        expect(reputation).not.toBeNull()
+        expect(reputation.name).toEqual('Test Tester1')
+        expect(reputation.image).toEqual('testImage.jpeg')
+        expect(reputation.profileTags).toEqual(['tag1', 'newTagTester'])
     })
 
     test('should return 400 error if  validation fails', async () => {

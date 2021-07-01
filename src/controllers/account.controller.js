@@ -18,8 +18,8 @@ const deleteAccount = catchAsync(async (req, res) => {
 })
 
 const starClub = catchAsync(async (req, res) => {
-    await accountService.starClub(req)
-    res.status(httpStatus.OK).send({ message: 'success' })
+    const added = await accountService.starClub(req)
+    res.status(httpStatus.OK).send({ message: added ? 'starred' : 'unstarred' })
 })
 
 const editAccount = catchAsync(async (req, res) => {

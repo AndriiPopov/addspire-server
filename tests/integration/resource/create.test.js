@@ -44,21 +44,16 @@ describe('POST /api/resource/create', () => {
         expect(resource).toBeDefined()
         const resourceId = resource._id.toString()
 
-        const reputation = user.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(reputation).toBeDefined()
-        const { reputationId } = reputation
+        const reputation = await Reputation.findOne({
+            owner: userId,
+            club: clubId,
+        }).lean()
+        expect(reputation).not.toBeNull()
+        const reputationId = reputation._id.toString()
 
-        const reputationObj = await Reputation.findById(reputationId)
-        expect(reputationObj).toBeDefined()
-
-        expect(club.questions).toContain(resourceId)
         expect(club.questionsCount - oldClub.questionsCount).toEqual(1)
 
         expect(user.followingQuestions).toContain(resourceId)
-
-        expect(reputationObj.questions).toContain(resourceId)
 
         expect(resource.name).toEqual('How to drive a car?')
         expect(resource.description).toEqual('I want to know how to o it.')
@@ -68,9 +63,9 @@ describe('POST /api/resource/create', () => {
         expect(resource.followers).toContain(userId)
         expect(resource.followersCount).toEqual(1)
         expect(resource.owner).toEqual(userId)
+        expect(resource.reputation).toEqual(reputationId)
         expect(resource.club).toEqual(clubId)
         expect(resource.answersCount).toEqual(0)
-        expect(resource.answers.length).toEqual(0)
         expect(resource.answered.length).toEqual(0)
         expect(resource.acceptedAnswer).toEqual('no')
         expect(resource.tags).toEqual(['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'])
@@ -129,31 +124,27 @@ describe('POST /api/resource/create', () => {
         expect(resource).toBeDefined()
         const resourceId = resource._id.toString()
 
-        const reputation = user.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(reputation).toBeDefined()
-        const { reputationId } = reputation
+        const reputation = await Reputation.findOne({
+            owner: userId,
+            club: clubId,
+        }).lean()
+        expect(reputation).not.toBeNull()
+        const reputationId = reputation._id.toString()
 
-        const reputationObj = await Reputation.findById(reputationId)
-        expect(reputationObj).toBeDefined()
-
-        expect(club.questions).toContain(questionId)
         expect(club.questionsCount).toEqual(oldClub.questionsCount)
 
         expect(user.followingQuestions).toContain(questionId)
         expect(user.followingQuestions).not.toContain(resourceId)
 
-        expect(reputationObj.answers).toContain(resourceId)
-
         expect(question.followers).toContain(userId)
         expect(question.followersCount - oldQuestion.followersCount).toEqual(1)
         expect(resource.owner).toEqual(userId)
+        expect(resource.reputation).toEqual(reputationId)
         expect(resource.club).toEqual(clubId)
+
         expect(resource.question).toEqual(questionId)
         expect(question.answersCount - oldQuestion.answersCount).toEqual(1)
-        expect(question.answers.length - oldQuestion.answers.length).toEqual(1)
-        expect(question.answers).toContain(resourceId)
+
         expect(question.answered.length - oldQuestion.answered.length).toEqual(
             1
         )
@@ -170,15 +161,6 @@ describe('POST /api/resource/create', () => {
         const questionId = oldQuestion._id.toString()
         const oldUser = await Account.findOne({ facebookProfile: 'f_1' })
         const userId = oldUser._id.toString()
-
-        const oldReputation = oldUser.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).toBeDefined()
-        const { reputationId } = oldReputation
-
-        const oldReputationObj = await Reputation.findById(reputationId).lean()
-        expect(oldReputationObj).toBeDefined()
 
         await request(app)
             .post('/api/resource/create')
@@ -206,15 +188,7 @@ describe('POST /api/resource/create', () => {
         })
         expect(resource).toBeNull()
 
-        const reputationObj = await Reputation.findById(reputationId).lean()
-        expect(reputationObj).toBeDefined()
-
-        expect(club.answers).toEqual(oldClub.answers)
-
-        expect(reputationObj.answers).toEqual(oldReputationObj.answers)
-
         expect(question.answersCount).toEqual(oldQuestion.answersCount)
-        expect(question.answers.length).toEqual(oldQuestion.answers.length)
 
         expect(question.answered.length).toEqual(oldQuestion.answered.length)
         expect(question.answered).toEqual(oldQuestion.answered)

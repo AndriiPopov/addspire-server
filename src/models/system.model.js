@@ -19,7 +19,7 @@ const getNotificationId = async () => {
     const newId = await System.findOneAndUpdate(
         { name: 'system' },
         { $inc: { currentId: 1 } },
-        { new: true }
+        { new: true, useFindAndModify: false }
     )
     return newId.currentId
 }
@@ -28,7 +28,7 @@ const getImgId = async () => {
     const newId = await System.findOneAndUpdate(
         { name: 'system' },
         { $inc: { currentImgId: 1 } },
-        { new: true }
+        { new: true, useFindAndModify: false }
     )
     return newId.currentImgId
 }

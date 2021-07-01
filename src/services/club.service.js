@@ -17,13 +17,13 @@ const createClub = async (req) => {
         const reputation = new Reputation({
             owner: accountId,
             admin: true,
+            clubName: name,
+            clubImage: image,
+            member: true,
         })
 
         const club = new Club({
-            adminReputations: [{ reputationId: reputation._id, accountId }],
-            reputations: [
-                { reputationId: reputation._id, accountId, admin: true },
-            ],
+            adminReputations: [reputation._id],
             reputationsCount: 1,
             adminsCount: 1,
             followers: [accountId],
@@ -31,63 +31,69 @@ const createClub = async (req) => {
             name,
             image,
             description,
-
             tags,
         })
-
-        saveTags(tags)
-
-        reputation.club = club._id
-        await club.save()
-        await reputation.save()
 
         const accountObj = await Account.findOneAndUpdate(
             { _id: accountId },
             {
                 $push: {
                     followingClubs: club._id,
-                    reputations: {
-                        clubId: club._id,
-                        reputationId: reputation._id,
-                        admin: true,
-                    },
                 },
                 $inc: { reputationsCount: 1 },
             },
             { useFindAndModify: false }
         )
-            .select('reputations')
+            .select('image name tags')
             .lean()
             .exec()
-        if (accountObj && accountObj.reputations.length) {
-            const newNotificationId = await System.getNotificationId()
 
-            await Reputation.updateMany(
-                {
-                    _id: {
-                        $in: accountObj.reputations.map((i) => i.reputationId),
-                    },
-                },
-                {
-                    $push: {
-                        notifications: {
-                            $each: [
-                                {
-                                    user: accountId,
-                                    code: 'created club',
-                                    details: {
-                                        clubId: club._id,
+        saveTags(tags)
+
+        reputation.name = accountObj.name
+        reputation.image = accountObj.image
+        reputation.profileTags = accountObj.tags
+
+        reputation.club = club._id
+        await club.save()
+        await reputation.save()
+
+        const accountReputations = await Reputation.find({ owner: accountId })
+            .select('followers')
+            .lean()
+            .exec()
+
+        if (accountReputations && accountReputations.length > 0) {
+            const uniqueFollowers = accountReputations.reduce(
+                (result, rep) => [...new Set([...result, ...rep.followers])],
+                []
+            )
+            if (uniqueFollowers.length) {
+                const newNotificationId = await System.getNotificationId()
+                await Account.updateMany(
+                    { _id: { $in: uniqueFollowers } },
+                    {
+                        $push: {
+                            notifications: {
+                                $each: [
+                                    {
+                                        user: accountId,
+                                        code: 'created club',
+                                        details: {
+                                            clubId: club._id,
+                                        },
+                                        notId: newNotificationId,
                                     },
-                                    notId: newNotificationId,
-                                },
-                            ],
-                            $slice: -20,
+                                ],
+                                $slice: -50,
+                            },
                         },
                     },
-                },
-                { useFindAndModify: false }
-            )
+                    { useFindAndModify: false }
+                )
+            }
         }
+
         return club
     } catch (error) {
         if (!error.isOperational) {
@@ -108,10 +114,8 @@ const editClub = async (req) => {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
 
-        await Club.updateOne(
-            {
-                _id: clubId,
-            },
+        const res = await Club.updateOne(
+            { _id: clubId },
             {
                 $set: {
                     name,
@@ -122,7 +126,22 @@ const editClub = async (req) => {
             },
             { useFindAndModify: false }
         )
+
         saveTags(tags)
+        if (res.nModified) {
+            await Reputation.updateMany(
+                { club: clubId },
+                {
+                    $set: {
+                        clubName: name,
+                        clubImage: image,
+                    },
+                },
+                { useFindAndModify: false }
+            )
+        } else {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -182,58 +201,56 @@ const acceptInvite = async (req) => {
             throw new ApiError(httpStatus.CONFLICT, 'Already admin')
         }
 
-        const newNotificationId = await System.getNotificationId()
-        const notification = (slice) => ({
-            $each: [
-                {
-                    user: accountId,
-                    code: 'became admin',
-                    details: { clubId: doc.club },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: slice || -20,
-        })
-
-        const res1 = await Club.updateOne(
+        const club = await Club.findOneAndUpdate(
             { _id: doc.club, adminsCount: { $lt: value.maxAdmins } },
             {
-                $push: {
-                    adminReputations: { reputationId, accountId },
-                    notifications: notification(),
-                },
+                $push: { adminReputations: reputationId },
                 $inc: { adminsCount: 1 },
             },
             { useFindAndModify: false }
         )
-        if (res1.nModified) {
+            .select('followers')
+            .lean()
+            .exec()
+        if (club) {
             await Reputation.updateOne(
-                {
-                    _id: reputationId,
-                },
-                { $set: { admin: true } },
+                { _id: reputationId },
+                { $set: { admin: true, member: true, banned: false } },
+                { useFindAndModify: false }
+            )
+
+            await Account.updateOne(
+                { _id: accountId, followngClubs: { $ne: accountId } },
+                { $addToSet: { followngClubs: doc.club } },
                 { useFindAndModify: false }
             )
 
             await Club.updateOne(
                 { _id: doc.club, followers: { $ne: accountId } },
                 {
-                    $push: {
-                        followers: accountId,
-                    },
+                    $push: { followers: accountId },
                     $inc: { followersCount: 1 },
                 },
                 { useFindAndModify: false }
             )
 
-            await Account.updateOne(
-                { _id: accountId, 'reputations.reputationId': reputationId },
+            const newNotificationId = await System.getNotificationId()
+            await Account.updateMany(
+                { _id: { $in: [...club.followers, accountId] } },
                 {
                     $push: {
-                        myNotifications: notification(-50),
+                        notifications: {
+                            $each: [
+                                {
+                                    user: accountId,
+                                    code: 'became admin',
+                                    details: { clubId: doc.club },
+                                    notId: newNotificationId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
                     },
-                    $set: { 'reputations.$.admin': true },
-                    $addToSet: { followngClubs: doc.club },
                 },
                 { useFindAndModify: false }
             )
@@ -270,48 +287,41 @@ const addResident = async (req) => {
             throw new ApiError(httpStatus.CONFLICT, 'Already admin')
         }
 
-        const newNotificationId = await System.getNotificationId()
-        const notification = (slice) => ({
-            $each: [
-                {
-                    user: accountId,
-                    code: 'became admin',
-                    details: { clubId },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: slice || -20,
-        })
-
-        const res1 = await Club.updateOne(
+        const club = await Club.findOneAndUpdate(
             { _id: clubId, adminsCount: { $lt: value.maxAdmins } },
             {
-                $push: {
-                    adminReputations: { reputationId, accountId: residentId },
-                    notifications: notification(),
-                    followers: residentId,
-                },
-                $inc: { adminsCount: 1, followersCount: 1 },
+                $push: { adminReputations: reputationId },
+                $inc: { adminsCount: 1 },
             },
             { useFindAndModify: false }
         )
-        if (res1.nModified) {
+            .select('followers')
+            .lean()
+            .exec()
+        if (club) {
             await Reputation.updateOne(
-                {
-                    _id: reputationId,
-                },
+                { _id: reputationId },
                 { $set: { admin: true, banned: false } },
                 { useFindAndModify: false }
             )
 
-            await Account.updateOne(
-                { _id: residentId, 'reputations.reputationId': reputationId },
+            const newNotificationId = await System.getNotificationId()
+            await Account.updateMany(
+                { _id: { $in: [...club.followers, residentId] } },
                 {
                     $push: {
-                        myNotifications: notification(-50),
-                        followingClubs: clubId,
+                        notifications: {
+                            $each: [
+                                {
+                                    user: residentId,
+                                    code: 'became admin',
+                                    details: { clubId },
+                                    notId: newNotificationId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
                     },
-                    $set: { 'reputations.$.admin': true },
                 },
                 { useFindAndModify: false }
             )
@@ -338,28 +348,17 @@ const leaveResidence = async (req) => {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not an admin')
         }
 
-        const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    user: accountId,
-                    code: 'left residence',
-                    details: { clubId },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: -20,
-        }
-
-        await Club.updateOne(
+        const club = await Club.findOneAndUpdate(
             { _id: clubId },
             {
-                $pull: { adminReputations: { reputationId } },
-                $push: { notifications: notification },
+                $pull: { adminReputations: reputationId },
                 $inc: { adminsCount: -1 },
             },
             { useFindAndModify: false }
         )
+            .select('followers')
+            .lean()
+            .exec()
 
         await Reputation.updateOne(
             { _id: reputationId },
@@ -367,11 +366,28 @@ const leaveResidence = async (req) => {
             { useFindAndModify: false }
         )
 
-        await Account.updateOne(
-            { _id: accountId, 'reputations.reputationId': reputationId },
-            { $set: { 'reputations.$.admin': false } },
-            { useFindAndModify: false }
-        )
+        if (club && club.followers.length) {
+            const newNotificationId = await System.getNotificationId()
+            await Account.updateMany(
+                { _id: { $in: [...club.followers] } },
+                {
+                    $push: {
+                        notifications: {
+                            $each: [
+                                {
+                                    user: accountId,
+                                    code: 'left residence',
+                                    details: { clubId },
+                                    notId: newNotificationId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
+                    },
+                },
+                { useFindAndModify: false }
+            )
+        }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -389,20 +405,8 @@ const requestResidence = async (req) => {
         if (reputationLean.admin) {
             throw new ApiError(httpStatus.CONFLICT, 'Already admin')
         }
-        const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    user: accountId,
-                    code: 'request residence',
-                    details: { clubId },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: -20,
-        }
 
-        const res = await Club.updateOne(
+        const club = await Club.findOneAndUpdate(
             {
                 _id: clubId,
                 adminsCount: { $lt: value.maxAdmins },
@@ -410,7 +414,6 @@ const requestResidence = async (req) => {
             },
             {
                 $push: {
-                    notifications: notification,
                     residenceRequests: {
                         message,
                         contact,
@@ -421,8 +424,39 @@ const requestResidence = async (req) => {
             },
             { useFindAndModify: false }
         )
-        if (!res.nModified)
-            throw new ApiError(httpStatus.CONFLICT, 'Already requested')
+            .select('adminReputations')
+            .lean()
+            .exec()
+        if (club && club.adminReputations.length) {
+            const reputations = await Reputation.find({
+                _id: { $in: club.adminReputations },
+            })
+                .select('owner')
+                .lean()
+                .exec()
+            if (reputations.length) {
+                const newNotificationId = await System.getNotificationId()
+                await Account.updateMany(
+                    { _id: { $in: reputations.map((rep) => rep.owner) } },
+                    {
+                        $push: {
+                            notifications: {
+                                $each: [
+                                    {
+                                        user: accountId,
+                                        code: 'request residence',
+                                        details: { clubId },
+                                        notId: newNotificationId,
+                                    },
+                                ],
+                                $slice: -50,
+                            },
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+            }
+        } else throw new ApiError(httpStatus.CONFLICT, 'Already requested')
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -445,26 +479,13 @@ const acceptResidenceRequest = async (req) => {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not an admin')
         }
 
-        const newNotificationId = await System.getNotificationId()
-        const notification = (slice) => ({
-            $each: [
-                {
-                    user: accountId,
-                    code: 'accept residence request',
-                    details: { clubId, residentId },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: slice || -20,
-        })
-
         const reputationLean = await getReputationId(residentId, clubId, true)
         if (reputationLean.admin) {
             throw new ApiError(httpStatus.CONFLICT, 'Already admin')
         }
         const reputationId = reputationLean._id.toString()
 
-        const res = await Club.updateOne(
+        const club = await Club.findOneAndUpdate(
             {
                 _id: clubId,
                 adminsCount: { $lt: value.maxAdmins },
@@ -473,30 +494,41 @@ const acceptResidenceRequest = async (req) => {
             {
                 $pull: { residenceRequests: { _id: requestId } },
                 $push: {
-                    adminReputations: { reputationId, accountId: residentId },
-                    notifications: notification(),
+                    adminReputations: reputationId,
                     followers: residentId,
                 },
                 $inc: { adminsCount: 1, followersCount: 1 },
             },
             { useFindAndModify: false }
         )
+            .select('followers')
+            .lean()
+            .exec()
 
-        if (res.nModified) {
+        if (club) {
             await Reputation.updateOne(
                 { _id: reputationId },
                 { $set: { admin: true, banned: false } },
                 { useFindAndModify: false }
             )
 
-            await Account.updateOne(
-                { _id: residentId, 'reputations.reputationId': reputationId },
+            const newNotificationId = await System.getNotificationId()
+            await Account.updateMany(
+                { _id: { $in: [...club.followers, residentId] } },
                 {
                     $push: {
-                        myNotifications: notification(-50),
-                        followingClubs: clubId,
+                        notifications: {
+                            $each: [
+                                {
+                                    user: accountId,
+                                    code: 'accept residence request',
+                                    details: { clubId, residentId },
+                                    notId: newNotificationId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
                     },
-                    $set: { 'reputations.$.admin': true },
                 },
                 { useFindAndModify: false }
             )
@@ -548,7 +580,7 @@ const declineResidenceRequest = async (req) => {
 
         await Account.updateOne(
             { _id: residentId },
-            { $push: { myNnotifications: notification } },
+            { $push: { notifications: notification } },
             { useFindAndModify: false }
         )
 
@@ -576,27 +608,37 @@ const editStartRule = async (req) => {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
 
-        const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    user: accountId,
-                    code: 'changed rules',
-                    details: { clubId, rule: ruleValue },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: -50,
-        }
-
-        await Club.updateOne(
+        const club = await Club.findOneAndUpdate(
             { _id: clubId },
-            {
-                $set: { startConversation: ruleValue },
-                $push: { notifications: notification },
-            },
+            { $set: { startConversation: ruleValue } },
             { useFindAndModify: false }
         )
+            .select('followers')
+            .lean()
+            .exec()
+
+        if (club && club.followers.length) {
+            const newNotificationId = await System.getNotificationId()
+            await Account.updateMany(
+                { _id: { $in: [...club.followers] } },
+                {
+                    $push: {
+                        notifications: {
+                            $each: [
+                                {
+                                    user: accountId,
+                                    code: 'changed rules',
+                                    details: { clubId, rule: ruleValue },
+                                    notId: newNotificationId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
+                    },
+                },
+                { useFindAndModify: false }
+            )
+        }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -633,7 +675,7 @@ const ban = async (req) => {
         }
 
         const reputation = await Reputation.findOneAndUpdate(
-            { _id: reputationId, club: clubId, admin: false },
+            { _id: reputationId, admin: false },
             { $set: { banned: banning } },
             { useFindAndModify: false }
         )

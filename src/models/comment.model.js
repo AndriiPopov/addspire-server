@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
-const privatePaths = require('mongoose-private-paths')
 
 const { mongoLength } = require('../config/fieldLength')
 const basicVotes = require('./basicModel/basicVotes')
@@ -9,7 +8,6 @@ const { increaseVersion } = require('./plugins')
 const commentSchema = new mongoose.Schema(
     {
         ...basicVotes,
-        owner: String,
         reputation: String,
         text: {
             type: String,
@@ -25,8 +23,9 @@ const commentSchema = new mongoose.Schema(
         editedDate: {
             type: Date,
         },
-        isReply: Boolean,
+        owner: String,
         club: String,
+        isReply: Boolean,
         resource: String,
         resourceType: String,
     },
@@ -34,7 +33,6 @@ const commentSchema = new mongoose.Schema(
 )
 
 commentSchema.plugin(mongoosePaginate)
-commentSchema.plugin(privatePaths, { prefix: '-' })
 
 commentSchema.pre(
     [

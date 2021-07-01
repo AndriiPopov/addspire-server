@@ -1,6 +1,13 @@
 const httpStatus = require('http-status')
 
-const { Account, Reputation, System, Comment, Question } = require('../models')
+const {
+    Account,
+    Reputation,
+    System,
+    Comment,
+    Question,
+    Club,
+} = require('../models')
 const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
@@ -28,7 +35,6 @@ const createComment = async (req) => {
                 'Converstion does not exist'
             )
         }
-
         const clubId = resource.club
         const questionId = isQuestion ? resourceId : resource.question
 
@@ -49,20 +55,6 @@ const createComment = async (req) => {
 
         await comment.save()
 
-        const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    user: accountId,
-                    code: 'commented',
-                    details: {
-                        id: comment._id,
-                    },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: -20,
-        }
         await Account.updateOne(
             { _id: accountId },
             {
@@ -72,40 +64,77 @@ const createComment = async (req) => {
             },
             { useFindAndModify: false }
         )
-
-        await Reputation.updateOne(
-            { _id: reputationLean._id },
-            {
-                $push: {
-                    comments: comment._id,
-                    notifications: notification,
+        let followers = []
+        if (isQuestion) {
+            const question = await model
+                .findOneAndUpdate(
+                    { _id: resourceId },
+                    {
+                        $push: {
+                            comments: comment._id,
+                            followers: accountId,
+                        },
+                        $inc: {
+                            followersCount: isQuestion ? 1 : 0,
+                            commentsCount: 1,
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+                .select('followers')
+                .lean()
+                .exec()
+            followers = question?.followers
+        } else {
+            await model.updateOne(
+                { _id: resourceId },
+                {
+                    $push: {
+                        comments: comment._id,
+                    },
+                    $inc: {
+                        commentsCount: 1,
+                    },
                 },
-            },
-            { useFindAndModify: false }
-        )
-
-        await model.updateOne(
-            { _id: resourceId },
-            {
-                $push: {
-                    comments: comment._id,
-                    ...(isQuestion
-                        ? { followers: accountId, notifications: notification }
-                        : {}),
-                },
-                $inc: { followersCount: isQuestion ? 1 : 0, commentsCount: 1 },
-            },
-            { useFindAndModify: false }
-        )
-        if (!isQuestion) {
-            await Question.updateOne(
+                { useFindAndModify: false }
+            )
+            const question = await Question.findOneAndUpdate(
                 { _id: questionId },
                 {
                     $push: {
                         followers: accountId,
-                        notifications: notification,
                     },
                     $inc: { followersCount: 1 },
+                },
+                { useFindAndModify: false }
+            )
+                .select('followers')
+                .lean()
+                .exec()
+            followers = question?.followers
+        }
+
+        if (followers.length) {
+            const newNotificationId = await System.getNotificationId()
+
+            await Account.updateOne(
+                { _id: followers },
+                {
+                    $push: {
+                        feed: {
+                            $each: [
+                                {
+                                    user: accountId,
+                                    code: 'commented',
+                                    details: {
+                                        id: comment._id,
+                                    },
+                                    notId: newNotificationId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
+                    },
                 },
                 { useFindAndModify: false }
             )

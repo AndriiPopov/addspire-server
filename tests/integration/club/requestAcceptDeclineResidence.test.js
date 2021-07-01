@@ -124,7 +124,7 @@ describe('POST /api/club/invite', () => {
 
         await decline(3, userId1, reqId1, httpStatus.UNAUTHORIZED)
         await decline(0, userId1, {}, httpStatus.BAD_REQUEST)
-        await decline(0, userId1, reqId1, httpStatus.CONFLICT, 'dasdasd')
+        await decline(0, userId1, reqId1, httpStatus.BAD_REQUEST, 'dasdasd')
         await decline(0, userId1, reqId1)
 
         const club2 = await Club.findById(clubId)
@@ -162,9 +162,8 @@ describe('POST /api/club/invite', () => {
 
         await accept(3, userId1, reqId3, httpStatus.UNAUTHORIZED)
         await accept(0, userId1, {}, httpStatus.BAD_REQUEST)
-        await accept(0, userId1, reqId3, httpStatus.UNAUTHORIZED, 'dasdasd')
+        await accept(0, userId1, reqId3, httpStatus.BAD_REQUEST, 'dasdasd')
         await accept(0, userId1, reqId3)
-
         const club4 = await Club.findById(clubId)
         expect(club4).not.toBeNull()
 
@@ -173,31 +172,20 @@ describe('POST /api/club/invite', () => {
         ).toEqual(-1)
 
         const user1 = await Account.findById(userId1).lean()
-        const reputationInUser1 = user1.reputations.find(
-            (rep) => rep.clubId === clubId
-        )
-        expect(reputationInUser1.admin).toBeTruthy()
 
+        const reputationObj1 = await Reputation.findOne({
+            club: clubId,
+            owner: userId1,
+        })
+        const reputationId1 = reputationObj1._id.toString()
         const req4 = club4.residenceRequests.find(
             (i) => i.accountId === userId1
         )
         expect(req4).not.toBeDefined()
 
-        const reputation1 = club4.adminReputations.find(
-            (i) => i.accountId === userId1
-        )
-        expect(reputation1).toBeDefined()
-        const reputationId1 = reputation1.reputationId.toString()
-        const reputationObj1 = await Reputation.findById(reputationId1)
+        expect(club4.adminReputations).toContain(reputationId1)
         expect(reputationObj1).toBeDefined()
         expect(reputationObj1.admin).toBeTruthy()
-
-        expect(
-            club4.reputations.find((i) => i.reputationId === reputationId1)
-        ).toBeDefined()
-        expect(
-            club4.adminReputations.find((i) => i.reputationId === reputationId1)
-        ).toBeDefined()
 
         expect(club4.adminsCount - club3.adminsCount).toEqual(1)
         expect(club4.adminsCount).toEqual(club4.adminReputations.length)

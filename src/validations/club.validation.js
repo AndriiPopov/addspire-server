@@ -1,5 +1,6 @@
 const Joi = require('joi')
 const { JoiLength } = require('../config/fieldLength')
+Joi.objectId = require('joi-objectid')(Joi)
 
 const createClub = {
     body: Joi.object().keys({
@@ -28,14 +29,14 @@ const editClub = {
             .min(JoiLength.description.min)
             .max(JoiLength.description.max),
         image: Joi.string().optional(),
-        clubId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
         tags: Joi.array().items(Joi.string()).optional(),
     }),
 }
 
 const invite = {
     body: Joi.object().keys({
-        clubId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
     }),
 }
 
@@ -47,20 +48,20 @@ const acceptInvite = {
 
 const addResident = {
     body: Joi.object().keys({
-        clubId: Joi.string().required(),
-        residentId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
+        residentId: Joi.objectId().required(),
     }),
 }
 
 const leaveResidence = {
     body: Joi.object().keys({
-        clubId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
     }),
 }
 
 const requestResidence = {
     body: Joi.object().keys({
-        clubId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
         message: Joi.string()
             .required()
             .min(JoiLength.message.min)
@@ -74,38 +75,38 @@ const requestResidence = {
 
 const acceptResidenceRequest = {
     body: Joi.object().keys({
-        clubId: Joi.string().required(),
-        requestId: Joi.string().required(),
-        residentId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
+        requestId: Joi.objectId().required(),
+        residentId: Joi.objectId().required(),
     }),
 }
 
 const declineResidenceRequest = {
     body: Joi.object().keys({
-        clubId: Joi.string().required(),
-        requestId: Joi.string().required(),
-        residentId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
+        requestId: Joi.objectId().required(),
+        residentId: Joi.objectId().required(),
     }),
 }
 
 const editStartRule = {
     body: Joi.object().keys({
-        clubId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
         value: Joi.string().required().valid('any', '10', '100', 'resident'),
     }),
 }
 
 const ban = {
     body: Joi.object().keys({
-        clubId: Joi.string().required(),
-        reputationId: Joi.string().required(),
+        clubId: Joi.objectId().required(),
+        reputationId: Joi.objectId().required(),
         banning: Joi.boolean().optional(),
     }),
 }
 
 const editReputation = {
     body: Joi.object().keys({
-        reputationId: Joi.string().required(),
+        reputationId: Joi.objectId().required(),
         description: Joi.string()
             .required()
             .min(JoiLength.description.min)

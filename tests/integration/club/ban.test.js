@@ -14,14 +14,13 @@ describe('POST /api/account/ban', () => {
         const user = await Account.findOne({
             facebookProfile: 'f_2',
         }).lean()
+        const userId = user._id
 
-        const oldReputation = user.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).not.toBeNull()
-        const { reputationId } = oldReputation
-        const oldReputationObj = await Reputation.findById(reputationId)
-        expect(oldReputationObj).not.toBeNull()
+        const oldReputation = await Reputation.findOne({
+            club: clubId,
+            owner: userId,
+        }).lean()
+        const reputationId = oldReputation._id
 
         await request(app)
             .post('/api/club/ban')
@@ -33,8 +32,8 @@ describe('POST /api/account/ban', () => {
             })
             .expect(httpStatus.OK)
 
-        const reputationObj = await Reputation.findById(reputationId).lean()
-        expect(reputationObj.banned).toBeTruthy()
+        const reputation = await Reputation.findById(reputationId).lean()
+        expect(reputation.banned).toBeTruthy()
 
         await request(app)
             .post('/api/resource/create')
@@ -83,14 +82,13 @@ describe('POST /api/account/ban', () => {
         const user = await Account.findOne({
             facebookProfile: 'f_1',
         }).lean()
+        const userId = user._id
 
-        const oldReputation = user.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).not.toBeNull()
-        const { reputationId } = oldReputation
-        const oldReputationObj = await Reputation.findById(reputationId)
-        expect(oldReputationObj).not.toBeNull()
+        const oldReputation = await Reputation.findOne({
+            club: clubId,
+            owner: userId,
+        }).lean()
+        const reputationId = oldReputation._id
 
         await request(app)
             .post('/api/club/ban')
@@ -115,14 +113,13 @@ describe('POST /api/account/ban', () => {
         const user = await Account.findOne({
             facebookProfile: 'f_0',
         }).lean()
+        const userId = user._id
 
-        const oldReputation = user.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).not.toBeNull()
-        const { reputationId } = oldReputation
-        const oldReputationObj = await Reputation.findById(reputationId)
-        expect(oldReputationObj).not.toBeNull()
+        const oldReputation = await Reputation.findOne({
+            club: clubId,
+            owner: userId,
+        }).lean()
+        const reputationId = oldReputation._id
 
         await request(app)
             .post('/api/club/ban')
@@ -147,14 +144,13 @@ describe('POST /api/account/ban', () => {
         const user = await Account.findOne({
             facebookProfile: 'f_1',
         }).lean()
+        const userId = user._id
 
-        const oldReputation = user.reputations.find(
-            (item) => item.clubId === clubId
-        )
-        expect(oldReputation).not.toBeNull()
-        const { reputationId } = oldReputation
-        const oldReputationObj = await Reputation.findById(reputationId)
-        expect(oldReputationObj).not.toBeNull()
+        const oldReputation = await Reputation.findOne({
+            club: clubId,
+            owner: userId,
+        }).lean()
+        const reputationId = oldReputation._id
 
         await request(app)
             .post('/api/club/ban')

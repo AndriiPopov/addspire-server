@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const privatePaths = require('mongoose-private-paths')
 const { mongoLength } = require('../config/fieldLength')
 const { increaseVersion } = require('./plugins')
 
@@ -34,7 +33,6 @@ const pluginSchema = new mongoose.Schema(
     },
     { minimize: false }
 )
-pluginSchema.plugin(privatePaths, { prefix: '-' })
 
 pluginSchema.pre(
     [

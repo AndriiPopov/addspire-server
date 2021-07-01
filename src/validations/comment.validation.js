@@ -1,5 +1,6 @@
 const Joi = require('joi')
 const { JoiLength } = require('../config/fieldLength')
+Joi.objectId = require('joi-objectid')(Joi)
 
 const createComment = {
     body: Joi.object().keys({
@@ -7,7 +8,7 @@ const createComment = {
             .min(JoiLength.message.min)
             .max(JoiLength.message.max)
             .required(),
-        resourceId: Joi.string().required(),
+        resourceId: Joi.objectId().required(),
         resourceType: Joi.string().valid('answer', 'question').required(),
     }),
 }
@@ -18,13 +19,13 @@ const editComment = {
             .required()
             .min(JoiLength.message.min)
             .max(JoiLength.message.max),
-        commentId: Joi.string().required(),
+        commentId: Joi.objectId().required(),
     }),
 }
 
 const deleteComment = {
     body: Joi.object().keys({
-        commentId: Joi.string().required(),
+        commentId: Joi.objectId().required(),
     }),
 }
 

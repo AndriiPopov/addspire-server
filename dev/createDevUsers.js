@@ -1,30 +1,34 @@
+const faker = require('faker')
+const { Account } = require('../src/models')
 const { userCreationService } = require('../src/services')
 
-const createUser = async (id, name) => {
+const createUser = async (id) => {
+    if (await Account.findOne({ facebookProfile: `f_${id}` })) return
+    const ava = faker.image.avatar()
     await userCreationService.createUserFB(
         {
             id,
-            displayName: name,
-            email: 'andrii@gmail.com',
-            picture: 'andrii.jpeg',
-            photos: [{ value: 'andrii.jpeg' }],
+            displayName: faker.name.findName(),
+            email: faker.internet.email(),
+            picture: ava,
+            photos: [{ value: ava }],
         },
         () => {}
     )
 }
 
 module.exports = () => {
-    createUser('0', 'Mike Tyson')
-    createUser('1', 'Clevery Boy')
-    createUser('2', 'Super Cute Girl')
-    createUser('3', 'Older Woman')
-    createUser('4', 'Grimpidy Lampidy Vary')
-    createUser('5', 'Watsin Lihaoma')
-    createUser('6', 'Владимир Владимирович Путин')
-    createUser('7', 'Donald Trump')
-    createUser('8', 'Joe Biden')
-    createUser('9', 'Bondarenko Unitazy')
-    createUser('10', 'Autoservice at Budahdy 14')
-    createUser('11', 'Vicor Gugo')
-    createUser('12', 'Lisa Maltisa')
+    createUser('0')
+    createUser('1')
+    createUser('2')
+    createUser('3')
+    createUser('4')
+    createUser('5')
+    createUser('6')
+    createUser('7')
+    createUser('8')
+    createUser('9')
+    createUser('10')
+    createUser('11')
+    createUser('12')
 }

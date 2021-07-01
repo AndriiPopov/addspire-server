@@ -33,9 +33,6 @@ describe('POST /api/resource/delete', () => {
 
         expect(club).toBeDefined()
 
-        expect(oldClub.questions).toContain(questionId)
-        expect(club.questions).not.toContain(questionId)
-
         expect(oldClub.questionsCount - club.questionsCount).toEqual(1)
     })
     test('should return 201 and successfully delete answer if data is ok and the user is admin', async () => {
@@ -72,9 +69,6 @@ describe('POST /api/resource/delete', () => {
         const question = await Question.findById(questionId).lean()
         expect(question).toBeDefined()
 
-        expect(oldQuestion.answers).toContain(answerId)
-        expect(question.answers).not.toContain(answerId)
-
         expect(oldQuestion.answersCount - question.answersCount).toEqual(1)
     })
     test('should return 400 error if validation fails', async () => {
@@ -82,14 +76,6 @@ describe('POST /api/resource/delete', () => {
             description: 'Here is how to test.',
         }).lean()
         const answerId = oldAnswer._id.toString()
-
-        const oldQuestion = await Question.findOne({
-            name: 'Test question',
-        }).lean()
-        const questionId = oldQuestion._id.toString()
-
-        const oldClub = await Club.findOne({ name: 'Test club 1' }).lean()
-        const clubId = oldClub._id.toString()
 
         await request(app)
             .post('/api/resource/delete')

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
-const privatePaths = require('mongoose-private-paths')
 const { mongoLength } = require('../config/fieldLength')
 
 const notificationSchema = require('./schemas/notification')
@@ -42,7 +41,8 @@ const accountSchema = new mongoose.Schema(
         },
         image: { type: String, default: '' },
         settings: {},
-        myNotifications: [notificationSchema],
+        notifications: [notificationSchema],
+        feed: [notificationSchema],
         lastSeenNot: { type: Number, default: 0 },
         tokens: { type: [String], private: true },
         language: { type: String, default: 'en' },
@@ -62,13 +62,6 @@ const accountSchema = new mongoose.Schema(
             default: 0,
             private: true,
         },
-        reputations: [
-            {
-                clubId: { type: String, required: true },
-                reputationId: { type: String, required: true },
-                admin: { type: Boolean, default: false },
-            },
-        ],
         reputationsCount: {
             type: Number,
             default: 0,
@@ -80,7 +73,6 @@ const accountSchema = new mongoose.Schema(
         following: [String],
         followingClubs: [String],
         followingQuestions: [String],
-        views: Number,
         tags: [basicTag],
         description: {
             type: String,
@@ -92,12 +84,10 @@ const accountSchema = new mongoose.Schema(
             maxlength: mongoLength.description.max,
             minlength: mongoLength.description.min,
         },
-        starredClubs: [String],
     },
     { minimize: false }
 )
 
-accountSchema.plugin(privatePaths, { prefix: '-' })
 accountSchema.plugin(mongoosePaginate)
 
 accountSchema.pre(

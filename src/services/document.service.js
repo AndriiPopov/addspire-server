@@ -28,6 +28,7 @@ const getResource = async (req) => {
             _id: data.ids,
         }
     } catch (error) {
+        console.log(error)
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error
@@ -56,18 +57,24 @@ const pollResource = async (req, res) => {
                 })
                 delete responseIds[resId]
             }
+            // console.log('responseIds after close connection', {
+            //     ...responseIds,
+            //     res: !!res,
+            // })
+            // console.log('poll after close connection', poll)
+            // console.log('currentId after close connection', currentId)
         })
 
         // Subscribe responseId to resourceId by adding it to a list.
         // Compare the version of the resources to the version in redis.
         resources.forEach((key) => {
-            if (pollResources[key]) {
+            if (pollResources[key] && responseIds[resId]) {
                 // If the key has D at the end, remove it.
                 let shortKey = ` ${key}`.slice(1)
                 if (shortKey.indexOf('D') === shortKey.length - 1)
                     shortKey = shortKey.substring(0, shortKey.length - 1)
                 Object.keys(pollResources[key]).forEach(async (id) => {
-                    if (pollResources[key][id]) {
+                    if (pollResources[key][id] && responseIds[resId]) {
                         // Compare the version
                         const clientV = pollResources[key][id]
                         let version = await get(`${shortKey}_${id}`)
@@ -107,7 +114,11 @@ const pollResource = async (req, res) => {
                                 poll[docId] = poll[docId]
                                     ? [...poll[docId], resId]
                                     : [resId]
-                                responseIds[resId].ids.push(docId)
+                                if (
+                                    responseIds[resId] &&
+                                    responseIds[resId].ids
+                                )
+                                    responseIds[resId].ids.push(docId)
                             } else {
                                 // If some versions are not actual, response with actual resources.
                                 const [result, onlineUsers] =
@@ -132,7 +143,14 @@ const pollResource = async (req, res) => {
                 })
             }
         })
+        // console.log('responseIds after start connection', {
+        //     ...responseIds,
+        //     res: !!res,
+        // })
+        // console.log('poll after start connection', poll)
+        // console.log('currentId after start connection', currentId)
     } catch (error) {
+        console.log(error)
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error
