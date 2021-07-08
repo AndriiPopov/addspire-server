@@ -28,9 +28,20 @@ const commentSchema = new mongoose.Schema(
         isReply: Boolean,
         resource: String,
         resourceType: String,
+        question: String,
     },
     { minimize: false }
 )
+
+// Club search and in profile search
+commentSchema.index({
+    reputation: 1,
+    vote: -1,
+})
+
+commentSchema.index({
+    date: -1,
+})
 
 commentSchema.plugin(mongoosePaginate)
 

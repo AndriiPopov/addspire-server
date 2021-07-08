@@ -65,7 +65,7 @@ const createResource = async (req) => {
                 notificationData = {
                     user: accountId,
                     code: 'asked question',
-                    details: { question: resource._id, club: clubId },
+                    details: { questionId: resource._id, club: clubId },
                     notId: newNotificationId,
                 }
                 followers = club.followers
@@ -96,7 +96,7 @@ const createResource = async (req) => {
                     details: {
                         answer: resource._id,
                         club: clubId,
-                        question: questionId,
+                        questionId,
                     },
                     notId: newNotificationId,
                 }
@@ -128,7 +128,7 @@ const createResource = async (req) => {
         )
         if (followers.length)
             await Account.updateMany(
-                { _id: { $in: followers } },
+                { _id: { $in: followers.filter((i) => i !== accountId) } },
                 {
                     $push: {
                         feed: {
@@ -298,7 +298,7 @@ const acceptAnswer = async (req) => {
             { $set: { acceptedAnswer: answerId } },
             { useFindAndModify: false }
         )
-            .select('followers')
+            .select('followers name')
             .lean()
             .exec()
         if (question) {
@@ -313,9 +313,10 @@ const acceptAnswer = async (req) => {
                                 $each: [
                                     {
                                         reputation: value.acceptedAnswer,
-                                        resourceType: 'answer',
+                                        gainType: 'answer',
                                         actionType: 'accepted',
-                                        resourceId: answerId,
+                                        questionId,
+                                        questionName: question.name,
                                     },
                                 ],
                                 $slice: -50,
@@ -329,7 +330,13 @@ const acceptAnswer = async (req) => {
                 const newNotificationId = await System.getNotificationId()
 
                 await Account.updateMany(
-                    { _id: { $in: question.followers } },
+                    {
+                        _id: {
+                            $in: question.followers.filter(
+                                (i) => i !== accountId
+                            ),
+                        },
+                    },
                     {
                         $push: {
                             feed: {
@@ -338,7 +345,7 @@ const acceptAnswer = async (req) => {
                                         user: accountId,
                                         code: 'accepted answer',
                                         details: {
-                                            id: questionId,
+                                            questionId,
                                             answerId,
                                             clubId,
                                         },
@@ -370,13 +377,20 @@ const vote = async (req) => {
 
         const resource = await model
             .findById(resourceId)
-            .select('club owner')
+            .select('club owner question text')
             .lean()
             .exec()
 
         if (!resource) {
             throw new ApiError(httpStatus.CONFLICT, 'No resource')
         }
+
+        const question = await Question.findById(
+            resource.question || resource._id
+        )
+            .select('name')
+            .lean()
+            .exec()
 
         const clubId = resource.club
 
@@ -435,11 +449,15 @@ const vote = async (req) => {
                                 $each: [
                                     {
                                         reputation: repChange,
-                                        resourceType: type,
+                                        gainType: type,
                                         actionType: minus
                                             ? 'voteDown'
                                             : 'voteUp',
-                                        resourceId,
+                                        questionId: question._id,
+                                        questionName: question.name,
+                                        ...(type === 'comment'
+                                            ? { comment: resource.text }
+                                            : {}),
                                     },
                                 ],
                                 $slice: -50,
@@ -456,10 +474,10 @@ const vote = async (req) => {
                             feed: {
                                 $each: [
                                     {
-                                        code: 'voted',
+                                        code: minus ? 'voteDown' : 'voteUp',
                                         details: {
                                             id: resourceId,
-                                            resourceId,
+                                            questionId: question._id,
                                             type,
                                             minus,
                                         },

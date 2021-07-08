@@ -10,4 +10,6 @@ const tagSchema = new mongoose.Schema({
     length: Number,
 })
 
+tagSchema.index({ _id: 1, length: -1 })
+
 module.exports = mongoose.model('Tag', tagSchema)

@@ -10,6 +10,8 @@ const reputationSchema = new mongoose.Schema(
         club: { type: String, index: true },
         clubName: { type: String },
         clubImage: { type: String },
+        clubTags: [basicTag],
+        reputationTags: [basicTag],
         profileTags: [basicTag],
         owner: { type: String, index: true },
         reputation: { type: Number, default: 0 },
@@ -30,8 +32,10 @@ const reputationSchema = new mongoose.Schema(
         gains: [
             {
                 reputation: Number,
-                resourceId: String,
-                resourceType: String,
+                gainType: String,
+                questionId: String,
+                questionName: String,
+                comment: String,
                 actionType: String,
                 date: {
                     type: Date,
@@ -53,6 +57,48 @@ const reputationSchema = new mongoose.Schema(
     },
     { minimize: false }
 )
+
+// General search
+reputationSchema.index({
+    tags: 1,
+})
+
+reputationSchema.index({
+    name: 'text',
+})
+
+// Club search
+reputationSchema.index({
+    club: 1,
+    tags: 1,
+})
+
+reputationSchema.index({
+    club: 1,
+    name: 'text',
+})
+
+// User search
+reputationSchema.index({
+    owner: 1,
+    clubName: 'text',
+})
+
+reputationSchema.index({
+    owner: 1,
+    starred: 1,
+})
+
+// Banned club
+reputationSchema.index({
+    club: 1,
+    banned: 1,
+})
+
+// For sorting
+reputationSchema.index({
+    reputation: -1,
+})
 
 reputationSchema.plugin(mongoosePaginate)
 reputationSchema.pre(

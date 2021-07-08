@@ -88,6 +88,12 @@ describe('POST /api/account/follow', () => {
         })
         const clubId = oldClub._id.toString()
 
+        const oldReputation = await Reputation.findOne({
+            club: clubId,
+            owner: followerId,
+        }).lean()
+        const reputationId = oldReputation._id.toString()
+
         await request(app)
             .post('/api/account/follow')
             .set('accountId', 'f_1')
@@ -107,6 +113,10 @@ describe('POST /api/account/follow', () => {
         expect(following.followers).toContain(followerId)
 
         expect(following.followersCount - oldClub.followersCount).toEqual(1)
+
+        const reputation = await Reputation.findById(reputationId).lean()
+        expect(oldReputation.member).toBeFalsy()
+        expect(reputation.member).toBeTruthy()
 
         await request(app)
             .post('/api/account/follow')
@@ -141,6 +151,10 @@ describe('POST /api/account/follow', () => {
         expect(following.followersCount - newFollowing.followersCount).toEqual(
             1
         )
+
+        const newReputation = await Reputation.findById(reputationId).lean()
+
+        expect(newReputation.member).toBeFalsy()
 
         await request(app)
             .post('/api/account/unfollow')

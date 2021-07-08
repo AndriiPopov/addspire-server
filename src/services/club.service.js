@@ -19,6 +19,7 @@ const createClub = async (req) => {
             admin: true,
             clubName: name,
             clubImage: image,
+            clubTags: tags,
             member: true,
         })
 
@@ -39,6 +40,10 @@ const createClub = async (req) => {
             {
                 $push: {
                     followingClubs: club._id,
+                    reputations: {
+                        reputation: reputation._id,
+                        club: club._id,
+                    },
                 },
                 $inc: { reputationsCount: 1 },
             },
@@ -53,6 +58,7 @@ const createClub = async (req) => {
         reputation.name = accountObj.name
         reputation.image = accountObj.image
         reputation.profileTags = accountObj.tags
+        reputation.tags = accountObj.tags
 
         reputation.club = club._id
         await club.save()
@@ -81,6 +87,9 @@ const createClub = async (req) => {
                                         code: 'created club',
                                         details: {
                                             clubId: club._id,
+                                            clubName: name,
+                                            userName: accountObj.name,
+                                            image,
                                         },
                                         notId: newNotificationId,
                                     },
@@ -135,6 +144,7 @@ const editClub = async (req) => {
                     $set: {
                         clubName: name,
                         clubImage: image,
+                        clubTags: tags,
                     },
                 },
                 { useFindAndModify: false }
@@ -209,7 +219,7 @@ const acceptInvite = async (req) => {
             },
             { useFindAndModify: false }
         )
-            .select('followers')
+            .select('followers name')
             .lean()
             .exec()
         if (club) {
@@ -244,7 +254,11 @@ const acceptInvite = async (req) => {
                                 {
                                     user: accountId,
                                     code: 'became admin',
-                                    details: { clubId: doc.club },
+                                    details: {
+                                        clubId: doc.club,
+                                        clubName: club.name,
+                                        userName: account.name,
+                                    },
                                     notId: newNotificationId,
                                 },
                             ],
@@ -295,7 +309,7 @@ const addResident = async (req) => {
             },
             { useFindAndModify: false }
         )
-            .select('followers')
+            .select('followers name')
             .lean()
             .exec()
         if (club) {
@@ -315,7 +329,11 @@ const addResident = async (req) => {
                                 {
                                     user: residentId,
                                     code: 'became admin',
-                                    details: { clubId },
+                                    details: {
+                                        clubId,
+                                        clubName: club.name,
+                                        userName: account.name,
+                                    },
                                     notId: newNotificationId,
                                 },
                             ],
@@ -356,7 +374,7 @@ const leaveResidence = async (req) => {
             },
             { useFindAndModify: false }
         )
-            .select('followers')
+            .select('followers name')
             .lean()
             .exec()
 
@@ -377,7 +395,11 @@ const leaveResidence = async (req) => {
                                 {
                                     user: accountId,
                                     code: 'left residence',
-                                    details: { clubId },
+                                    details: {
+                                        clubId,
+                                        clubName: club.name,
+                                        userName: account.name,
+                                    },
                                     notId: newNotificationId,
                                 },
                             ],
@@ -424,7 +446,7 @@ const requestResidence = async (req) => {
             },
             { useFindAndModify: false }
         )
-            .select('adminReputations')
+            .select('adminReputations name')
             .lean()
             .exec()
         if (club && club.adminReputations.length) {
@@ -445,7 +467,11 @@ const requestResidence = async (req) => {
                                     {
                                         user: accountId,
                                         code: 'request residence',
-                                        details: { clubId },
+                                        details: {
+                                            clubId,
+                                            clubName: club.name,
+                                            userName: account.name,
+                                        },
                                         notId: newNotificationId,
                                     },
                                 ],
@@ -495,13 +521,12 @@ const acceptResidenceRequest = async (req) => {
                 $pull: { residenceRequests: { _id: requestId } },
                 $push: {
                     adminReputations: reputationId,
-                    followers: residentId,
                 },
-                $inc: { adminsCount: 1, followersCount: 1 },
+                $inc: { adminsCount: 1 },
             },
             { useFindAndModify: false }
         )
-            .select('followers')
+            .select('followers name')
             .lean()
             .exec()
 
@@ -520,9 +545,12 @@ const acceptResidenceRequest = async (req) => {
                         notifications: {
                             $each: [
                                 {
-                                    user: accountId,
+                                    user: residentId,
                                     code: 'accept residence request',
-                                    details: { clubId, residentId },
+                                    details: {
+                                        clubId,
+                                        clubName: club.name,
+                                    },
                                     notId: newNotificationId,
                                 },
                             ],
@@ -566,27 +594,33 @@ const declineResidenceRequest = async (req) => {
         }
 
         const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    user: accountId,
-                    code: 'decline residence request',
-                    details: { clubId, residentId },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: -50,
-        }
+
+        const club = await Club.findOneAndUpdate(
+            { _id: clubId },
+            { $pull: { residenceRequests: { _id: requestId } } },
+            { useFindAndModify: false }
+        )
+            .select('name')
+            .lean()
+            .exec()
 
         await Account.updateOne(
             { _id: residentId },
-            { $push: { notifications: notification } },
-            { useFindAndModify: false }
-        )
-
-        await Club.updateOne(
-            { _id: clubId },
-            { $pull: { residenceRequests: { _id: requestId } } },
+            {
+                $push: {
+                    notifications: {
+                        $each: [
+                            {
+                                user: residentId,
+                                code: 'decline residence request',
+                                details: { clubId, clubName: club.name },
+                                notId: newNotificationId,
+                            },
+                        ],
+                        $slice: -50,
+                    },
+                },
+            },
             { useFindAndModify: false }
         )
     } catch (error) {
@@ -613,7 +647,7 @@ const editStartRule = async (req) => {
             { $set: { startConversation: ruleValue } },
             { useFindAndModify: false }
         )
-            .select('followers')
+            .select('followers name')
             .lean()
             .exec()
 
@@ -628,7 +662,7 @@ const editStartRule = async (req) => {
                                 {
                                     user: accountId,
                                     code: 'changed rules',
-                                    details: { clubId, rule: ruleValue },
+                                    details: { clubId, clubName: club.name },
                                     notId: newNotificationId,
                                 },
                             ],
@@ -662,17 +696,6 @@ const ban = async (req) => {
         }
 
         const newNotificationId = await System.getNotificationId()
-        const notification = {
-            $each: [
-                {
-                    user: accountId,
-                    code: banning ? 'ban' : 'unban',
-                    details: { clubId, reputationId },
-                    notId: newNotificationId,
-                },
-            ],
-            $slice: -50,
-        }
 
         const reputation = await Reputation.findOneAndUpdate(
             { _id: reputationId, admin: false },
@@ -690,7 +713,21 @@ const ban = async (req) => {
             )
             await Account.updateOne(
                 { _id: reputation.owner },
-                { $push: { notifications: notification } },
+                {
+                    $push: {
+                        notifications: {
+                            $each: [
+                                {
+                                    user: accountId,
+                                    code: banning ? 'ban' : 'unban',
+                                    details: { reputationId },
+                                    notId: newNotificationId,
+                                },
+                            ],
+                            $slice: -50,
+                        },
+                    },
+                },
                 { useFindAndModify: false }
             )
         } else {
@@ -711,13 +748,28 @@ const editReputation = async (req) => {
 
         const result = await Reputation.updateOne(
             { _id: reputationId, owner: accountId },
-            { $set: { description, tags } },
+            { $set: {} },
             { useFindAndModify: false }
         )
 
         if (!result.nModified) {
             throw new ApiError(httpStatus.CONFLICT, 'badRequest')
         }
+        await Reputation.updateOne(
+            { _id: reputationId, owner: accountId },
+            [
+                {
+                    $set: {
+                        description,
+                        reputationTags: tags,
+                        tags: {
+                            $setUnion: [tags, '$profileTags'],
+                        },
+                    },
+                },
+            ],
+            { useFindAndModify: false }
+        )
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')

@@ -13,7 +13,6 @@ const accountSchema = new mongoose.Schema(
             required: true,
             maxlength: mongoLength.name.max,
             minlength: mongoLength.name.min,
-            index: true,
         },
         googleProfile: {
             type: String,
@@ -84,9 +83,25 @@ const accountSchema = new mongoose.Schema(
             maxlength: mongoLength.description.max,
             minlength: mongoLength.description.min,
         },
+        reputations: {
+            type: [
+                {
+                    reputation: String,
+                    club: String,
+                },
+            ],
+            default: [],
+        },
+        expoTokens: [String],
     },
     { minimize: false }
 )
+
+// General search
+accountSchema.index({ tags: 1 })
+accountSchema.index({ name: 'text' })
+accountSchema.index({ reputationsCount: -1 })
+accountSchema.index({ expoTokens: 1 })
 
 accountSchema.plugin(mongoosePaginate)
 

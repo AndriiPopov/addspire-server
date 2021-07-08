@@ -51,6 +51,7 @@ const createComment = async (req) => {
             resource: resourceId,
             resourceType,
             reputation: reputationLean._id,
+            question: questionId,
         })
 
         await comment.save()
@@ -118,7 +119,7 @@ const createComment = async (req) => {
             const newNotificationId = await System.getNotificationId()
 
             await Account.updateOne(
-                { _id: followers },
+                { _id: { $in: followers.filter((i) => i !== accountId) } },
                 {
                     $push: {
                         feed: {
@@ -127,7 +128,7 @@ const createComment = async (req) => {
                                     user: accountId,
                                     code: 'commented',
                                     details: {
-                                        id: comment._id,
+                                        questionId,
                                     },
                                     notId: newNotificationId,
                                 },

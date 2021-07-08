@@ -11,6 +11,7 @@ const systemSchema = new mongoose.Schema({
         default: 0,
     },
     notifications: [],
+    lastReplenishDate: String,
 })
 
 const System = mongoose.model('System', systemSchema)

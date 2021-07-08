@@ -24,6 +24,40 @@ const questionSchema = new mongoose.Schema(
     { minimize: false }
 )
 
+// General search
+questionSchema.index({
+    tags: 1,
+})
+
+questionSchema.index({
+    name: 'text',
+})
+
+// Club search
+questionSchema.index({
+    club: 1,
+    tags: 1,
+})
+
+questionSchema.index({
+    club: 1,
+    name: 'text',
+})
+
+// Profile search
+questionSchema.index({
+    reputation: 1,
+})
+
+// For sorting
+questionSchema.index({
+    vote: -1,
+})
+
+questionSchema.index({
+    date: -1,
+})
+
 questionSchema.plugin(mongoosePaginate)
 questionSchema.pre(
     [

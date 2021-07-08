@@ -31,6 +31,25 @@ const answerSchema = new mongoose.Schema(
     { minimize: false }
 )
 
+// Profile search
+answerSchema.index({
+    reputation: 1,
+})
+
+// Question search
+answerSchema.index({
+    question: 1,
+})
+
+// For sorting
+answerSchema.index({
+    vote: -1,
+})
+
+answerSchema.index({
+    date: -1,
+})
+
 answerSchema.plugin(mongoosePaginate)
 answerSchema.pre(
     [

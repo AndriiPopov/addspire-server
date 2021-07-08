@@ -2,6 +2,7 @@ const httpStatus = require('http-status')
 const { System, Club, Account, Reputation } = require('../models')
 const ApiError = require('../utils/ApiError')
 
+const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
 const { saveTags } = require('./tag.service')
 
@@ -33,6 +34,15 @@ const follow = async (req) => {
             { useFindAndModify: false }
         )
 
+        if (type === 'club') {
+            const reputationLean = await getReputationId(accountId, resourceId)
+
+            await Reputation.updateOne(
+                { _id: reputationLean._id },
+                { $set: { member: true } },
+                { useFindAndModify: false }
+            )
+        }
         if (result.nModified) {
             const model = getModelFromType(type)
             const resource = await model
@@ -48,21 +58,23 @@ const follow = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
-                .select('user')
+                .select('user clubName clubImage club')
                 .lean()
                 .exec()
             if (resource && resource.user && type === 'reputation') {
                 await Account.updateOne(
                     { _id: resource.user },
                     {
-                        push: {
-                            myNotifications: {
+                        $push: {
+                            notifications: {
                                 $each: [
                                     {
                                         user: accountId,
                                         code: 'follow',
                                         details: {
-                                            accountId: resourceId,
+                                            clubProfileId: resourceId,
+                                            clubName: resource.clubName,
+                                            image: resource.clubImage,
                                         },
                                         notId: newNotificationId,
                                     },
@@ -97,6 +109,13 @@ const unfollow = async (req) => {
             { $pull: { [prefix]: resourceId } },
             { useFindAndModify: false }
         )
+        if (type === 'club') {
+            await Reputation.updateOne(
+                { owner: accountId, club: resourceId },
+                { $set: { member: false } },
+                { useFindAndModify: false }
+            )
+        }
         if (result.nModified) {
             const model = getModelFromType(type)
             await model.updateOne(
@@ -196,16 +215,20 @@ const editAccount = async (req) => {
         saveTags(tags)
         if (res1.nModified) {
             await Reputation.updateMany(
-                {
-                    owner: accountId,
-                },
-                {
-                    $set: {
-                        name,
-                        image,
-                        profileTags: tags,
+                { owner: accountId },
+                [
+                    {
+                        $set: {
+                            name,
+                            image,
+                            profileTags: tags,
+                            tags: {
+                                $setUnion: ['$reputationTags', tags],
+                            },
+                        },
                     },
-                },
+                ],
+
                 { useFindAndModify: false }
             )
         } else {
@@ -227,19 +250,71 @@ const seenNotification = async (req) => {
         if (notId === 'all') {
             await Account.updateOne(
                 { _id: accountId },
-                { $set: { 'myNotifications.$.seen': true } },
+                { $set: { 'notifications.$.seen': true } },
                 { useFindAndModify: false }
             )
         } else {
             await Account.updateOne(
                 {
                     _id: accountId,
-                    'myNotifications._id': notId,
+                    'notifications._id': notId,
                 },
-                { $set: { 'myNotifications.$.seen': true } },
+                { $set: { 'notifications.$.seen': true } },
                 { useFindAndModify: false }
             )
         }
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
+const seenFeed = async (req) => {
+    try {
+        const { account } = req
+        const { _id: accountId } = account
+
+        await Account.updateOne(
+            { _id: accountId },
+            { $set: { 'feed.$.seen': true } },
+            { useFindAndModify: false }
+        )
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
+const saveNotificationToken = async (req) => {
+    try {
+        const { account, body } = req
+        const { _id: accountId } = account
+        const { token } = body
+
+        await Account.updateOne(
+            { _id: accountId },
+            { $addToSet: { expoTokens: token } },
+            { useFindAndModify: false }
+        )
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
+const deleteNotificationToken = async (req) => {
+    try {
+        const { body } = req
+        const { token } = body
+
+        await Account.updateOne(
+            { expoTokens: token },
+            { $pull: { expoTokens: token } },
+            { useFindAndModify: false }
+        )
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -254,4 +329,7 @@ module.exports = {
     deleteAccount,
     editAccount,
     seenNotification,
+    seenFeed,
+    saveNotificationToken,
+    deleteNotificationToken,
 }

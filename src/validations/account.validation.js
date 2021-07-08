@@ -30,18 +30,19 @@ const starClub = {
 const editAccount = {
     body: Joi.object().keys({
         name: Joi.string()
-            .optional()
+            .required()
             .min(JoiLength.message.min)
             .max(JoiLength.message.max),
         description: Joi.string()
-            .optional()
+            .required()
             .min(JoiLength.description.min)
             .max(JoiLength.description.max),
         contact: Joi.string()
             .optional()
             .min(JoiLength.description.min)
-            .max(JoiLength.description.max),
-        image: Joi.string().optional(),
+            .max(JoiLength.description.max)
+            .allow(''),
+        image: Joi.string().required(),
         tags: Joi.array().items(Joi.string()).optional(),
     }),
 }
@@ -52,6 +53,12 @@ const seenNotification = {
     }),
 }
 
+const saveNotificationToken = {
+    body: Joi.object().keys({
+        token: Joi.objectId().required(),
+    }),
+}
+
 module.exports = {
     follow,
     unfollow,
@@ -59,4 +66,5 @@ module.exports = {
     starClub,
     editAccount,
     seenNotification,
+    saveNotificationToken,
 }

@@ -1,4 +1,6 @@
+const httpStatus = require('http-status')
 const { Club, Reputation, Account } = require('../models')
+const ApiError = require('./ApiError')
 
 module.exports = async (accountId, clubId, withData) => {
     let reputation = await Reputation.findOne({
@@ -19,35 +21,42 @@ module.exports = async (accountId, clubId, withData) => {
             owner: accountId,
             club: clubId,
         })
-        await reputation.save()
 
-        await Club.updateOne(
+        const club = await Club.findOneAndUpdate(
             { _id: clubId },
-            {
-                $push: {
-                    reputations: {
-                        reputationId: reputation._id,
-                        accountId,
-                    },
-                },
-                $inc: { reputationsCount: 1 },
-            },
+            { $inc: { reputationsCount: 1 } },
             { useFindAndModify: false }
         )
+            .select('name image')
+            .lean()
+            .exec()
 
-        await Account.updateOne(
+        const account = await Account.findOneAndUpdate(
             { _id: accountId },
             {
                 $push: {
                     reputations: {
-                        clubId,
-                        reputationId: reputation._id,
+                        club: clubId,
+                        reputation: reputation._id,
                     },
                 },
                 $inc: { reputationsCount: 1 },
             },
             { useFindAndModify: false }
         )
-    }
-    return reputation
+            .select('name image tags')
+            .lean()
+            .exec()
+        if (club && account) {
+            reputation.name = account.name
+            reputation.image = account.image
+            reputation.tags = account.tags
+            reputation.profileTags = account.tags
+            reputation.clubName = club.name
+            reputation.clubImage = club.image
+            await reputation.save()
+            return reputation
+        }
+        throw new ApiError(httpStatus.CONFLICT, 'Not created')
+    } else return reputation
 }

@@ -28,6 +28,7 @@ mongoose
         // Push changes to long poll requests
         pushChanges()
         if (config.env === 'development') createDevUsers()
+        replenish()
     })
 
 // Schedule replenish of reputation, minusToday and plusToday

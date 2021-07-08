@@ -46,6 +46,20 @@ const clubSchema = new mongoose.Schema(
     { minimize: false }
 )
 
+// General search
+clubSchema.index({
+    tags: 1,
+})
+
+clubSchema.index({
+    name: 'text',
+})
+
+// For sorting
+clubSchema.index({
+    reputationsCount: -1,
+})
+
 clubSchema.plugin(mongoosePaginate)
 
 clubSchema.pre(

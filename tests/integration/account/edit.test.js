@@ -36,6 +36,16 @@ describe('POST /api/account/edit', () => {
         expect(oldReputation.profileTags).not.toEqual(['tag1', 'newTagTester'])
 
         await request(app)
+            .post('/api/club/edit-reputation')
+            .set('accountId', 'f_0')
+            .send({
+                reputationId,
+                tags: ['happy', 'mate'],
+                description: 'Super pro is ready!',
+            })
+            .expect(httpStatus.OK)
+
+        await request(app)
             .post('/api/account/edit')
             .set('accountId', 'f_0')
             .send({
@@ -70,6 +80,12 @@ describe('POST /api/account/edit', () => {
         expect(reputation.name).toEqual('Test Tester1')
         expect(reputation.image).toEqual('testImage.jpeg')
         expect(reputation.profileTags).toEqual(['tag1', 'newTagTester'])
+        expect(reputation.tags).toEqual([
+            'happy',
+            'mate',
+            'newTagTester',
+            'tag1',
+        ])
     })
 
     test('should return 400 error if  validation fails', async () => {

@@ -52,7 +52,7 @@ const auth = () => async (req, res, next) => {
                             }
 
                             req.account = await Account.findById(decodedRT.sub)
-                                .select('logoutAllDate')
+                                .select('logoutAllDate name image')
                                 .lean()
                                 .exec()
                             if (!req.account) {

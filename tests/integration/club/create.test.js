@@ -33,13 +33,23 @@ describe('POST /api/club/create', () => {
 
         const user = await Account.findOne({ facebookProfile: 'f_0' }).lean()
 
-        expect(oldUser.reputationsCount - user.reputationsCount).toEqual(-1)
-        expect(user.followingClubs).toContain(clubId)
-
         const reputation = await Reputation.findOne({
             club: clubId,
             owner: userId,
         }).lean()
+
+        expect(oldUser.reputationsCount - user.reputationsCount).toEqual(-1)
+        expect(user.followingClubs).toContain(clubId)
+        expect(oldUser.reputations.length - user.reputations.length).toEqual(-1)
+
+        const reputationRef = user.reputations.find(
+            (rep) => rep.club === clubId
+        )
+        expect(reputationRef).toMatchObject({
+            club: clubId,
+            reputation: reputation._id.toString(),
+        })
+
         expect(reputation).not.toBeNull()
         expect(reputation.plusToday).toEqual(0)
         expect(reputation.minusToday).toEqual(0)

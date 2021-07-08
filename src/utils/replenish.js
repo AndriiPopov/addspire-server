@@ -1,48 +1,70 @@
-const { Reputation } = require('../models')
+const { Reputation, System } = require('../models')
 
-const unban = () => {
-    Reputation.updateMany(
-        { reputation: { $lt: 0, $gt: -6 } },
-        {
-            $set: {
-                reputation: 0,
-            },
-        },
-        { useFindAndModify: false }
-    )
-    setTimeout(
-        () =>
-            Reputation.updateMany(
-                { reputation: { $lt: -5 } },
+const getTodayDate = () => {
+    const today = new Date()
+    return today.toDateString()
+}
+
+const replenish = async () => {
+    const system = await System.System.findOne({ name: 'system' })
+        .select('lastReplenishDate')
+        .lean()
+        .exec()
+    if (!system) setTimeout(replenish, 30000)
+
+    if (
+        !system.lastReplenishDate ||
+        getTodayDate() !== system.lastReplenishDate
+    ) {
+        await Reputation.updateMany(
+            {},
+            [
                 {
-                    $inc: {
-                        reputation: 5,
+                    $set: {
+                        plusToday: 0,
+                        minusToday: 0,
+                        reputationHistory: {
+                            $concatArrays: [
+                                '$reputationHistory',
+                                [{ reputation: '$reputation' }],
+                            ],
+                        },
                     },
                 },
-                { useFindAndModify: false }
-            ),
-        300000
-    )
-}
-module.exports = () => {
-    Reputation.updateMany(
-        {},
-        [
+            ],
+            { useFindAndModify: false }
+        )
+
+        await Reputation.updateMany(
+            { reputation: { $lt: 0, $gt: -6 } },
             {
                 $set: {
-                    plusToday: 0,
-                    minusToday: 0,
-                    reputationHistory: {
-                        $concatArrays: [
-                            '$reputationHistory',
-                            { reputation: '$reputation' },
-                        ],
-                    },
+                    reputation: 0,
                 },
             },
-        ],
-        { useFindAndModify: false }
-    )
+            { useFindAndModify: false }
+        )
 
-    setTimeout(unban, 300000)
+        await Reputation.updateMany(
+            { reputation: { $lt: -5 } },
+            {
+                $inc: {
+                    reputation: 5,
+                },
+            },
+            { useFindAndModify: false }
+        )
+
+        await System.System.updateOne(
+            { name: 'system' },
+            {
+                $set: {
+                    lastReplenishDate: getTodayDate(),
+                },
+            },
+            { useFindAndModify: false }
+        )
+    }
 }
+
+module.exports = replenish

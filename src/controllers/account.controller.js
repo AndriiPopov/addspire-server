@@ -4,12 +4,12 @@ const { accountService } = require('../services')
 
 const follow = catchAsync(async (req, res) => {
     await accountService.follow(req)
-    res.status(httpStatus.OK).send()
+    res.status(httpStatus.OK).send({ message: 'followed' })
 })
 
 const unfollow = catchAsync(async (req, res) => {
     await accountService.unfollow(req)
-    res.status(httpStatus.OK).send()
+    res.status(httpStatus.OK).send({ message: 'unfollowed' })
 })
 
 const deleteAccount = catchAsync(async (req, res) => {
@@ -32,6 +32,16 @@ const seenNotification = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send()
 })
 
+const seenFeed = catchAsync(async (req, res) => {
+    await accountService.seenFeed(req)
+    res.status(httpStatus.OK).send()
+})
+
+const saveNotificationToken = catchAsync(async (req, res) => {
+    await accountService.saveNotificationToken(req)
+    res.status(httpStatus.OK).send()
+})
+
 module.exports = {
     follow,
     unfollow,
@@ -39,4 +49,6 @@ module.exports = {
     starClub,
     editAccount,
     seenNotification,
+    seenFeed,
+    saveNotificationToken,
 }
