@@ -77,4 +77,3 @@ const checkVote = async (reputation, type) => {
 }
 
 module.exports.checkVote = checkVote
-module.exports.getGrade = getGrade

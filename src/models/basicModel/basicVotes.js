@@ -4,4 +4,5 @@ module.exports = {
     votesUp: [String],
     votesDown: [String],
     vote: { type: Number, default: 0 },
+    voteReputation: { type: Number, default: 0 },
 }

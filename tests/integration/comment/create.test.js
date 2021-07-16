@@ -29,11 +29,9 @@ describe('POST /api/comment/create', () => {
         const comment = await Comment.findOne({
             text: 'This is a very nice article!',
         }).lean()
-        expect(comment).toBeDefined()
         const commentId = comment._id.toString()
 
         const user = await Account.findById(userId).lean()
-        expect(user).toBeDefined()
         expect(oldUser.followingQuestions).not.toContain(questionId)
         expect(user.followingQuestions).toContain(questionId)
 
@@ -73,11 +71,9 @@ describe('POST /api/comment/create', () => {
         const comment = await Comment.findOne({
             text: 'This is a very nice answer!',
         }).lean()
-        expect(comment).toBeDefined()
         const commentId = comment._id.toString()
 
         const user = await Account.findById(userId).lean()
-        expect(user).toBeDefined()
         expect(oldUser.followingQuestions).not.toContain(questionId)
         expect(user.followingQuestions).toContain(questionId)
 

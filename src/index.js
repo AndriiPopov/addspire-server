@@ -1,10 +1,8 @@
 const mongoose = require('mongoose')
-const schedule = require('node-schedule')
 const app = require('./app')
 const config = require('./config/config')
 const logger = require('./config/logger')
 const { pushChanges } = require('./services/pushChanges.service')
-const replenish = require('./utils/replenish')
 const { System } = require('./models')
 const createDevUsers = require('../dev/createDevUsers')
 
@@ -28,11 +26,7 @@ mongoose
         // Push changes to long poll requests
         pushChanges()
         if (config.env === 'development') createDevUsers()
-        replenish()
     })
-
-// Schedule replenish of reputation, minusToday and plusToday
-schedule.scheduleJob('0 * * *', replenish)
 
 const exitHandler = () => {
     if (server) {

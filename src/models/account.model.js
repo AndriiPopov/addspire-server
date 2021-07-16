@@ -65,7 +65,6 @@ const accountSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        seenNots: [String],
         accessToken: { type: String, private: true },
         refreshToken: { type: String, private: true },
         code: { type: String, private: true },
@@ -93,6 +92,28 @@ const accountSchema = new mongoose.Schema(
             default: [],
         },
         expoTokens: [String],
+        wallet: { type: Number, default: 0 },
+        gains: [
+            {
+                coins: Number,
+                questionId: String,
+                questionName: String,
+                actionType: String,
+                date: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
+        walletHistory: [
+            {
+                coins: Number,
+                date: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     { minimize: false }
 )

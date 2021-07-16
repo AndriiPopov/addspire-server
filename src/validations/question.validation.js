@@ -2,11 +2,11 @@ const Joi = require('joi')
 const { JoiLength } = require('../config/fieldLength')
 Joi.objectId = require('joi-objectid')(Joi)
 
-const createResource = {
+const create = {
     body: Joi.object()
         .keys({
             name: Joi.string()
-                .optional()
+                .required()
                 .max(JoiLength.name.max)
                 .min(JoiLength.name.min),
             description: Joi.string()
@@ -15,18 +15,17 @@ const createResource = {
                 .min(JoiLength.description.min),
             images: Joi.array().items(Joi.string()).optional(),
             clubId: Joi.objectId().required(),
-            type: Joi.string().valid('answer', 'question').required(),
-            questionId: Joi.objectId().optional(),
             tags: Joi.array().items(Joi.string()).optional(),
+            bonusCoins: Joi.number().optional().min(0),
         })
         .unknown(true),
 }
 
-const editResource = {
+const edit = {
     body: Joi.object()
         .keys({
             name: Joi.string()
-                .optional()
+                .required()
                 .max(JoiLength.name.max)
                 .min(JoiLength.name.min),
             description: Joi.string()
@@ -36,44 +35,21 @@ const editResource = {
             images: Joi.array().items(Joi.string()).optional(),
             tags: Joi.array().items(Joi.string()).optional(),
             resourceId: Joi.objectId().required(),
-            type: Joi.string().valid('answer', 'question').required(),
+            bonusCoins: Joi.number().optional().min(0),
         })
         .unknown(true),
 }
 
-const deleteResource = {
+const remove = {
     body: Joi.object()
         .keys({
             resourceId: Joi.objectId().required(),
-            type: Joi.string().valid('answer', 'question').required(),
-        })
-        .unknown(true),
-}
-
-const acceptAnswer = {
-    body: Joi.object()
-        .keys({
-            answerId: Joi.objectId().required(),
-        })
-        .unknown(true),
-}
-
-const vote = {
-    body: Joi.object()
-        .keys({
-            minus: Joi.boolean().optional(),
-            resourceId: Joi.objectId().required(),
-            type: Joi.string()
-                .valid('question', 'answer', 'comment')
-                .required(),
         })
         .unknown(true),
 }
 
 module.exports = {
-    createResource,
-    editResource,
-    deleteResource,
-    vote,
-    acceptAnswer,
+    create,
+    edit,
+    remove,
 }

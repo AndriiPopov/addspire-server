@@ -23,8 +23,6 @@ describe('POST /api/comment/edit', () => {
 
         const comment = await Comment.findById(commentId).lean()
 
-        expect(comment).toBeDefined()
-
         expect(comment.author).toEqual(oldComment.author)
         expect(comment.text).toEqual('New value long enough')
     })
@@ -43,8 +41,6 @@ describe('POST /api/comment/edit', () => {
             .expect(httpStatus.OK)
 
         const comment = await Comment.findById(commentId).lean()
-
-        expect(comment).toBeDefined()
 
         expect(comment.author).toEqual(oldComment.author)
         expect(comment.text).toEqual('New value long enough')

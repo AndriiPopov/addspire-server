@@ -1,4 +1,8 @@
-const { Reputation, System } = require('../models')
+const mongoose = require('mongoose')
+const schedule = require('node-schedule')
+const config = require('./config/config')
+
+const { Reputation, System, Account } = require('./models')
 
 const getTodayDate = () => {
     const today = new Date()
@@ -10,12 +14,16 @@ const replenish = async () => {
         .select('lastReplenishDate')
         .lean()
         .exec()
-    if (!system) setTimeout(replenish, 30000)
+    if (!system) {
+        setTimeout(replenish, 30000)
+        return
+    }
 
     if (
         !system.lastReplenishDate ||
         getTodayDate() !== system.lastReplenishDate
     ) {
+        await mongoose.connect(config.mongoose.url, config.mongoose.options)
         await Reputation.updateMany(
             {},
             [
@@ -55,6 +63,23 @@ const replenish = async () => {
             { useFindAndModify: false }
         )
 
+        await Account.updateMany(
+            {},
+            [
+                {
+                    $set: {
+                        walletHistory: {
+                            $concatArrays: [
+                                '$walletHistory',
+                                [{ coins: '$wallet' }],
+                            ],
+                        },
+                    },
+                },
+            ],
+            { useFindAndModify: false }
+        )
+
         await System.System.updateOne(
             { name: 'system' },
             {
@@ -64,7 +89,11 @@ const replenish = async () => {
             },
             { useFindAndModify: false }
         )
+        await mongoose.connection.close()
     }
 }
 
-module.exports = replenish
+replenish()
+
+// Schedule replenish of reputation, minusToday and plusToday
+schedule.scheduleJob('2 * * *', replenish)

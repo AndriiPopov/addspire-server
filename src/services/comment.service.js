@@ -1,13 +1,6 @@
 const httpStatus = require('http-status')
 
-const {
-    Account,
-    Reputation,
-    System,
-    Comment,
-    Question,
-    Club,
-} = require('../models')
+const { Account, System, Comment, Question, Count } = require('../models')
 const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
@@ -85,7 +78,7 @@ const createComment = async (req) => {
                 .select('followers')
                 .lean()
                 .exec()
-            followers = question?.followers
+            followers = question && question.followers
         } else {
             await model.updateOne(
                 { _id: resourceId },
@@ -112,7 +105,7 @@ const createComment = async (req) => {
                 .select('followers')
                 .lean()
                 .exec()
-            followers = question?.followers
+            followers = question && question.followers
         }
 
         if (followers.length) {
@@ -203,7 +196,9 @@ const deleteComment = async (req) => {
 
         const { commentId } = body
         const comment = await Comment.findById(commentId)
-            .select('club resource resourceType')
+            .select(
+                'club resource resourceType question owner vote voteReputation'
+            )
             .lean()
             .exec()
 
@@ -238,9 +233,17 @@ const deleteComment = async (req) => {
                 },
                 { useFindAndModify: false }
             )
-            return { success: true }
-        }
-        throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
+            await Count.updateOne(
+                { question: comment.question },
+                {
+                    $inc: {
+                        [`reputationDestribution.${comment.owner}`]:
+                            -comment.voteReputation,
+                    },
+                },
+                { useFindAndModify: false }
+            )
+        } else throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')

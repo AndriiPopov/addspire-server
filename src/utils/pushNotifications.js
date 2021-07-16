@@ -7,7 +7,7 @@ const { accountService } = require('../services')
 const expo = new Expo()
 
 let allTickets = []
-const sendNotifications = async (expo, messages) => {
+const sendNotifications = async (messages) => {
     const chunks = expo.chunkPushNotifications(messages)
     const tickets = []
     chunks.forEach(async (chunk) => {

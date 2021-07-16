@@ -250,7 +250,7 @@ const seenNotification = async (req) => {
         if (notId === 'all') {
             await Account.updateOne(
                 { _id: accountId },
-                { $set: { 'notifications.$.seen': true } },
+                { $set: { 'notifications.$[].seen': true } },
                 { useFindAndModify: false }
             )
         } else {
@@ -277,7 +277,7 @@ const seenFeed = async (req) => {
 
         await Account.updateOne(
             { _id: accountId },
-            { $set: { 'feed.$.seen': true } },
+            { $set: { 'feed.$[].seen': true } },
             { useFindAndModify: false }
         )
     } catch (error) {

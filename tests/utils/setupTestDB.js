@@ -5,7 +5,9 @@ const { System } = require('../../src/models/system.model')
 const {
     userCreationService,
     clubService,
-    resourceService,
+    questionService,
+    answerService,
+    voteService,
     commentService,
 } = require('../../src/services')
 const { client } = require('../../src/services/redis.service')
@@ -117,11 +119,10 @@ const setupTestDB = () => {
         await acceptInvite(user4._id, await createInvite(user0._id, clubId))
         await acceptInvite(user5._id, await createInvite(user0._id, clubId))
 
-        await resourceService.createResource({
+        await questionService.create({
             account: { _id: user0._id },
             body: {
                 clubId,
-                type: 'question',
                 name: 'Test question',
                 description: 'I want to test.',
                 images: ['test1.jpg'],
@@ -131,34 +132,27 @@ const setupTestDB = () => {
         const question = await Question.findOne({ name: 'Test question' })
         const questionId = question._id.toString()
 
-        await resourceService.createResource({
+        await answerService.create({
             account: { _id: user1._id },
             body: {
-                clubId,
-                type: 'answer',
                 description: 'Here is how to test.',
                 images: ['test2.jpg'],
                 questionId,
             },
         })
 
-        await resourceService.createResource({
+        await answerService.create({
             account: { _id: user0._id },
             body: {
-                clubId,
-                type: 'answer',
                 description: 'Self answer to question',
                 images: ['test2.jpg'],
                 questionId,
             },
         })
 
-        await resourceService.createResource({
+        await answerService.create({
             account: { _id: user2._id },
             body: {
-                clubId,
-                type: 'answer',
-
                 description: 'Here is how to test 2.',
                 images: ['test7.jpg'],
                 questionId,
@@ -176,22 +170,20 @@ const setupTestDB = () => {
             },
         })
 
-        await resourceService.createResource({
+        await questionService.create({
             account: { _id: user2._id },
             body: {
                 clubId,
-                type: 'question',
                 name: 'Test question 2',
                 description: 'I want to test 2.',
                 images: ['test6.jpg'],
             },
         })
 
-        await resourceService.createResource({
+        await questionService.create({
             account: { _id: user1._id },
             body: {
                 clubId,
-                type: 'question',
                 name: 'Test question 3',
                 description: 'I want to test 2.',
                 images: ['test6.jpg'],
@@ -200,11 +192,9 @@ const setupTestDB = () => {
         const question3 = await Question.findOne({ name: 'Test question 3' })
         const questionId3 = question3._id.toString()
 
-        await resourceService.createResource({
+        await answerService.create({
             account: { _id: user2._id },
             body: {
-                clubId,
-                type: 'answer',
                 description: 'Here is how to test 3.',
                 images: ['test7.jpg'],
                 questionId: questionId3,
@@ -216,7 +206,7 @@ const setupTestDB = () => {
         })
         const answerId3 = answer3._id.toString()
 
-        await resourceService.acceptAnswer({
+        await voteService.acceptAnswer({
             account: { _id: user1._id },
             body: {
                 answerId: answerId3,

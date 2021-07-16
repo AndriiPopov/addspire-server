@@ -1,4 +1,4 @@
-const { client } = require('../services/redis.service')
+const { get, client } = require('../services/redis.service')
 
 const {
     Account,
@@ -8,11 +8,12 @@ const {
     Reputation,
     Question,
     Answer,
+    Count,
 } = require('../models')
 const { selectFields } = require('../config/selectFields')
 const removePriveteFields = require('./removePriveteFields')
 
-module.exports = async (data) => {
+module.exports = async (data, req) => {
     if (data.type && data.ids && data.ids.length > 0) {
         let result
         const onlineUsers = []
@@ -97,6 +98,23 @@ module.exports = async (data) => {
                     .exec()
                 if (data.type === 'account') {
                     result.map((doc) => removePriveteFields(doc))
+                }
+                if (data.type === 'question' && data.ids.length) {
+                    if (!req.get('preloading')) {
+                        const { ip } = req
+                        const realIp = req.get('x-forwarded-for') || ip
+
+                        const exists = await get(realIp)
+                        if (!exists) {
+                            client.set(realIp, true, 'EX', 3600)
+
+                            Count.updateOne(
+                                { question: data.ids[0] },
+                                { $inc: { total: 1, day: 1 } },
+                                { useFindAndModify: false }
+                            )
+                        }
+                    }
                 }
                 // Increase views count. This approach has issues with performance as each view initiates update operation
                 // if (

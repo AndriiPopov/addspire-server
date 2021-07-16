@@ -13,7 +13,7 @@ let currentId = 0
 const getResource = async (req) => {
     try {
         const data = req.body
-        const [result, onlineUsers] = await getResourcesFromList(data)
+        const [result, onlineUsers] = await getResourcesFromList(data, req)
 
         if (result && result.length > 0) {
             return {
@@ -28,7 +28,6 @@ const getResource = async (req) => {
             _id: data.ids,
         }
     } catch (error) {
-        console.log(error)
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error
@@ -150,7 +149,6 @@ const pollResource = async (req, res) => {
         // console.log('poll after start connection', poll)
         // console.log('currentId after start connection', currentId)
     } catch (error) {
-        console.log(error)
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error

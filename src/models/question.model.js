@@ -20,6 +20,12 @@ const questionSchema = new mongoose.Schema(
             type: String,
             default: 'no',
         },
+        acceptedAnswerOwner: String,
+        count: String,
+        bonusCoins: Number,
+        bonusPaid: { type: Boolean, default: false },
+        bonusPending: { type: Boolean, default: false },
+        bonusCreatedDate: Date,
     },
     { minimize: false }
 )

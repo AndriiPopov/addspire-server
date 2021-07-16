@@ -24,6 +24,8 @@ if (config.env !== 'test') {
 // set security HTTP headers
 app.use(helmet())
 
+app.set('trust proxy', true)
+
 // parse json request body
 app.use(express.json())
 

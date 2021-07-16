@@ -8,12 +8,13 @@ const {
     Reputation,
     Question,
     Answer,
+    Count,
 } = require('../../../src/models')
 const value = require('../../../src/config/value')
 
 setupTestDB()
 
-describe('POST /api/resource/accept', () => {
+describe('POST /api/vote/accept', () => {
     test('should return 201 and successfully accept answer if data is ok and not to accept another answer', async () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' }).lean()
         const clubId = oldClub._id.toString()
@@ -38,7 +39,7 @@ describe('POST /api/resource/accept', () => {
         const reputationId = oldReputationObj._id.toString()
 
         await request(app)
-            .post('/api/resource/accept')
+            .post('/api/vote/accept')
             .set('accountId', 'f_0')
             .send({
                 answerId,
@@ -71,8 +72,13 @@ describe('POST /api/resource/accept', () => {
             reputationObj.gains.length - oldReputationObj.gains.length
         ).toEqual(1)
 
+        const count = await Count.findById(question.count).lean()
+        expect(count.reputationDestribution).toMatchObject({
+            [userId]: value.acceptedAnswer,
+        })
+
         await request(app)
-            .post('/api/resource/accept')
+            .post('/api/vote/accept')
             .set('accountId', 'f_0')
             .send({
                 answerId,
@@ -84,7 +90,7 @@ describe('POST /api/resource/accept', () => {
         }).lean()
         const answerId2 = oldAnswer2._id.toString()
         await request(app)
-            .post('/api/resource/accept')
+            .post('/api/vote/accept')
             .set('accountId', 'f_0')
             .send({
                 answerId: answerId2,
@@ -116,7 +122,7 @@ describe('POST /api/resource/accept', () => {
         const reputationId = oldReputationObj._id.toString()
 
         await request(app)
-            .post('/api/resource/accept')
+            .post('/api/vote/accept')
             .set('accountId', 'f_0')
             .send({
                 answerId,
@@ -148,7 +154,7 @@ describe('POST /api/resource/accept', () => {
 
     test('should return 400 error if  validation fails', async () => {
         await request(app)
-            .post('/api/resource/accept')
+            .post('/api/vote/accept')
             .set('accountId', 'f_0')
             .send({})
 
