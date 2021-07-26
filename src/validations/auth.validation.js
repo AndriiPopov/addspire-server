@@ -16,7 +16,7 @@ const loginApp = {
     body: Joi.object().keys({
         platform: Joi.string().required(),
         code: Joi.string().required(),
-        web: Joi.boolean().required(),
+        type: Joi.string().required(),
     }),
 }
 

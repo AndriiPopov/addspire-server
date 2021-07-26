@@ -2,7 +2,7 @@ const dotenv = require('dotenv')
 const path = require('path')
 const Joi = require('joi')
 
-dotenv.config({ path: path.join(__dirname, '../../.env') })
+dotenv.config({ path: path.join(__dirname, '../../../.env') })
 
 const envVarsSchema = Joi.object()
     .keys({
@@ -54,4 +54,21 @@ module.exports = {
         envVars.NODE_ENV === 'production'
             ? 'https://addspire.com/'
             : 'localhost:3000/',
+
+    facebook: {
+        id: envVars.FACEBOOK_ID,
+        secret: envVars.FACEBOOK_SECRET,
+    },
+    google: {
+        web: {
+            id: envVars.GOOGLE_ID_WEB,
+            secret: envVars.GOOGLE_SECRET_WEB,
+        },
+        ios: {
+            id: envVars.GOOGLE_ID_IOS,
+        },
+        android: {
+            id: envVars.GOOGLE_ID_ANDROID,
+        },
+    },
 }

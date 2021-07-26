@@ -21,9 +21,10 @@ const refreshTokens = catchAsync(async (req, res, next) => {
 
 const loginApp = catchAsync(async (req, res) => {
     const data = req.body
-    const redirect_uri = data.web
-        ? 'http://addspire.com'
-        : 'https://auth.expo.io/@addspire/Addspire'
+    const redirect_uri =
+        data.type === 'web'
+            ? 'http://addspire.com'
+            : 'https://auth.expo.io/@addspire/Addspire'
 
     const done = async (
         _empty,
@@ -55,6 +56,25 @@ const loginApp = catchAsync(async (req, res) => {
 
     let link = ''
     let creteFunc = () => {}
+
+    const getCredentials = () => {
+        if (data.platform === 'facebook') return config.facebook
+        switch (data.type) {
+            case 'web': {
+                return config.google.web
+            }
+            case 'android': {
+                return config.google.android
+            }
+            case 'ios': {
+                return config.google.ios
+            }
+            default:
+                return {}
+        }
+    }
+    const cred = getCredentials()
+
     switch (data.platform) {
         case 'facebook':
             {
@@ -62,9 +82,9 @@ const loginApp = catchAsync(async (req, res) => {
                     'https://graph.facebook.com/v10.0/oauth/access_token',
                     {
                         params: {
-                            client_id: '781480752562274',
+                            client_id: cred.id,
                             redirect_uri,
-                            client_secret: '02fc2f29e48cf4084e4f78f1d13047f0',
+                            client_secret: cred.secret,
                             code: data.code,
                         },
                     }
