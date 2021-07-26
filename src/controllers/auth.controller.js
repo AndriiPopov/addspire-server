@@ -132,7 +132,7 @@ const loginApp = catchAsync(async (req, res) => {
                 {
                     console.log('make req')
 
-                    const codeResponse = await axios.get(
+                    const codeResponse = await axios.post(
                         'https://oauth2.googleapis.com/token',
                         {
                             params: {
@@ -203,7 +203,7 @@ const loginApp = catchAsync(async (req, res) => {
                 return
         }
 
-        axios.post(link).then(creteFunc)
+        axios.get(link).then(creteFunc)
         // .catch((err) => {
         //     console.log(err)
         //     throw new ApiError(httpStatus.CONFLICT, 'Not created')
