@@ -24,7 +24,7 @@ const loginApp = catchAsync(async (req, res) => {
         const data = req.body
         const redirect_uri =
             data.type === 'web'
-                ? 'http://addspire.com'
+                ? 'https://addspire.com'
                 : 'https://auth.expo.io/@addspire/Addspire'
 
         const done = async (
