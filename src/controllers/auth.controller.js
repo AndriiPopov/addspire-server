@@ -203,7 +203,7 @@ const loginApp = catchAsync(async (req, res) => {
                 return
         }
 
-        axios.get(link).then(creteFunc)
+        axios.post(link).then(creteFunc)
         // .catch((err) => {
         //     console.log(err)
         //     throw new ApiError(httpStatus.CONFLICT, 'Not created')
