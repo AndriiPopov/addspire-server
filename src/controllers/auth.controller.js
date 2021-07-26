@@ -1,15 +1,12 @@
 const httpStatus = require('http-status')
-const jwt = require('jsonwebtoken')
+const axios = require('axios')
 const catchAsync = require('../utils/catchAsync')
 const {
     authService,
     tokenService,
     userCreationService,
 } = require('../services')
-const { tokenTypes } = require('../config/tokens')
-const { Account, Token, Credential } = require('../models')
-const axios = require('axios')
-const ApiError = require('../utils/ApiError')
+const { Account, Credential } = require('../models')
 const config = require('../config/config')
 
 const logout = catchAsync(async (req, res) => {
@@ -72,21 +69,23 @@ const loginApp = catchAsync(async (req, res) => {
                         },
                     }
                 )
-                const accessToken = codeResponse?.data.access_token
-                const refreshToken = codeResponse?.data.refresh_token
-                const expires = codeResponse?.data.expires_in
+                const accessToken =
+                    codeResponse && codeResponse.data.access_token
+                const refreshToken =
+                    codeResponse && codeResponse.data.refresh_token
+                const expires = codeResponse && codeResponse.data.expires_in
                 if (accessToken) {
                     link = `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${accessToken}`
                     creteFunc = (response) => {
                         const profileData = response.data
-                        const picture = profileData.picture?.data?.url
+                        const picture =
+                            profileData.picture &&
+                            profileData.picture.data &&
+                            profileData.picture.data.url
                         userCreationService.createUserFB(
                             {
                                 ...profileData,
-                                displayName:
-                                    profileData.first_name +
-                                    ' ' +
-                                    profileData.last_name,
+                                displayName: `${profileData.first_name} ${profileData.last_name}`,
                                 picture,
                                 photos: [{ value: picture }],
                             },
@@ -120,9 +119,11 @@ const loginApp = catchAsync(async (req, res) => {
                         },
                     }
                 )
-                const accessToken = codeResponse?.data.access_token
-                const refreshToken = codeResponse?.data.refresh_token
-                const expires = codeResponse?.data.expires_in
+                const accessToken =
+                    codeResponse && codeResponse.data.access_token
+                const refreshToken =
+                    codeResponse && codeResponse.data.refresh_token
+                const expires = codeResponse && codeResponse.data.expires_in
                 if (accessToken) {
                     link = `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
                     creteFunc = (response) => {
@@ -168,10 +169,12 @@ const loginApp = catchAsync(async (req, res) => {
                         },
                     }
                 )
-                const accessToken = codeResponse?.data.access_token
+                const accessToken =
+                    codeResponse && codeResponse.data.access_token
 
-                const refreshToken = codeResponse?.data.refresh_token
-                const expires = codeResponse?.data.expires_in
+                const refreshToken =
+                    codeResponse && codeResponse.data.refresh_token
+                const expires = codeResponse && codeResponse.data.expires_in
                 if (accessToken) {
                     link = `https://api.github.com/user`
                     creteFunc = (response) => {
@@ -201,7 +204,7 @@ const loginApp = catchAsync(async (req, res) => {
                     axios
                         .get(link, {
                             headers: {
-                                Authorization: 'token ' + accessToken,
+                                Authorization: `token ${accessToken}`,
                             },
                         })
                         .then(creteFunc)
@@ -229,7 +232,10 @@ const loginApp = catchAsync(async (req, res) => {
                 })
                 return
             }
+            break
         }
+        default:
+            return
     }
 
     axios.get(link).then(creteFunc)
