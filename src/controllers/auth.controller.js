@@ -22,7 +22,7 @@ const refreshTokens = catchAsync(async (req, res, next) => {
 const loginApp = catchAsync(async (req, res) => {
     const data = req.body
     const redirect_uri = data.web
-        ? 'http://localhost:3000/'
+        ? 'http://addspire.com'
         : 'https://auth.expo.io/@addspire/Addspire'
 
     const done = async (
@@ -153,70 +153,7 @@ const loginApp = catchAsync(async (req, res) => {
                 }
             }
             break
-        case 'github':
-            {
-                const codeResponse = await axios.post(
-                    'https://github.com/login/oauth/access_token',
-                    {
-                        client_id: process.env.GithubClientID,
-                        client_secret: process.env.GithubClientSecret,
-                        code: data.code,
-                        redirect_uri: 'http://localhost:3000',
-                    },
-                    {
-                        headers: {
-                            Accept: 'application/json',
-                        },
-                    }
-                )
-                const accessToken =
-                    codeResponse && codeResponse.data.access_token
 
-                const refreshToken =
-                    codeResponse && codeResponse.data.refresh_token
-                const expires = codeResponse && codeResponse.data.expires_in
-                if (accessToken) {
-                    link = `https://api.github.com/user`
-                    creteFunc = (response) => {
-                        const profileData = response.data
-
-                        userCreationService.createUserGH(
-                            {
-                                ...profileData,
-                                displayName: profileData.login,
-                                emails: profileData.email,
-                                photos: [
-                                    {
-                                        value: profileData.avatar_url,
-                                    },
-                                ],
-                            },
-                            (empty, account) =>
-                                done(
-                                    empty,
-                                    account,
-                                    accessToken,
-                                    expires,
-                                    refreshToken
-                                )
-                        )
-                    }
-                    axios
-                        .get(link, {
-                            headers: {
-                                Authorization: `token ${accessToken}`,
-                            },
-                        })
-                        .then(creteFunc)
-                    // .catch((err) => {
-                    //     throw new ApiError(
-                    //         httpStatus.CONFLICT,
-                    //         'Not created'
-                    //     )
-                    // })
-                }
-            }
-            return
         case 'dev': {
             if (config.env === 'development') {
                 const account = await Account.findOne({
