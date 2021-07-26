@@ -89,6 +89,7 @@ const loginApp = catchAsync(async (req, res) => {
                         },
                     }
                 )
+                console.log(codeResponse)
                 const accessToken =
                     codeResponse && codeResponse.data.access_token
                 const refreshToken =
@@ -139,6 +140,7 @@ const loginApp = catchAsync(async (req, res) => {
                         },
                     }
                 )
+                console.log(codeResponse)
                 const accessToken =
                     codeResponse && codeResponse.data.access_token
                 const refreshToken =
