@@ -1,6 +1,6 @@
 const { promisify } = require('util')
 
-const client = require('redis').createClient('127.0.0.1:6379')
+const client = require('redis').createClient(6379)
 
 const get = promisify(client.get).bind(client)
 const mget = promisify(client.mget).bind(client)
