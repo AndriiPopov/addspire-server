@@ -1,0 +1,22 @@
+pm2 restart ecosystem.config.js
+pm2 logs server --lines 100
+pm2 list
+pm2 logs -tail server
+
+
+git pull
+git reset --hard origin/master
+ls
+
+sudo systemctl restart nginx
+nano /etc/nginx/sites-available/default
+
+curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET http://localhost:5000/api/auth
+curl --data "param1=value1&param2=value2" http://localhost:5000/api/unsplash-proxy-empty
+nc -vz localhost 5000
+
+sudo certbot --nginx -d addspire.com
+sudo nano /etc/environment
+
+
+
