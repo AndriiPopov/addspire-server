@@ -255,7 +255,7 @@ const remove = async (req) => {
                             $each: [
                                 {
                                     coins: resource.bonusCoins,
-                                    actionType: 'return bonus',
+                                    actionType: 'return',
                                     questionId: resource._id,
                                     questionName: resource.name,
                                     user: resource.owner,

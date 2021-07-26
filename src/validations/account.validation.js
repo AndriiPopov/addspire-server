@@ -55,7 +55,7 @@ const seenNotification = {
 
 const saveNotificationToken = {
     body: Joi.object().keys({
-        token: Joi.objectId().required(),
+        token: Joi.string().required(),
     }),
 }
 
