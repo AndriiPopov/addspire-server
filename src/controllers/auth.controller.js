@@ -134,6 +134,7 @@ const loginApp = catchAsync(async (req, res) => {
 
                     const codeResponse = await axios.post(
                         'https://oauth2.googleapis.com/token',
+                        null,
                         {
                             params: {
                                 client_id: cred.id,
