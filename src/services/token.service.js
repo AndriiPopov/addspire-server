@@ -57,8 +57,8 @@ const verifyToken = async (token, type) => {
 
 const generateAuthTokens = async (user) => {
     const accessTokenExpires = dayjs().add(
-        config.jwt.accessExpirationMinutes,
-        'minutes'
+        config.jwt.accessExpirationDays,
+        'days'
     )
     const accessToken = generateToken(
         user._id,

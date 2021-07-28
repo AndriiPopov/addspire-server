@@ -6,7 +6,7 @@ const {
     tokenService,
     userCreationService,
 } = require('../services')
-const { Account, Credential } = require('../models')
+const { Account } = require('../models')
 const config = require('../config/config')
 
 const logout = catchAsync(async (req, res) => {
@@ -22,11 +22,8 @@ const refreshTokens = catchAsync(async (req, res, next) => {
 const loginApp = catchAsync(async (req, res) => {
     try {
         const data = req.body
-        const redirect_uri =
-            data.type === 'web'
-                ? 'https://addspire.com/'
-                : 'https://auth.expo.io/@addspire/Addspire'
 
+        const { platform, token, type } = data
         const done = async (
             _empty,
             account,
@@ -34,19 +31,15 @@ const loginApp = catchAsync(async (req, res) => {
             expires,
             refreshToken
         ) => {
-            await Credential.deleteMany({ user: account._id })
-            const credential = new Credential({
-                code: data.code,
-                user: account._id,
+            await authService.updateCredentials(
+                account,
                 accessToken,
-                expires,
-                refreshToken,
-                platform: data.platform,
-                redirectUrl: redirect_uri,
-            })
-            await credential.save()
-            const tokens = await tokenService.generateAuthTokens(account)
+                platform,
+                type,
+                refreshToken
+            )
 
+            const tokens = await tokenService.generateAuthTokens(account)
             res.status(httpStatus.OK)
                 .set({
                     accesstoken: tokens.access.token,
@@ -58,46 +51,16 @@ const loginApp = catchAsync(async (req, res) => {
         let link = ''
         let creteFunc = () => {}
 
-        const getCredentials = () => {
-            if (data.platform === 'facebook') return config.facebook
-            switch (data.type) {
-                case 'web': {
-                    return config.google.web
-                }
-                case 'android': {
-                    return config.google.android
-                }
-                case 'ios': {
-                    return config.google.ios
-                }
-                default:
-                    return {}
-            }
-        }
-        const cred = getCredentials()
-
-        switch (data.platform) {
+        switch (platform) {
             case 'facebook':
                 {
-                    console.log('make req')
-                    const codeResponse = await axios.get(
-                        'https://graph.facebook.com/v10.0/oauth/access_token',
-                        {
-                            params: {
-                                client_id: cred.id,
-                                redirect_uri,
-                                client_secret: cred.secret,
-                                code: data.code,
-                            },
-                        }
-                    )
-                    console.log(codeResponse)
-                    const accessToken =
-                        codeResponse && codeResponse.data.access_token
-                    const refreshToken =
-                        codeResponse && codeResponse.data.refresh_token
-                    const expires = codeResponse && codeResponse.data.expires_in
-                    if (accessToken) {
+                    const { authToken } = authService.refreshOauthToken({
+                        token,
+                        platform,
+                        type,
+                    })
+
+                    if (authToken) {
                         link = `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${accessToken}`
                         creteFunc = (response) => {
                             const profileData = response.data
@@ -113,13 +76,7 @@ const loginApp = catchAsync(async (req, res) => {
                                     photos: [{ value: picture }],
                                 },
                                 (empty, account) =>
-                                    done(
-                                        empty,
-                                        account,
-                                        accessToken,
-                                        expires,
-                                        refreshToken
-                                    )
+                                    done(empty, account, authToken)
                             )
                         }
                     } else {
@@ -130,28 +87,13 @@ const loginApp = catchAsync(async (req, res) => {
 
             case 'google':
                 {
-                    console.log('make req')
+                    const { authToken } = authService.refreshOauthToken({
+                        token,
+                        platform,
+                        type,
+                    })
 
-                    const codeResponse = await axios.post(
-                        'https://oauth2.googleapis.com/token',
-                        null,
-                        {
-                            params: {
-                                client_id: cred.id,
-                                redirect_uri,
-                                client_secret: cred.secret,
-                                code: data.code,
-                                grant_type: 'authorization_code',
-                            },
-                        }
-                    )
-                    console.log(codeResponse)
-                    const accessToken =
-                        codeResponse && codeResponse.data.access_token
-                    const refreshToken =
-                        codeResponse && codeResponse.data.refresh_token
-                    const expires = codeResponse && codeResponse.data.expires_in
-                    if (accessToken) {
+                    if (authToken) {
                         link = `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
                         creteFunc = (response) => {
                             const profileData = response.data
@@ -168,13 +110,7 @@ const loginApp = catchAsync(async (req, res) => {
                                     ],
                                 },
                                 (empty, account) =>
-                                    done(
-                                        empty,
-                                        account,
-                                        accessToken,
-                                        expires,
-                                        refreshToken
-                                    )
+                                    done(empty, account, authToken)
                             )
                         }
                     }

@@ -15,7 +15,7 @@ const refreshTokens = {
 const loginApp = {
     body: Joi.object().keys({
         platform: Joi.string().required(),
-        code: Joi.string().required(),
+        token: Joi.string().required(),
         type: Joi.string().required(),
     }),
 }

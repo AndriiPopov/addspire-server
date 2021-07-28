@@ -2,16 +2,13 @@ const mongoose = require('mongoose')
 
 const credentialSchema = mongoose.Schema(
     {
-        code: {
-            type: String,
-        },
         user: {
             type: String,
             required: true,
-            index: true,
         },
         accessToken: {
             type: String,
+            required: true,
         },
         expires: {
             type: Date,
@@ -27,10 +24,13 @@ const credentialSchema = mongoose.Schema(
             type: String,
             required: true,
         },
-        redirectUrl: String,
         date: {
             type: Date,
             default: Date.now,
+        },
+        loginType: {
+            type: String,
+            required: true,
         },
     },
     {
@@ -38,7 +38,9 @@ const credentialSchema = mongoose.Schema(
     }
 )
 
-// add plugin that converts mongoose to json
+credentialSchema.index({
+    user: 1,
+})
 
 const Credential = mongoose.model('Credential', credentialSchema)
 
