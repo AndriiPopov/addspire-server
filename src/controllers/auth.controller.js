@@ -54,11 +54,14 @@ const loginApp = catchAsync(async (req, res) => {
         switch (platform) {
             case 'facebook':
                 {
+                    console.log('start getting authToken')
                     const { authToken } = authService.refreshOauthToken({
                         token,
                         platform,
                         type,
                     })
+
+                    console.log('authToken', authToken)
 
                     if (authToken) {
                         link = `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${accessToken}`
