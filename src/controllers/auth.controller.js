@@ -55,7 +55,7 @@ const loginApp = catchAsync(async (req, res) => {
             case 'facebook':
                 {
                     console.log('start getting authToken')
-                    const { authToken } = authService.refreshOauthToken({
+                    const { authToken } = await authService.refreshOauthToken({
                         token,
                         platform,
                         type,
@@ -90,7 +90,7 @@ const loginApp = catchAsync(async (req, res) => {
 
             case 'google':
                 {
-                    const { authToken } = authService.refreshOauthToken({
+                    const { authToken } = await authService.refreshOauthToken({
                         token,
                         platform,
                         type,

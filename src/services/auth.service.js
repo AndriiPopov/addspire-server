@@ -60,8 +60,7 @@ const refreshOauthToken = async ({ token, platform, type, accountId }) => {
                         },
                     }
                 )
-                console.log(codeResponse)
-                console.log(codeResponse.data)
+
                 const authToken =
                     codeResponse &&
                     codeResponse.data &&
