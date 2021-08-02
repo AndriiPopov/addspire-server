@@ -4,7 +4,7 @@ const clubD =
 const accountD = 'name image reputationsCount __v'
 
 const questionD =
-    'name images views votesUp votesDown vote followersCount club date owner reputation answersCount acceptedAnswer acceptedAnswer commentsCount tags __v'
+    'name images views votesUp votesDown vote followersCount club date owner reputation answersCount acceptedAnswer acceptedAnswer commentsCount tags bonusCreatedDate bonusPaid bonusCoins  __v'
 
 const answerD =
     'images views description votesUp votesDown club date owner reputation question commentsCount __v'

@@ -6,7 +6,7 @@ const Token = require('../models/token.model')
 const ApiError = require('../utils/ApiError')
 const { tokenTypes } = require('../config/tokens')
 const config = require('../config/config')
-const { Credential } = require('../models')
+const { Credential, Account } = require('../models')
 
 const logout = async (refreshToken) => {
     if (refreshToken) {
@@ -17,8 +17,11 @@ const logout = async (refreshToken) => {
     }
 }
 
-const refreshOauthToken = async ({ token, platform, type, accountId }) => {
+const refreshOauthToken = async (data) => {
     try {
+        let { token, platform, type } = data
+        const { accountId } = data
+
         if (accountId) {
             const credential = await Credential.find({ user: accountId })
                 .lean()
@@ -90,7 +93,6 @@ const refreshOauthToken = async ({ token, platform, type, accountId }) => {
                 return {}
         }
     } catch (error) {
-        console.log(error)
         throw new ApiError(httpStatus.UNAUTHORIZED, 'Please again')
     }
 }
@@ -117,8 +119,121 @@ const updateCredentials = async (
     }
 }
 
+const loginApp = async (req) => {
+    try {
+        const data = req.body
+
+        const { platform, token, type } = data
+        const done = async (
+            _empty,
+            account,
+            accessToken,
+            expires,
+            refreshToken
+        ) => {
+            await updateCredentials(
+                account,
+                accessToken,
+                platform,
+                type,
+                refreshToken
+            )
+
+            return tokenService.generateAuthTokens(account)
+        }
+
+        let link = ''
+        let createFunc = () => {}
+
+        switch (platform) {
+            case 'facebook':
+                {
+                    const { authToken } = await refreshOauthToken({
+                        token,
+                        platform,
+                        type,
+                    })
+
+                    if (authToken) {
+                        link = `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${authToken}`
+                        createFunc = (response) => {
+                            const profileData = response.data
+                            const picture =
+                                profileData.picture &&
+                                profileData.picture.data &&
+                                profileData.picture.data.url
+                            return userCreationService.createUserFB(
+                                {
+                                    ...profileData,
+                                    displayName: `${profileData.first_name} ${profileData.last_name}`,
+                                    picture,
+                                    photos: [{ value: picture }],
+                                },
+                                (empty, account) =>
+                                    done(empty, account, authToken)
+                            )
+                        }
+                    } else {
+                        return
+                    }
+                }
+                break
+
+            case 'google':
+                {
+                    const { authToken } = await refreshOauthToken({
+                        token,
+                        platform,
+                        type,
+                    })
+
+                    if (authToken) {
+                        link = `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${authToken}`
+                        createFunc = (response) => {
+                            const profileData = response.data
+                            return userCreationService.createUserGG(
+                                {
+                                    ...profileData,
+                                    id: profileData.sub,
+                                    displayName: profileData.name,
+                                    emails: profileData.email,
+                                    photos: [
+                                        {
+                                            value: profileData.picture,
+                                        },
+                                    ],
+                                },
+                                (empty, account) =>
+                                    done(empty, account, authToken)
+                            )
+                        }
+                    }
+                }
+                break
+
+            case 'dev': {
+                if (config.env === 'development') {
+                    const account = await Account.findOne({
+                        facebookProfile: token,
+                    })
+                    return tokenService.generateAuthTokens(account)
+                }
+                break
+            }
+            default:
+                return
+        }
+
+        const response = await axios.get(link)
+        return await createFunc(response)
+    } catch (err) {
+        throw new ApiError(httpStatus.CONFLICT, 'Please try again')
+    }
+}
+
 module.exports = {
     logout,
     refreshOauthToken,
     updateCredentials,
+    loginApp,
 }

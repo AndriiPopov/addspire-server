@@ -112,7 +112,8 @@ describe('POST /api/question/edit', () => {
             expect(question.bonusCoins).toEqual(realCoins * 0.95)
 
             expect(user.wallet).toEqual(accountCoins - realCoins)
-
+            expect(user.totalSpent).toEqual(realCoins)
+            expect(user.totalEarned).toEqual(0)
             const system = await System.System.findOne({}).lean()
             expect(system.myCoins).toEqual(realCoins * 0.05)
         })
@@ -154,7 +155,8 @@ describe('POST /api/question/edit', () => {
         expect(question.bonusCoins).toEqual(0)
 
         expect(user.wallet).toEqual(200)
-
+        expect(user.totalSpent).toEqual(0)
+        expect(user.totalEarned).toEqual(0)
         const system = await System.System.findOne({}).lean()
         expect(system.myCoins).toEqual(0)
     })

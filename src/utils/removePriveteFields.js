@@ -11,6 +11,7 @@ module.exports = (doc) => {
         accessToken,
         code,
         refreshToken,
+        expoTokens,
         ...newDoc
     } = {
         ...doc,

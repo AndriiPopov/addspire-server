@@ -223,11 +223,19 @@ describe('POST /api/vote/accept', () => {
         const totalRep = rep0 + rep1 + rep2 + rep3
         const price = pool / totalRep
 
+        expect(newUser0.wallet).toEqual(user0.wallet + price * rep0)
+        expect(newUser0.totalEarned).toEqual(price * rep0)
+        expect(newUser0.totalSpent).toEqual(100)
+
         expect(newUser1.wallet).toEqual(
             user1.wallet + acceptedAnswer + price * rep1
         )
-        expect(newUser0.wallet).toEqual(user0.wallet + price * rep0)
+        expect(newUser1.totalEarned).toEqual(acceptedAnswer + price * rep1)
+
         expect(newUser2.wallet).toEqual(user2.wallet + price * rep2)
+        expect(newUser2.totalEarned).toEqual(price * rep2)
+
         expect(newUser3.wallet).toEqual(user3.wallet + price * rep3)
+        expect(newUser3.totalEarned).toEqual(price * rep3)
     })
 })

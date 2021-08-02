@@ -102,6 +102,8 @@ describe('POST /api/question/create', () => {
             expect(resource.bonusCoins).toEqual(realCoins * 0.95)
 
             expect(user.wallet).toEqual(accountCoins - realCoins)
+            expect(user.totalSpent).toEqual(realCoins)
+            expect(user.totalEarned).toEqual(0)
 
             const system = await System.System.findOne({}).lean()
             expect(system.myCoins).toEqual(realCoins * 0.05)

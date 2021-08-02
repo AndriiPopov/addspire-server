@@ -13,14 +13,13 @@ let currentId = 0
 const getResource = async (req) => {
     try {
         const data = req.body
-        const [result, onlineUsers] = await getResourcesFromList(data, req)
+        const [result] = await getResourcesFromList(data, req)
 
         if (result && result.length > 0) {
             return {
                 messageCode: 'addResource',
                 type: data.type,
                 resources: result.filter((item) => item),
-                newOnlineUsers: onlineUsers,
             }
         }
         return {
@@ -120,11 +119,10 @@ const pollResource = async (req, res) => {
                                     responseIds[resId].ids.push(docId)
                             } else {
                                 // If some versions are not actual, response with actual resources.
-                                const [result, onlineUsers] =
-                                    await getResourcesFromList({
-                                        type: key,
-                                        ids: [id],
-                                    })
+                                const [result] = await getResourcesFromList({
+                                    type: key,
+                                    ids: [id],
+                                })
                                 res.write(
                                     `data: ${JSON.stringify({
                                         messageCode: 'addResource',
@@ -132,7 +130,6 @@ const pollResource = async (req, res) => {
                                         resources: result.filter(
                                             (item) => item
                                         ),
-                                        newOnlineUsers: onlineUsers,
                                     })}\n\n`
                                 )
                                 res.flush()

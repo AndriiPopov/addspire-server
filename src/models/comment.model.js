@@ -8,7 +8,7 @@ const { increaseVersion } = require('./plugins')
 const commentSchema = new mongoose.Schema(
     {
         ...basicVotes,
-        reputation: String,
+        reputation: { type: String, required: true },
         text: {
             type: String,
             maxlength: mongoLength.message.max,
@@ -23,11 +23,11 @@ const commentSchema = new mongoose.Schema(
         editedDate: {
             type: Date,
         },
-        owner: String,
-        club: String,
+        owner: { type: String, required: true },
+        club: { type: String, required: true },
         isReply: Boolean,
-        resource: String,
-        resourceType: String,
+        resource: { type: String, required: true },
+        resourceType: { type: String, required: true },
         question: String,
     },
     { minimize: false }

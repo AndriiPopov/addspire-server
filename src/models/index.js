@@ -1,7 +1,6 @@
 module.exports.Account = require('./account.model')
 module.exports.Comment = require('./comment.model')
 module.exports.Club = require('./club.model')
-module.exports.Plugin = require('./plugin.model')
 module.exports.Reputation = require('./reputation.model')
 module.exports.Question = require('./question.model')
 module.exports.Answer = require('./answer.model')

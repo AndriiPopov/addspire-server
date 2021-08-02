@@ -11,6 +11,7 @@ const getTodayDate = () => {
 }
 
 const sendBonus = async () => {
+    await mongoose.connect(config.mongoose.url, config.mongoose.options)
     const system = await System.System.findOne({ name: 'system' })
         .select('lastSendBonusDate')
         .lean()
@@ -21,8 +22,6 @@ const sendBonus = async () => {
         !system.lastSendBonusDate ||
         getTodayDate() !== system.lastSendBonusDate
     ) {
-        await mongoose.connect(config.mongoose.url, config.mongoose.options)
-
         const questions = await Question.find({
             bonusPending: true,
             bonusCreatedDate: {

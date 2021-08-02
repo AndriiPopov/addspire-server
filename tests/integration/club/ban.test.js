@@ -36,11 +36,10 @@ describe('POST /api/account/ban', () => {
         expect(reputation.banned).toBeTruthy()
 
         await request(app)
-            .post('/api/resource/create')
+            .post('/api/question/create')
             .set('accountId', 'f_2')
             .send({
                 clubId,
-                type: 'question',
                 name: 'How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
@@ -63,11 +62,10 @@ describe('POST /api/account/ban', () => {
         expect(newReputationObj.banned).toBeFalsy()
 
         await request(app)
-            .post('/api/resource/create')
+            .post('/api/question/create')
             .set('accountId', 'f_2')
             .send({
                 clubId,
-                type: 'question',
                 name: 'How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],

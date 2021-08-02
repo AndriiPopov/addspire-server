@@ -16,7 +16,6 @@ const removePriveteFields = require('./removePriveteFields')
 module.exports = async (data, req) => {
     if (data.type && data.ids && data.ids.length > 0) {
         let result
-        const onlineUsers = []
         let model
         let fields
         let type = ''
@@ -100,7 +99,7 @@ module.exports = async (data, req) => {
                     result.map((doc) => removePriveteFields(doc))
                 }
                 if (data.type === 'question' && data.ids.length) {
-                    if (!req.get('preloading')) {
+                    if (req && !req.get('preloading')) {
                         const { ip } = req
                         const realIp = req.get('x-forwarded-for') || ip
 
@@ -150,6 +149,6 @@ module.exports = async (data, req) => {
             })
         )
 
-        return [result, fields, onlineUsers]
+        return [result, fields]
     }
 }

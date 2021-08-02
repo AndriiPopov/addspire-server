@@ -93,6 +93,8 @@ describe('POST /api/question/delete', () => {
 
         const user = await Account.findById(userId).lean()
         expect(user.wallet).toEqual(200 - 100 * 0.05)
+        expect(user.totalSpent).toEqual(100 * 0.05)
+        expect(user.totalEarned).toEqual(0)
     })
 
     test('should return 201 and successfully delete question and not return coins to the owner if bonus is paid', async () => {
@@ -135,5 +137,7 @@ describe('POST /api/question/delete', () => {
 
         const user = await Account.findById(userId).lean()
         expect(user.wallet).toEqual(200 - 100)
+        expect(user.totalSpent).toEqual(100)
+        expect(user.totalEarned).toEqual(0)
     })
 })

@@ -121,7 +121,7 @@ const auth = () => async (req, res, next) => {
             }
         )
     } catch (ex) {
-        return res.status(412).send('Error.')
+        logout()
     }
 }
 

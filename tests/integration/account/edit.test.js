@@ -18,6 +18,8 @@ describe('POST /api/account/edit', () => {
             .set('accountId', 'f_0')
             .send({
                 name: 'Test Tester',
+                image: 'image.png',
+                description: 'I am a superhero',
             })
             .expect(httpStatus.OK)
 
@@ -26,13 +28,14 @@ describe('POST /api/account/edit', () => {
 
         expect(oldUser.name).not.toEqual(user1.name)
         expect(user1.name).toEqual('Test Tester')
+        expect(user1.image).toEqual('image.png')
+        expect(user1.description).toEqual('I am a superhero')
 
         const oldReputation = await Reputation.findOne({ owner: userId }).lean()
         const reputationId = oldReputation._id.toString()
 
         expect(oldReputation).not.toBeNull()
         expect(oldReputation.name).not.toEqual('Test Tester1')
-        expect(oldReputation.image).not.toEqual('testImage.jpeg')
         expect(oldReputation.profileTags).not.toEqual(['tag1', 'newTagTester'])
 
         await request(app)

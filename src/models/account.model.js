@@ -20,7 +20,6 @@ const accountSchema = new mongoose.Schema(
             index: true,
             unique: true,
             sparse: true,
-            private: true,
         },
         appleProfile: {
             type: String,
@@ -28,7 +27,6 @@ const accountSchema = new mongoose.Schema(
             index: true,
             unique: true,
             sparse: true,
-            private: true,
         },
         facebookProfile: {
             type: String,
@@ -36,38 +34,32 @@ const accountSchema = new mongoose.Schema(
             index: true,
             unique: true,
             sparse: true,
-            private: true,
         },
         image: { type: String, default: '' },
-        settings: {},
         notifications: [notificationSchema],
         feed: [notificationSchema],
         lastSeenNot: { type: Number, default: 0 },
-        tokens: { type: [String], private: true },
+        tokens: [String],
         language: { type: String, default: 'en' },
         userid: {
             type: String,
             required: true,
-            private: true,
         },
         accountInfo: { type: {}, private: true },
         platformId: {
             type: String,
             required: true,
-            private: true,
         },
         logoutAllDate: {
             type: Number,
             default: 0,
-            private: true,
         },
         reputationsCount: {
             type: Number,
             default: 0,
         },
-        accessToken: { type: String, private: true },
-        refreshToken: { type: String, private: true },
-        code: { type: String, private: true },
+        accessToken: String,
+        refreshToken: String,
         following: [String],
         followingClubs: [String],
         followingQuestions: [String],
@@ -85,8 +77,8 @@ const accountSchema = new mongoose.Schema(
         reputations: {
             type: [
                 {
-                    reputation: String,
-                    club: String,
+                    reputation: { type: String, required: true },
+                    club: { type: String, required: true },
                 },
             ],
             default: [],
@@ -95,10 +87,10 @@ const accountSchema = new mongoose.Schema(
         wallet: { type: Number, default: 0 },
         gains: [
             {
-                coins: Number,
-                questionId: String,
-                questionName: String,
-                actionType: String,
+                coins: { type: Number, required: true },
+                questionId: { type: String, required: true },
+                questionName: { type: String, required: true },
+                actionType: { type: String, required: true },
                 date: {
                     type: Date,
                     default: Date.now,
@@ -107,13 +99,15 @@ const accountSchema = new mongoose.Schema(
         ],
         walletHistory: [
             {
-                coins: Number,
+                coins: { type: Number, required: true },
                 date: {
                     type: Date,
                     default: Date.now,
                 },
             },
         ],
+        totalEarned: { type: Number, default: 0 },
+        totalSpent: { type: Number, default: 0 },
     },
     { minimize: false }
 )

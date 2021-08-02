@@ -53,10 +53,10 @@ const general = async (req) => {
                 options.select = selectFields.reputationD
                 break
             case 'comment':
-                options.sort = { reputation: -1 }
+                options.sort = { vote: -1 }
                 break
             case 'answer':
-                options.sort = { reputation: -1 }
+                options.sort = { vote: -1 }
                 options.select = selectFields.answer
                 break
             default:

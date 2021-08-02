@@ -69,7 +69,10 @@ const create = async (req) => {
                         $slice: -100,
                     },
                 },
-                $inc: { wallet: -realCoinsBonusTotal },
+                $inc: {
+                    wallet: -realCoinsBonusTotal,
+                    totalSpent: realCoinsBonusTotal,
+                },
             },
             { useFindAndModify: false }
         )
@@ -186,7 +189,12 @@ const edit = async (req) => {
         if (realCoinsBonus)
             await Account.updateOne(
                 { _id: accountId },
-                { $inc: { wallet: -realCoinsBonusTotal } },
+                {
+                    $inc: {
+                        wallet: -realCoinsBonusTotal,
+                        totalSpent: realCoinsBonusTotal,
+                    },
+                },
                 { useFindAndModify: false }
             )
 
@@ -249,7 +257,10 @@ const remove = async (req) => {
             const result = await Account.updateOne(
                 { _id: resource.owner },
                 {
-                    $inc: { wallet: resource.bonusCoins },
+                    $inc: {
+                        wallet: resource.bonusCoins,
+                        totalSpent: -resource.bonusCoins,
+                    },
                     $push: {
                         gains: {
                             $each: [

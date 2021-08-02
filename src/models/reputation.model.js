@@ -7,13 +7,13 @@ const { increaseVersion } = require('./plugins')
 const reputationSchema = new mongoose.Schema(
     {
         ...basicModel,
-        club: { type: String, index: true },
-        clubName: { type: String },
+        club: { type: String, required: true },
+        clubName: { type: String, required: true },
         clubImage: { type: String },
         clubTags: [basicTag],
         reputationTags: [basicTag],
         profileTags: [basicTag],
-        owner: { type: String, index: true },
+        owner: { type: String, required: true },
         reputation: { type: Number, default: 0 },
         plusToday: { type: Number, default: 0 },
         minusToday: { type: Number, default: 0 },
