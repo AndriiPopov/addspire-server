@@ -30,7 +30,6 @@ module.exports.pushChanges = () => {
     watchCollection(Account, 'account')
     watchCollection(Comment, 'comment')
     watchCollection(Club, 'club')
-    watchCollection(Plugin, 'plugin')
     watchCollection(Reputation, 'reputation')
     watchCollection(Question, 'question')
     watchCollection(Answer, 'answer')
