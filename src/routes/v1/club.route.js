@@ -90,4 +90,12 @@ router
         clubController.editReputation
     )
 
+router
+    .route('/get-reputation-id')
+    .post(
+        validate(clubValidation.getReputationId),
+        auth(),
+        clubController.getReputationId
+    )
+
 module.exports = router

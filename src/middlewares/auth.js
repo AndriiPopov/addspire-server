@@ -5,6 +5,7 @@ const { Account, Token } = require('../models')
 const { tokenService, authService } = require('../services')
 const { tokenTypes } = require('../config/tokens')
 
+const accountFields = 'logoutAllDate name image wallet'
 const auth = () => async (req, res, next) => {
     const logout = async () => {
         if (req.get('refreshtoken')) {
@@ -52,7 +53,7 @@ const auth = () => async (req, res, next) => {
                             }
 
                             req.account = await Account.findById(decodedRT.sub)
-                                .select('logoutAllDate name image wallet')
+                                .select(accountFields)
                                 .lean()
                                 .exec()
                             if (!req.account) {
@@ -106,7 +107,7 @@ const auth = () => async (req, res, next) => {
                     )
                 } else {
                     req.account = await Account.findById(decoded.sub)
-                        .select('logoutAllDate name image wallet')
+                        .select(accountFields)
                         .lean()
                         .exec()
                     if (!req.account) {

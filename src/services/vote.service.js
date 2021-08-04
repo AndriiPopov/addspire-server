@@ -14,6 +14,7 @@ const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
 const distributeBonus = require('../utils/distributeBonus')
+const { notificationService } = require('.')
 
 const acceptAnswer = async (req) => {
     try {
@@ -97,13 +98,13 @@ const acceptAnswer = async (req) => {
 
             if (question.followers.length) {
                 const newNotificationId = await System.getNotificationId()
-
+                const notifiedAccounts = question.followers.filter(
+                    (i) => i !== accountId
+                )
                 await Account.updateMany(
                     {
                         _id: {
-                            $in: question.followers.filter(
-                                (i) => i !== accountId
-                            ),
+                            $in: notifiedAccounts,
                         },
                     },
                     {
@@ -127,6 +128,14 @@ const acceptAnswer = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
+                notificationService.notify(notifiedAccounts, {
+                    title: 'Accepted answer',
+                    body: `An answer is accepted in question ${question.name}`,
+                    data: {
+                        id: question._id,
+                        type: 'question',
+                    },
+                })
             }
 
             await distributeBonus(question)
@@ -277,6 +286,14 @@ const vote = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
+                notificationService.notify(resource.owner, {
+                    title: minus ? 'Vote down' : 'Vote up',
+                    body: `For your contribution in ${question.name}`,
+                    data: {
+                        id: question._id,
+                        type: 'question',
+                    },
+                })
             }
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'Already voted')

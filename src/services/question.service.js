@@ -1,4 +1,5 @@
 const httpStatus = require('http-status')
+const { notificationService } = require('.')
 const { System, Club, Account, Question, Count } = require('../models')
 const ApiError = require('../utils/ApiError')
 
@@ -84,9 +85,12 @@ const create = async (req) => {
                 { useFindAndModify: false }
             )
 
-        if (club.followers.length)
+        if (club.followers.length) {
+            const notifiedAccounts = club.followers.filter(
+                (i) => i !== accountId
+            )
             await Account.updateMany(
-                { _id: { $in: club.followers.filter((i) => i !== accountId) } },
+                { _id: { $in: notifiedAccounts } },
                 {
                     $push: {
                         feed: {
@@ -107,6 +111,15 @@ const create = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            notificationService.notify(notifiedAccounts, {
+                title: 'New question',
+                body: `${reputationLean.name} asked a question ${resource.name} in club ${reputationLean.clubName}`,
+                data: {
+                    id: resource._id,
+                    type: 'question',
+                },
+            })
+        }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -293,6 +306,7 @@ const remove = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+
             if (!result.nModified) {
                 await System.System.updateOne(
                     { name: 'system' },

@@ -1,3 +1,4 @@
+const { notificationService } = require('.')
 const { Reputation, System, Account } = require('../models')
 
 const getTodayDate = () => {
@@ -36,6 +37,24 @@ const replenish = async () => {
             ],
             { useFindAndModify: false }
         )
+
+        const reputations = await Reputation.find({
+            reputation: { $lt: 0, $gt: -6 },
+        })
+            .select('clubName club owner')
+            .lean()
+            .exec()
+
+        reputations.forEach((rep) => {
+            notificationService.notify(rep.owner, {
+                title: 'Reputation replenished',
+                body: `Your reputation is not negative again and you can add content in club ${rep.clubName} again`,
+                data: {
+                    id: rep.club,
+                    type: 'club',
+                },
+            })
+        })
 
         await Reputation.updateMany(
             { reputation: { $lt: 0, $gt: -6 } },

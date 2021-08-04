@@ -70,6 +70,11 @@ const editReputation = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send({ message: 'saved' })
 })
 
+const getReputationId = catchAsync(async (req, res) => {
+    const reputationId = await clubService.getReputationId(req)
+    res.status(httpStatus.OK).send({ reputationId })
+})
+
 module.exports = {
     createClub,
     editClub,
@@ -83,4 +88,5 @@ module.exports = {
     editStartRule,
     ban,
     editReputation,
+    getReputationId,
 }

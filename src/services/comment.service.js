@@ -5,6 +5,7 @@ const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
+const { notificationService } = require('.')
 
 const createComment = async (req) => {
     try {
@@ -59,8 +60,9 @@ const createComment = async (req) => {
             { useFindAndModify: false }
         )
         let followers = []
+        let question
         if (isQuestion) {
-            const question = await model
+            question = await model
                 .findOneAndUpdate(
                     { _id: resourceId },
                     {
@@ -92,7 +94,7 @@ const createComment = async (req) => {
                 },
                 { useFindAndModify: false }
             )
-            const question = await Question.findOneAndUpdate(
+            question = await Question.findOneAndUpdate(
                 { _id: questionId },
                 {
                     $push: {
@@ -102,7 +104,7 @@ const createComment = async (req) => {
                 },
                 { useFindAndModify: false }
             )
-                .select('followers')
+                .select('followers name')
                 .lean()
                 .exec()
             followers = question && question.followers
@@ -110,9 +112,9 @@ const createComment = async (req) => {
 
         if (followers.length) {
             const newNotificationId = await System.getNotificationId()
-
+            const notifiedAccounts = followers.filter((i) => i !== accountId)
             await Account.updateOne(
-                { _id: { $in: followers.filter((i) => i !== accountId) } },
+                { _id: { $in: notifiedAccounts } },
                 {
                     $push: {
                         feed: {
@@ -132,6 +134,14 @@ const createComment = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            notificationService.notify(notifiedAccounts, {
+                title: 'New comment',
+                body: ` ${reputationLean.name} added a new comment in question ${question.name}`,
+                data: {
+                    id: question._id,
+                    type: 'question',
+                },
+            })
         }
 
         return { success: true }

@@ -5,6 +5,7 @@ const ApiError = require('../utils/ApiError')
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
 const { saveTags } = require('./tag.service')
+const { notificationService } = require('.')
 
 const getFollowingPrefix = (type) => {
     switch (type) {
@@ -85,6 +86,15 @@ const follow = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
+
+                notificationService.notify(resource.user, {
+                    title: 'New follower',
+                    body: `${account.name} is folowing you`,
+                    data: {
+                        id: account._id,
+                        type: 'user',
+                    },
+                })
             }
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'Already follows')
@@ -305,23 +315,6 @@ const saveNotificationToken = async (req) => {
     }
 }
 
-const deleteNotificationToken = async (req) => {
-    try {
-        const { body } = req
-        const { token } = body
-
-        await Account.updateOne(
-            { expoTokens: token },
-            { $pull: { expoTokens: token } },
-            { useFindAndModify: false }
-        )
-    } catch (error) {
-        if (!error.isOperational) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not created')
-        } else throw error
-    }
-}
-
 module.exports = {
     follow,
     unfollow,
@@ -331,5 +324,4 @@ module.exports = {
     seenNotification,
     seenFeed,
     saveNotificationToken,
-    deleteNotificationToken,
 }

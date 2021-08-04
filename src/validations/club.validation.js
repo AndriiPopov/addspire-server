@@ -115,6 +115,12 @@ const editReputation = {
     }),
 }
 
+const getReputationId = {
+    body: Joi.object().keys({
+        clubId: Joi.objectId().required(),
+    }),
+}
+
 module.exports = {
     createClub,
     editClub,
@@ -128,4 +134,5 @@ module.exports = {
     editStartRule,
     ban,
     editReputation,
+    getReputationId,
 }

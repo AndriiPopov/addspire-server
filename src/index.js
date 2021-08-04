@@ -4,7 +4,7 @@ const config = require('./config/config')
 const logger = require('./config/logger')
 const { pushChanges } = require('./services/pushChanges.service')
 const { System } = require('./models')
-// const createDevUsers = require('../dev/createDevUsers')
+const createDevUsers = require('../dev/createDevUsers')
 
 let server
 mongoose
@@ -25,7 +25,7 @@ mongoose
         })
         // Push changes to long poll requests
         pushChanges()
-        // if (config.env === 'development') createDevUsers()
+        if (config.env === 'development') createDevUsers()
     })
 
 const exitHandler = () => {

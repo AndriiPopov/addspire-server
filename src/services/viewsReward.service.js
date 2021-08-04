@@ -1,4 +1,5 @@
 const dayjs = require('dayjs')
+const { notificationService } = require('.')
 const { Count, System, Account } = require('../models')
 const getDistributeCoinsToday = require('../utils/getDistributeCoinsToday')
 
@@ -88,6 +89,7 @@ const viewsReward = async () => {
                                                             count.question,
                                                         questionName:
                                                             count.questionName,
+                                                        coins: userGain,
                                                     },
                                                     notId: newNotificationId,
                                                 },
@@ -99,6 +101,14 @@ const viewsReward = async () => {
                                 { useFindAndModify: false }
                             )
                             if (!result.nModified) distributeToday -= userGain
+                            notificationService.notify(userId, {
+                                title: 'Coins for contribution',
+                                body: `Addspire has sent you ${userGain} coins for your contribution in question ${count.questionName}`,
+                                data: {
+                                    id: count.question,
+                                    type: 'question',
+                                },
+                            })
                         } else distributeToday -= userGain
                     }
                 )

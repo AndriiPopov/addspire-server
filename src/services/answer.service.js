@@ -1,4 +1,5 @@
 const httpStatus = require('http-status')
+const { notificationService } = require('.')
 const { System, Account, Question, Answer, Count } = require('../models')
 const ApiError = require('../utils/ApiError')
 
@@ -48,7 +49,7 @@ const create = async (req) => {
             },
             { useFindAndModify: false }
         )
-            .select('followers club')
+            .select('followers club owner name')
             .lean()
             .exec()
         if (!question) {
@@ -101,6 +102,14 @@ const create = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+        notificationService.notify(question.owner, {
+            title: 'New answer',
+            body: `In your question ${question.name}`,
+            data: {
+                id: question._id,
+                type: 'question',
+            },
+        })
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')

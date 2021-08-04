@@ -1,5 +1,6 @@
 const httpStatus = require('http-status')
 const { tokenService } = require('.')
+const notificationService = require('./notification.service')
 const config = require('../config/config')
 const { tokenTypes } = require('../config/tokens')
 const value = require('../config/value')
@@ -100,6 +101,14 @@ const createClub = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
+                notificationService.notify(uniqueFollowers, {
+                    title: 'New club',
+                    body: `${account.name} created a new club ${name}`,
+                    data: {
+                        id: club._id,
+                        type: 'club',
+                    },
+                })
             }
         }
 
@@ -245,8 +254,9 @@ const acceptInvite = async (req) => {
             )
 
             const newNotificationId = await System.getNotificationId()
+            const notifiedAccounts = [...club.followers, accountId]
             await Account.updateMany(
-                { _id: { $in: [...club.followers, accountId] } },
+                { _id: { $in: notifiedAccounts } },
                 {
                     $push: {
                         notifications: {
@@ -268,6 +278,14 @@ const acceptInvite = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            notificationService.notify(notifiedAccounts, {
+                title: 'New resident',
+                body: `${account.name} has become a resident of club ${club.name}`,
+                data: {
+                    id: club._id,
+                    type: 'club',
+                },
+            })
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'Max admins reached')
         }
@@ -320,8 +338,9 @@ const addResident = async (req) => {
             )
 
             const newNotificationId = await System.getNotificationId()
+            const notifiedAccounts = [...club.followers, residentId]
             await Account.updateMany(
-                { _id: { $in: [...club.followers, residentId] } },
+                { _id: { $in: notifiedAccounts } },
                 {
                     $push: {
                         notifications: {
@@ -343,6 +362,14 @@ const addResident = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            notificationService.notify(notifiedAccounts, {
+                title: 'New resident',
+                body: `${account.name} has become a resident of club ${club.name}`,
+                data: {
+                    id: club._id,
+                    type: 'club',
+                },
+            })
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'Max admins reached')
         }
@@ -387,7 +414,7 @@ const leaveResidence = async (req) => {
         if (club && club.followers.length) {
             const newNotificationId = await System.getNotificationId()
             await Account.updateMany(
-                { _id: { $in: [...club.followers] } },
+                { _id: { $in: club.followers } },
                 {
                     $push: {
                         notifications: {
@@ -409,6 +436,14 @@ const leaveResidence = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            notificationService.notify(club.followers, {
+                title: 'Leave residence',
+                body: `${account.name} has lost residence in club ${club.name}`,
+                data: {
+                    id: club._id,
+                    type: 'club',
+                },
+            })
         }
     } catch (error) {
         if (!error.isOperational) {
@@ -458,8 +493,9 @@ const requestResidence = async (req) => {
                 .exec()
             if (reputations.length) {
                 const newNotificationId = await System.getNotificationId()
+                const notifiedAccounts = reputations.map((rep) => rep.owner)
                 await Account.updateMany(
-                    { _id: { $in: reputations.map((rep) => rep.owner) } },
+                    { _id: { $in: notifiedAccounts } },
                     {
                         $push: {
                             notifications: {
@@ -481,10 +517,19 @@ const requestResidence = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
+                notificationService.notify(notifiedAccounts, {
+                    title: 'New residence request',
+                    body: `${account.name} has sent a residence request in club ${club.name}`,
+                    data: {
+                        id: club._id,
+                        type: 'club',
+                    },
+                })
             }
         } else throw new ApiError(httpStatus.CONFLICT, 'Already requested')
     } catch (error) {
         if (!error.isOperational) {
+            console.log(error)
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error
     }
@@ -538,8 +583,9 @@ const acceptResidenceRequest = async (req) => {
             )
 
             const newNotificationId = await System.getNotificationId()
+            const notifiedAccounts = [...club.followers, residentId]
             await Account.updateMany(
-                { _id: { $in: [...club.followers, residentId] } },
+                { _id: { $in: notifiedAccounts } },
                 {
                     $push: {
                         notifications: {
@@ -560,6 +606,14 @@ const acceptResidenceRequest = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            notificationService.notify(notifiedAccounts, {
+                title: 'New resident',
+                body: `${reputationLean.name} has become a resident in club ${club.name}`,
+                data: {
+                    id: club._id,
+                    type: 'club',
+                },
+            })
         } else {
             await Club.updateOne(
                 { _id: clubId },
@@ -623,6 +677,14 @@ const declineResidenceRequest = async (req) => {
             },
             { useFindAndModify: false }
         )
+        notificationService.notify(residentId, {
+            title: 'Residence request declined',
+            body: `Your residence request in club ${club.name} has been declined`,
+            data: {
+                id: club._id,
+                type: 'club',
+            },
+        })
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -654,7 +716,7 @@ const editStartRule = async (req) => {
         if (club && club.followers.length) {
             const newNotificationId = await System.getNotificationId()
             await Account.updateMany(
-                { _id: { $in: [...club.followers] } },
+                { _id: { $in: club.followers } },
                 {
                     $push: {
                         notifications: {
@@ -672,6 +734,14 @@ const editStartRule = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            notificationService.notify(club.followers, {
+                title: 'Conversation rules chenged',
+                body: `New rules in club ${club.name}`,
+                data: {
+                    id: club._id,
+                    type: 'club',
+                },
+            })
         }
     } catch (error) {
         if (!error.isOperational) {
@@ -702,7 +772,7 @@ const ban = async (req) => {
             { $set: { banned: banning } },
             { useFindAndModify: false }
         )
-            .select('owner')
+            .select('owner club clubName')
             .lean()
             .exec()
         if (reputation) {
@@ -730,6 +800,16 @@ const ban = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            notificationService.notify(reputation.owner, {
+                title: banning ? 'Ban' : 'Unban',
+                body: `Your profile in club ${reputation.clubName} is ${
+                    banning ? 'banned' : 'unbanned'
+                }`,
+                data: {
+                    id: reputation.name,
+                    type: 'club',
+                },
+            })
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'badRequest')
         }
@@ -777,6 +857,20 @@ const editReputation = async (req) => {
     }
 }
 
+const getReputationIdService = async (req) => {
+    try {
+        const { account, body } = req
+        const { clubId } = body
+        const { _id: accountId } = account
+        const reputationLean = await getReputationId(accountId, clubId)
+        return reputationLean._id
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
 module.exports = {
     createClub,
     editClub,
@@ -790,4 +884,5 @@ module.exports = {
     editStartRule,
     ban,
     editReputation,
+    getReputationId: getReputationIdService,
 }

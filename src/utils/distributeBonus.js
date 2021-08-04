@@ -1,5 +1,5 @@
 const { Count, Account, System, Question } = require('../models')
-const ApiError = require('./ApiError')
+const { notificationService } = require('../services')
 
 module.exports = async (question) => {
     try {
@@ -99,6 +99,14 @@ module.exports = async (question) => {
                         )
                         if (!result.nModified)
                             returnCoins += distributionCoins[userId]
+                        notificationService.notify(userId, {
+                            title: 'Bonus',
+                            body: `You received a bonus for your contribution in ${count.questionName}`,
+                            data: {
+                                id: count.question,
+                                type: 'question',
+                            },
+                        })
                     })
                 )
                 if (returnCoins) {

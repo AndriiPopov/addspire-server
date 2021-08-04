@@ -2,7 +2,6 @@ const dayjs = require('dayjs')
 const { Expo } = require('expo-server-sdk')
 const schedule = require('node-schedule')
 const { Account } = require('../models')
-const { accountService } = require('../services')
 
 const expo = new Expo()
 
@@ -22,35 +21,42 @@ const sendNotifications = async (messages) => {
     return tickets
 }
 
-exports.notify = async (accountsIds, message) => {
-    const accounts = await Account.find({ _id: { $in: accountsIds } })
-        .select('expoTokens')
-        .lean()
-        .exec()
-    if (!accounts || !accounts.length) return
-
-    const tokens = accounts.reduce(
-        (result, value) => [...result, ...value.expoTokens],
-        []
-    )
-
-    if (!tokens || !tokens.length) return
-
-    const messages = []
-    tokens.forEach((token) => {
-        if (!Expo.isExpoPushToken(token)) {
-            accountService.deleteNotificationToken(token)
-        } else {
-            messages.push({
-                to: token,
-                title: 'Test Title',
-                body: 'Test body',
-            })
-        }
-    })
-
+const notify = async (accountsIds, message) => {
     try {
-        const tickets = await sendNotifications(expo, messages)
+        const search =
+            typeof accountsIds === 'string' ? accountsIds : { $in: accountsIds }
+
+        const accounts = await Account.find({ _id: search })
+            .select('expoTokens')
+            .lean()
+            .exec()
+        if (!accounts || !accounts.length) return
+        const tokens = accounts.reduce(
+            (result, value) => [...result, ...value.expoTokens],
+            []
+        )
+
+        if (!tokens || !tokens.length) return
+
+        const messages = []
+        tokens.forEach((token) => {
+            if (!Expo.isExpoPushToken(token)) {
+                Account.updateOne(
+                    { expoTokens: token },
+                    { $pull: { expoTokens: token } },
+                    { useFindAndModify: false }
+                )
+            } else {
+                messages.push({
+                    to: token,
+                    title: message.title,
+                    body: message.body,
+                    data: message.data,
+                })
+            }
+        })
+
+        const tickets = await sendNotifications(messages)
         const formattedTickets = tickets.map((ticket, idx) => {
             const formattedTicket = {}
             formattedTicket.status = ticket.status
@@ -94,7 +100,11 @@ const checkTickets = async () => {
                             const token = tickets.find(
                                 (ticket) => ticket.receiptId === receiptId
                             ).expoPushToken
-                            accountService.deleteNotificationToken(token)
+                            Account.updateOne(
+                                { expoTokens: token },
+                                { $pull: { expoTokens: token } },
+                                { useFindAndModify: false }
+                            )
                         } else {
                             // Handle this separately. Maybe send them to an
                             // error tracking tool like Sentry
@@ -109,3 +119,5 @@ const checkTickets = async () => {
 }
 
 schedule.scheduleJob('/10 * * * *', checkTickets)
+
+module.exports = { notify }
