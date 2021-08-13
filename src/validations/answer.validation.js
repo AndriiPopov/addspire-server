@@ -11,6 +11,7 @@ const create = {
                 .min(JoiLength.description.min),
             images: Joi.array().items(Joi.string()).optional(),
             questionId: Joi.objectId().required(),
+            bookmark: Joi.boolean().optional(),
         })
         .unknown(true),
 }

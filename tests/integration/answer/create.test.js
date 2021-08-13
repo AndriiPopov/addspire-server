@@ -30,6 +30,7 @@ describe('POST /api/answer/create', () => {
                 description: 'Here is the information',
                 images: ['test2.jpg'],
                 questionId,
+                bookmark: true,
             })
             .expect(httpStatus.OK)
 
@@ -70,6 +71,33 @@ describe('POST /api/answer/create', () => {
         )
         expect(question.answered).toContain(userId)
         expect(question.acceptedAnswer).toEqual('no')
+    })
+
+    test('should not add question to following if bookmark is false', async () => {
+        const oldQuestion = await Question.findOne({
+            name: 'Test question',
+        })
+        const questionId = oldQuestion._id.toString()
+        const oldUser = await Account.findOne({ facebookProfile: 'f_3' })
+        const userId = oldUser._id.toString()
+
+        await request(app)
+            .post('/api/answer/create')
+            .set('accountId', 'f_3')
+            .send({
+                description: 'Here is the information',
+                images: ['test2.jpg'],
+                questionId,
+            })
+            .expect(httpStatus.OK)
+
+        const user = await Account.findById(userId)
+
+        const question = await Question.findById(questionId)
+
+        expect(user.followingQuestions).not.toContain(questionId)
+        expect(question.followers).not.toContain(userId)
+        expect(question.followersCount - oldQuestion.followersCount).toEqual(0)
     })
 
     test('should return 400 error if  validation fails', async () => {

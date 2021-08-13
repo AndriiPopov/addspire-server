@@ -1,5 +1,4 @@
-const dayjs = require('dayjs')
-const { notificationService } = require('.')
+const notificationService = require('./notification.service')
 const { Count, System, Account } = require('../models')
 const getDistributeCoinsToday = require('../utils/getDistributeCoinsToday')
 

@@ -1,5 +1,5 @@
 const { Count, Account, System, Question } = require('../models')
-const { notificationService } = require('../services')
+const notificationService = require('../services/notification.service')
 
 module.exports = async (question) => {
     try {

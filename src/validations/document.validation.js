@@ -8,6 +8,7 @@ const getDocument = {
             .required()
             .valid(...resources),
         ids: Joi.array().items(Joi.objectId()).required(),
+        ip: Joi.string().optional(),
     }),
 }
 

@@ -10,7 +10,7 @@ module.exports = async (accountId, clubId, withData) => {
         .select(
             `_id${
                 withData
-                    ? ' plusToday minusToday reputation admin banned club'
+                    ? 'plusToday minusToday reputation admin banned club name clubName clubImage owner image'
                     : ''
             }`
         )

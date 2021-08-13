@@ -2,7 +2,6 @@ const {
     Account,
     Comment,
     Club,
-    Plugin,
     Reputation,
     Question,
     Answer,

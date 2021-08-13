@@ -7,7 +7,7 @@ const getGrades = catchAsync(async (req, res) => {
     res.send({
         grades,
         constValues: value,
-        fieldLength,
+        fieldLength: fieldLength.JoiLength,
     })
 })
 

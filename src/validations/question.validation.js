@@ -17,6 +17,7 @@ const create = {
             clubId: Joi.objectId().required(),
             tags: Joi.array().items(Joi.string()).optional(),
             bonusCoins: Joi.number().optional().min(0),
+            bookmark: Joi.boolean().optional(),
         })
         .unknown(true),
 }

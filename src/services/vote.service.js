@@ -14,7 +14,7 @@ const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
 const distributeBonus = require('../utils/distributeBonus')
-const { notificationService } = require('.')
+const notificationService = require('./notification.service')
 
 const acceptAnswer = async (req) => {
     try {

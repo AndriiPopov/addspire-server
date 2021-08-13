@@ -55,6 +55,14 @@ questionSchema.index({
     reputation: 1,
 })
 
+// My questions
+questionSchema.index({
+    owner: 1,
+})
+questionSchema.index({
+    followers: 1,
+})
+
 // For sorting
 questionSchema.index({
     vote: -1,

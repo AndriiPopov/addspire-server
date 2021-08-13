@@ -5,7 +5,7 @@ const ApiError = require('../utils/ApiError')
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
 const { saveTags } = require('./tag.service')
-const { notificationService } = require('.')
+const notificationService = require('./notification.service')
 
 const getFollowingPrefix = (type) => {
     switch (type) {

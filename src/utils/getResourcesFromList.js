@@ -99,37 +99,32 @@ module.exports = async (data, req) => {
                     result.map((doc) => removePriveteFields(doc))
                 }
                 if (data.type === 'question' && data.ids.length) {
-                    if (req && !req.get('preloading')) {
-                        const { ip } = req
-                        const realIp = req.get('x-forwarded-for') || ip
+                    if (req) {
+                        let realIp = ''
+                        if (!req.get('preloading')) {
+                            const { ip } = req
+                            realIp = req.get('x-forwarded-for') || ip
+                        } else if (req.get('preloading') && req.get('ip')) {
+                            realIp = req.get('ip')
+                        }
+                        if (realIp) {
+                            const questionId = data.ids[0]
+                            const redisKey = `${realIp}_${questionId}`
+                            const exists = await get(redisKey)
+                            if (!exists) {
+                                client.set(redisKey, true, 'EX', 3600)
 
-                        const exists = await get(realIp)
-                        if (!exists) {
-                            client.set(realIp, true, 'EX', 3600)
-
-                            Count.updateOne(
-                                { question: data.ids[0] },
-                                { $inc: { total: 1, day: 1 } },
-                                { useFindAndModify: false }
-                            )
+                                await Count.updateOne(
+                                    { question: questionId },
+                                    { $inc: { total: 1, day: 1 } },
+                                    { useFindAndModify: false }
+                                )
+                            }
                         }
                     }
                 }
-                // Increase views count. This approach has issues with performance as each view initiates update operation
-                // if (
-                //     [
-                //         'account',
-                //         'reputation',
-                //         'club',
-                //         'question',
-                //         'answer',
-                //     ].includes(data.type)
-                // ) {
-                //     model.updateMany(
-                //         { _id: { $in: data.ids } },
-                //         { $inc: { views: 1 } }
-                //     )
-                // }
+
+                // Add case if prloading
             } else {
                 result = await model
                     .find({

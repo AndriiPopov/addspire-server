@@ -10,6 +10,7 @@ const createComment = {
             .required(),
         resourceId: Joi.objectId().required(),
         resourceType: Joi.string().valid('answer', 'question').required(),
+        bookmark: Joi.boolean().optional(),
     }),
 }
 

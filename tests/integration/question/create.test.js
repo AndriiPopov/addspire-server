@@ -28,6 +28,7 @@ describe('POST /api/question/create', () => {
                 images: ['test1.jpg', 'test2.jpg'],
                 tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
                 bonusCoins: 100,
+                bookmark: true,
             })
             .expect(httpStatus.OK)
 
@@ -67,6 +68,36 @@ describe('POST /api/question/create', () => {
         expect(resource.acceptedAnswer).toEqual('no')
         expect(resource.tags).toEqual(['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'])
         expect(resource.bonusCoins).toEqual(0)
+    })
+
+    test('should not add to followers if bookmark is not true', async () => {
+        const oldClub = await Club.findOne({ name: 'Test club 1' })
+        const clubId = oldClub._id.toString()
+        const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
+        const userId = oldUser._id.toString()
+        await request(app)
+            .post('/api/question/create')
+            .set('accountId', 'f_0')
+            .send({
+                clubId,
+                name: 'How to drive a car?',
+                description: 'I want to know how to o it.',
+                images: ['test1.jpg', 'test2.jpg'],
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
+                bonusCoins: 100,
+            })
+            .expect(httpStatus.OK)
+
+        const user = await Account.findById(userId)
+
+        const resource = await Question.findOne({
+            name: 'How to drive a car?',
+        }).lean()
+        const resourceId = resource._id.toString()
+
+        expect(user.followingQuestions).not.toContain(resourceId)
+        expect(resource.followers).not.toContain(userId)
+        expect(resource.followersCount).toEqual(0)
     })
 
     const testWithCoins = (accountCoins, bonusCoins) =>

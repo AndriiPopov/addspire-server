@@ -1,5 +1,5 @@
 const httpStatus = require('http-status')
-const { notificationService } = require('.')
+const notificationService = require('./notification.service')
 const { System, Club, Account, Question, Count } = require('../models')
 const ApiError = require('../utils/ApiError')
 
@@ -11,7 +11,15 @@ const create = async (req) => {
     try {
         const { account, body } = req
         const { _id: accountId } = account
-        const { clubId, name, description, images, tags, bonusCoins } = body
+        const {
+            clubId,
+            name,
+            description,
+            images,
+            tags,
+            bonusCoins,
+            bookmark,
+        } = body
         const reputationLean = await getReputationId(accountId, clubId, true)
         const rights = await checkVote(reputationLean, 'start')
         if (!rights) {
@@ -33,12 +41,14 @@ const create = async (req) => {
             reputation: reputationLean._id,
             name,
             tags,
-            followers: [accountId],
-            followersCount: 1,
             bonusCoins: realCoinsBonus,
             bonusPending,
             ...(bonusPending ? { bonusCreatedDate: Date.now() } : {}),
         })
+        if (bookmark) {
+            resource.followers = [accountId]
+            resource.followersCount = 1
+        }
         if (tags) saveTags(tags)
 
         const count = new Count({
@@ -64,12 +74,16 @@ const create = async (req) => {
         await Account.updateOne(
             { _id: accountId },
             {
-                $push: {
-                    followingQuestions: {
-                        $each: [resource._id],
-                        $slice: -100,
-                    },
-                },
+                ...(bookmark
+                    ? {
+                          $push: {
+                              followingQuestions: {
+                                  $each: [resource._id],
+                                  $slice: -200,
+                              },
+                          },
+                      }
+                    : {}),
                 $inc: {
                     wallet: -realCoinsBonusTotal,
                     totalSpent: realCoinsBonusTotal,

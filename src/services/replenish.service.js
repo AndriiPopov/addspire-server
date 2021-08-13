@@ -1,4 +1,4 @@
-const { notificationService } = require('.')
+const notificationService = require('./notification.service')
 const { Reputation, System, Account } = require('../models')
 
 const getTodayDate = () => {

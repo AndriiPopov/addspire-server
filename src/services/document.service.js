@@ -1,5 +1,6 @@
 const httpStatus = require('http-status')
 
+const { response } = require('express')
 const ApiError = require('../utils/ApiError')
 const getResourcesFromList = require('../utils/getResourcesFromList')
 const resources = require('../config/resources')
@@ -55,12 +56,6 @@ const pollResource = async (req, res) => {
                 })
                 delete responseIds[resId]
             }
-            // console.log('responseIds after close connection', {
-            //     ...responseIds,
-            //     res: !!res,
-            // })
-            // console.log('poll after close connection', poll)
-            // console.log('currentId after close connection', currentId)
         })
 
         // Subscribe responseId to resourceId by adding it to a list.
@@ -139,12 +134,12 @@ const pollResource = async (req, res) => {
                 })
             }
         })
-        // console.log('responseIds after start connection', {
-        //     ...responseIds,
-        //     res: !!res,
-        // })
-        // console.log('poll after start connection', poll)
-        // console.log('currentId after start connection', currentId)
+
+        setTimeout(() => {
+            req.pause()
+            res.status = 400
+            res.end('restart poll')
+        }, 30 * 60 * 1000)
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -168,10 +163,10 @@ const sendUpdatedData = (data, keys) => {
             ids = [...new Set(ids)]
             poll[`${key}_${data.documentKey._id.toString()}`] = []
             ids.forEach((id) => {
-                const response = responseIds[id]
+                const res = responseIds[id]
 
-                if (response) {
-                    response.res.write(
+                if (res) {
+                    res.res.write(
                         `data: ${JSON.stringify({
                             messageCode: 'updateResource',
                             code: key,
@@ -179,7 +174,7 @@ const sendUpdatedData = (data, keys) => {
                             update: data.updateDescription,
                         })}\n\n`
                     )
-                    response.res.flush()
+                    res.res.flush()
 
                     // delete responseIds[id]
                 }
@@ -187,6 +182,20 @@ const sendUpdatedData = (data, keys) => {
         }
     })
 }
+
+setInterval(() => {
+    Object.keys(responseIds).forEach((resId) => {
+        const res = responseIds[resId]
+        if (res && res.res) {
+            res.res.write(
+                `data: ${JSON.stringify({
+                    messageCode: 'ping',
+                })}\n\n`
+            )
+            res.res.flush()
+        }
+    })
+}, 15000)
 
 module.exports = {
     getResource,

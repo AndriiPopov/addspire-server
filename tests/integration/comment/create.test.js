@@ -23,6 +23,7 @@ describe('POST /api/comment/create', () => {
                 text: 'This is a very nice article!',
                 resourceId: questionId,
                 resourceType: 'question',
+                bookmark: true,
             })
             .expect(httpStatus.OK)
 
@@ -46,6 +47,36 @@ describe('POST /api/comment/create', () => {
         expect(question.followersCount - oldQuestion.followersCount).toEqual(1)
     })
 
+    test('should not add to following question if bookmark is not true', async () => {
+        const oldQuestion = await Question.findOne({
+            name: 'Test question',
+        }).lean()
+        const questionId = oldQuestion._id.toString()
+
+        const oldUser = await Account.findOne({ facebookProfile: 'f_5' })
+        const userId = oldUser._id.toString()
+
+        await request(app)
+            .post('/api/comment/create')
+            .set('accountId', 'f_5')
+            .send({
+                text: 'This is a very nice article!',
+                resourceId: questionId,
+                resourceType: 'question',
+            })
+            .expect(httpStatus.OK)
+
+        const user = await Account.findById(userId).lean()
+        expect(oldUser.followingQuestions).not.toContain(questionId)
+        expect(user.followingQuestions).not.toContain(questionId)
+
+        const question = await Question.findById(questionId).lean()
+
+        expect(oldQuestion.followers).not.toContain(userId)
+        expect(question.followers).not.toContain(userId)
+        expect(question.followersCount - oldQuestion.followersCount).toEqual(0)
+    })
+
     test('should return 201 and successfully create new comment to answer if data is ok', async () => {
         const oldAnswer = await Answer.findOne({}).lean()
         const answerId = oldAnswer._id.toString()
@@ -65,6 +96,7 @@ describe('POST /api/comment/create', () => {
                 text: 'This is a very nice answer!',
                 resourceId: answerId,
                 resourceType: 'answer',
+                bookmark: true,
             })
             .expect(httpStatus.OK)
 

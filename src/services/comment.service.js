@@ -5,14 +5,15 @@ const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
-const { notificationService } = require('.')
+
+const notificationService = require('./notification.service')
 
 const createComment = async (req) => {
     try {
         const { account, body } = req
         const { _id: accountId } = account
 
-        const { text, resourceId, resourceType } = body
+        const { text, resourceId, resourceType, bookmark } = body
 
         const model = getModelFromType(resourceType)
         const isQuestion = resourceType === 'question'
@@ -49,16 +50,20 @@ const createComment = async (req) => {
         })
 
         await comment.save()
-
-        await Account.updateOne(
-            { _id: accountId },
-            {
-                $push: {
-                    followingQuestions: { $each: [questionId], $slice: -100 },
+        if (bookmark) {
+            await Account.updateOne(
+                { _id: accountId },
+                {
+                    $push: {
+                        followingQuestions: {
+                            $each: [questionId],
+                            $slice: -200,
+                        },
+                    },
                 },
-            },
-            { useFindAndModify: false }
-        )
+                { useFindAndModify: false }
+            )
+        }
         let followers = []
         let question
         if (isQuestion) {
@@ -68,16 +73,16 @@ const createComment = async (req) => {
                     {
                         $push: {
                             comments: comment._id,
-                            followers: accountId,
+                            ...(bookmark ? { followers: accountId } : {}),
                         },
                         $inc: {
-                            followersCount: isQuestion ? 1 : 0,
+                            followersCount: bookmark ? 1 : 0,
                             commentsCount: 1,
                         },
                     },
                     { useFindAndModify: false }
                 )
-                .select('followers')
+                .select('followers name')
                 .lean()
                 .exec()
             followers = question && question.followers
@@ -94,19 +99,25 @@ const createComment = async (req) => {
                 },
                 { useFindAndModify: false }
             )
-            question = await Question.findOneAndUpdate(
-                { _id: questionId },
-                {
-                    $push: {
-                        followers: accountId,
-                    },
-                    $inc: { followersCount: 1 },
-                },
-                { useFindAndModify: false }
-            )
-                .select('followers name')
-                .lean()
-                .exec()
+
+            question = bookmark
+                ? await Question.findOneAndUpdate(
+                      { _id: questionId },
+                      {
+                          $push: {
+                              followers: accountId,
+                          },
+                          $inc: { followersCount: 1 },
+                      },
+                      { useFindAndModify: false }
+                  )
+                      .select('followers name')
+                      .lean()
+                      .exec()
+                : await Question.findById(questionId)
+                      .select('followers name')
+                      .lean()
+                      .exec()
             followers = question && question.followers
         }
 

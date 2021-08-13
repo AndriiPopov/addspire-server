@@ -54,6 +54,11 @@ if (config.env === 'production') {
     app.use('/api/auth', authLimiter)
 }
 
+// Allow clients access auth headers
+app.use('/api/ping', (req, res) => {
+    res.status(httpStatus.OK).send()
+})
+
 // v1 api routes
 app.use('/api', routes)
 

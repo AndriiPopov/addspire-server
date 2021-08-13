@@ -11,6 +11,7 @@ const utilsRoute = require('./utils.route')
 const tagRoute = require('./tag.route')
 const commentRoute = require('./comment.route')
 const searchRoute = require('./search.route')
+const countRoute = require('./count.route')
 
 const router = express.Router()
 
@@ -62,6 +63,10 @@ const defaultRoutes = [
     {
         path: '/search',
         route: searchRoute,
+    },
+    {
+        path: '/count',
+        route: countRoute,
     },
 ]
 

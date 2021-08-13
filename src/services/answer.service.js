@@ -1,5 +1,5 @@
 const httpStatus = require('http-status')
-const { notificationService } = require('.')
+const notificationService = require('./notification.service')
 const { System, Account, Question, Answer, Count } = require('../models')
 const ApiError = require('../utils/ApiError')
 
@@ -10,7 +10,7 @@ const create = async (req) => {
     try {
         const { account, body } = req
         const { _id: accountId } = account
-        const { questionId, description, images } = body
+        const { questionId, description, images, bookmark } = body
 
         const questionStart = await Question.findById(questionId)
             .select('club')
@@ -44,8 +44,8 @@ const create = async (req) => {
             },
             {
                 $push: { answered: accountId },
-                $inc: { answersCount: 1, followersCount: 1 },
-                $addToSet: { followers: accountId },
+                $inc: { answersCount: 1, followersCount: bookmark ? 1 : 0 },
+                ...(bookmark ? { $addToSet: { followers: accountId } } : {}),
             },
             { useFindAndModify: false }
         )
@@ -56,22 +56,23 @@ const create = async (req) => {
             throw new ApiError(httpStatus.CONFLICT, 'Have answered')
         }
         await resource.save()
-
-        await Account.updateOne(
-            {
-                _id: accountId,
-                followingQuestions: { $ne: questionId || resource._id },
-            },
-            {
-                $push: {
-                    followingQuestions: {
-                        $each: [questionId || resource._id],
-                        $slice: -100,
+        if (bookmark) {
+            await Account.updateOne(
+                {
+                    _id: accountId,
+                    followingQuestions: { $ne: questionId || resource._id },
+                },
+                {
+                    $push: {
+                        followingQuestions: {
+                            $each: [questionId || resource._id],
+                            $slice: -200,
+                        },
                     },
                 },
-            },
-            { useFindAndModify: false }
-        )
+                { useFindAndModify: false }
+            )
+        }
 
         const newNotificationId = await System.getNotificationId()
         if (question.followers.length)

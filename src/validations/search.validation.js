@@ -53,6 +53,19 @@ const general = {
             starred: Joi.boolean().required(),
             type: Joi.string().valid('reputation').required(),
         }),
+        // User search (my questions)
+        Joi.object().keys({
+            page: Joi.number().optional(),
+            name: Joi.string().optional(),
+            ownerId: Joi.objectId().required(),
+            type: Joi.string().valid('question').required(),
+        }),
+        Joi.object().keys({
+            page: Joi.number().optional(),
+            name: Joi.string().optional(),
+            followerId: Joi.objectId().required(),
+            type: Joi.string().valid('question').required(),
+        }),
         // Banned users
         Joi.object().keys({
             banned: Joi.boolean().required(),
