@@ -141,8 +141,6 @@ const acceptAnswer = async (req) => {
             await distributeBonus(question)
         } else throw new ApiError(httpStatus.CONFLICT, 'Already accepted')
     } catch (error) {
-        console.log(error)
-
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error

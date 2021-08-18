@@ -1,9 +1,9 @@
 const request = require('supertest')
 const httpStatus = require('http-status')
-const url = require('url')
 const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
 const { Club, Account, Reputation } = require('../../../src/models')
+const { createInviteTest, acceptInviteTest } = require('../../utils/requests')
 
 setupTestDB()
 
@@ -52,38 +52,18 @@ describe('POST /api/club/invite', () => {
         expect(club0).not.toBeNull()
         const clubId = club0._id.toString()
 
-        const createInvite = async (id, expected) => {
-            const res = await request(app)
-                .post('/api/club/invite')
-                .set('accountId', `f_${id}`)
-                .send({ clubId })
-                .expect(expected || httpStatus.OK)
-            if (res.body.inviteLink) {
-                const queryData = url.parse(res.body.inviteLink, true).query
-                return queryData.invite
-            }
-        }
+        await createInviteTest('1', clubId, httpStatus.UNAUTHORIZED)
 
-        const acceptInvite = async (id, code, expected) => {
-            await request(app)
-                .post('/api/club/accept-invite')
-                .set('accountId', `f_${id}`)
-                .send({ code })
-                .expect(expected || httpStatus.OK)
-        }
-
-        await createInvite('1', httpStatus.UNAUTHORIZED)
-
-        const code1 = await createInvite('0')
+        const code1 = await createInviteTest('0', clubId)
 
         expect(code1).toBeDefined()
 
-        const code20 = await createInvite('0')
+        const code20 = await createInviteTest('0', clubId)
         expect(code20).toBeDefined()
 
         expect(code1).not.toEqual(code20)
 
-        await acceptInvite(1, code1)
+        await acceptInviteTest(1, code1)
 
         const club1 = await Club.findById(clubId)
         expect(club1).not.toBeNull()
@@ -96,32 +76,32 @@ describe('POST /api/club/invite', () => {
         expect(reputation1).toBeDefined()
 
         expect(reputation1.admin).toBeTruthy()
-        await acceptInvite(1, `${code1}gty`, httpStatus.CONFLICT)
-        await acceptInvite(1, code1, httpStatus.CONFLICT)
-        await acceptInvite(1, code20, httpStatus.CONFLICT)
-        await acceptInvite(1, undefined, httpStatus.BAD_REQUEST)
-        await acceptInvite(2, code20, httpStatus.CONFLICT)
+        await acceptInviteTest(1, `${code1}gty`, httpStatus.CONFLICT)
+        await acceptInviteTest(1, code1, httpStatus.CONFLICT)
+        await acceptInviteTest(1, code20, httpStatus.CONFLICT)
+        await acceptInviteTest(1, undefined, httpStatus.BAD_REQUEST)
+        await acceptInviteTest(2, code20, httpStatus.CONFLICT)
 
-        const code2 = await createInvite('1')
+        const code2 = await createInviteTest('1', clubId)
         expect(code2).toBeDefined()
-        await acceptInvite(2, code2, httpStatus.OK)
+        await acceptInviteTest(2, code2, httpStatus.OK)
 
-        const code3 = await createInvite('2')
-        const code4 = await createInvite('2')
-        const code5 = await createInvite('2')
-        const code6 = await createInvite('2')
-        const code7 = await createInvite('2')
-        const code8 = await createInvite('2')
-        const code9 = await createInvite('2')
-        const code10 = await createInvite('2')
+        const code3 = await createInviteTest('2', clubId)
+        const code4 = await createInviteTest('2', clubId)
+        const code5 = await createInviteTest('2', clubId)
+        const code6 = await createInviteTest('2', clubId)
+        const code7 = await createInviteTest('2', clubId)
+        const code8 = await createInviteTest('2', clubId)
+        const code9 = await createInviteTest('2', clubId)
+        const code10 = await createInviteTest('2', clubId)
 
-        await acceptInvite(3, code3, httpStatus.OK)
-        await acceptInvite(4, code4, httpStatus.OK)
-        await acceptInvite(5, code5, httpStatus.OK)
-        await acceptInvite(6, code6, httpStatus.OK)
-        await acceptInvite(7, code7, httpStatus.OK)
-        await acceptInvite(8, code8, httpStatus.CONFLICT)
-        await acceptInvite(9, code9, httpStatus.CONFLICT)
-        await acceptInvite(10, code10, httpStatus.CONFLICT)
+        await acceptInviteTest(3, code3, httpStatus.OK)
+        await acceptInviteTest(4, code4, httpStatus.OK)
+        await acceptInviteTest(5, code5, httpStatus.OK)
+        await acceptInviteTest(6, code6, httpStatus.OK)
+        await acceptInviteTest(7, code7, httpStatus.OK)
+        await acceptInviteTest(8, code8, httpStatus.CONFLICT)
+        await acceptInviteTest(9, code9, httpStatus.CONFLICT)
+        await acceptInviteTest(10, code10, httpStatus.CONFLICT)
     })
 })

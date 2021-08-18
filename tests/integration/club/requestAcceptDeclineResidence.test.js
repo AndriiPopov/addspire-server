@@ -4,6 +4,11 @@ const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
 const { Club, Account, Reputation } = require('../../../src/models')
 const value = require('../../../src/config/value')
+const {
+    requestResidenceTest,
+    declineResidenceRequestTest,
+    acceptResidenceTest,
+} = require('../../utils/requests')
 
 setupTestDB()
 
@@ -50,59 +55,12 @@ describe('POST /api/club/invite', () => {
         expect(club0).not.toBeNull()
         const clubId = club0._id.toString()
 
-        const requestResidence = async (
-            id,
-            expected,
-            message,
-            contact,
-            _clubId
-        ) => {
-            await request(app)
-                .post('/api/club/request-residence')
-                .set('accountId', `f_${id}`)
-                .send({
-                    clubId: _clubId || clubId,
-                    message: message || `I am ${id} and want to be an admin.`,
-                    contact: contact || `Find ${id} here`,
-                })
-                .expect(expected || httpStatus.OK)
-        }
-        const accept = async (id, residentId, requestId, expected, _clubId) => {
-            await request(app)
-                .post('/api/club/accept-residence-request')
-                .set('accountId', `f_${id}`)
-                .send({
-                    clubId: _clubId || clubId,
-                    residentId,
-                    requestId,
-                })
-                .expect(expected || httpStatus.OK)
-        }
+        await requestResidenceTest(0, httpStatus.CONFLICT, '', '', clubId)
+        await requestResidenceTest(1, httpStatus.BAD_REQUEST, 'f', '', clubId)
+        await requestResidenceTest(1, httpStatus.BAD_REQUEST, '', 'f', clubId)
+        await requestResidenceTest(1, httpStatus.BAD_REQUEST, '', '', {})
 
-        const decline = async (
-            id,
-            residentId,
-            requestId,
-            expected,
-            _clubId
-        ) => {
-            await request(app)
-                .post('/api/club/decline-residence-request')
-                .set('accountId', `f_${id}`)
-                .send({
-                    clubId: _clubId || clubId,
-                    residentId,
-                    requestId,
-                })
-                .expect(expected || httpStatus.OK)
-        }
-
-        await requestResidence(0, httpStatus.CONFLICT)
-        await requestResidence(1, httpStatus.BAD_REQUEST, 'f')
-        await requestResidence(1, httpStatus.BAD_REQUEST, '', 'f')
-        await requestResidence(1, httpStatus.BAD_REQUEST, '', '', {})
-
-        await requestResidence(1)
+        await requestResidenceTest(1, undefined, '', '', clubId)
 
         const club1 = await Club.findById(clubId)
         expect(club1).not.toBeNull()
@@ -120,12 +78,30 @@ describe('POST /api/club/invite', () => {
         })
         const reqId1 = req._id.toString()
 
-        await requestResidence(1, httpStatus.CONFLICT)
+        await requestResidenceTest(1, httpStatus.CONFLICT, '', '', clubId)
 
-        await decline(3, userId1, reqId1, httpStatus.UNAUTHORIZED)
-        await decline(0, userId1, {}, httpStatus.BAD_REQUEST)
-        await decline(0, userId1, reqId1, httpStatus.BAD_REQUEST, 'dasdasd')
-        await decline(0, userId1, reqId1)
+        await declineResidenceRequestTest(
+            3,
+            userId1,
+            reqId1,
+            httpStatus.UNAUTHORIZED,
+            clubId
+        )
+        await declineResidenceRequestTest(
+            0,
+            userId1,
+            {},
+            httpStatus.BAD_REQUEST,
+            clubId
+        )
+        await declineResidenceRequestTest(
+            0,
+            userId1,
+            reqId1,
+            httpStatus.BAD_REQUEST,
+            'dasdasd'
+        )
+        await declineResidenceRequestTest(0, userId1, reqId1, undefined, clubId)
 
         const club2 = await Club.findById(clubId)
         expect(club2).not.toBeNull()
@@ -139,8 +115,8 @@ describe('POST /api/club/invite', () => {
         )
         expect(req1).not.toBeDefined()
 
-        await requestResidence(1)
-        await requestResidence(9)
+        await requestResidenceTest(1, undefined, '', '', clubId)
+        await requestResidenceTest(9, undefined, '', '', clubId)
 
         const club3 = await Club.findById(clubId)
         expect(club3).not.toBeNull()
@@ -160,10 +136,28 @@ describe('POST /api/club/invite', () => {
         })
         const reqId3 = req3._id.toString()
 
-        await accept(3, userId1, reqId3, httpStatus.UNAUTHORIZED)
-        await accept(0, userId1, {}, httpStatus.BAD_REQUEST)
-        await accept(0, userId1, reqId3, httpStatus.BAD_REQUEST, 'dasdasd')
-        await accept(0, userId1, reqId3)
+        await acceptResidenceTest(
+            3,
+            userId1,
+            reqId3,
+            httpStatus.UNAUTHORIZED,
+            clubId
+        )
+        await acceptResidenceTest(
+            0,
+            userId1,
+            {},
+            httpStatus.BAD_REQUEST,
+            clubId
+        )
+        await acceptResidenceTest(
+            0,
+            userId1,
+            reqId3,
+            httpStatus.BAD_REQUEST,
+            'dasdasd'
+        )
+        await acceptResidenceTest(0, userId1, reqId3, undefined, clubId)
         const club4 = await Club.findById(clubId)
         expect(club4).not.toBeNull()
 
@@ -190,12 +184,12 @@ describe('POST /api/club/invite', () => {
         expect(club4.adminsCount - club3.adminsCount).toEqual(1)
         expect(club4.adminsCount).toEqual(club4.adminReputations.length)
 
-        await requestResidence(2)
-        await requestResidence(3)
-        await requestResidence(4)
-        await requestResidence(5)
-        await requestResidence(6)
-        await requestResidence(7)
+        await requestResidenceTest(2, undefined, '', '', clubId)
+        await requestResidenceTest(3, undefined, '', '', clubId)
+        await requestResidenceTest(4, undefined, '', '', clubId)
+        await requestResidenceTest(5, undefined, '', '', clubId)
+        await requestResidenceTest(6, undefined, '', '', clubId)
+        await requestResidenceTest(7, undefined, '', '', clubId)
 
         const club5 = await Club.findById(clubId)
         expect(club5).not.toBeNull()
@@ -226,12 +220,12 @@ describe('POST /api/club/invite', () => {
             (i) => i.accountId === userId9
         )
 
-        await accept(1, userId2, req_2._id)
-        await accept(2, userId3, req_3._id)
-        await accept(2, userId4, req_4._id)
-        await accept(2, userId5, req_5._id)
-        await accept(2, userId6, req_6._id)
-        await accept(2, userId7, req_7._id)
+        await acceptResidenceTest(1, userId2, req_2._id, undefined, clubId)
+        await acceptResidenceTest(2, userId3, req_3._id, undefined, clubId)
+        await acceptResidenceTest(2, userId4, req_4._id, undefined, clubId)
+        await acceptResidenceTest(2, userId5, req_5._id, undefined, clubId)
+        await acceptResidenceTest(2, userId6, req_6._id, undefined, clubId)
+        await acceptResidenceTest(2, userId7, req_7._id, undefined, clubId)
 
         const club6 = await Club.findById(clubId)
         expect(club5).not.toBeNull()
@@ -242,7 +236,13 @@ describe('POST /api/club/invite', () => {
         expect(club6.adminsCount).toEqual(value.maxAdmins)
         expect(club6.adminReputations.length).toEqual(club6.adminsCount)
 
-        await requestResidence(8, httpStatus.CONFLICT)
-        await accept(2, userId9, req_9._id, httpStatus.CONFLICT)
+        await requestResidenceTest(8, httpStatus.CONFLICT, '', '', clubId)
+        await acceptResidenceTest(
+            2,
+            userId9,
+            req_9._id,
+            httpStatus.CONFLICT,
+            clubId
+        )
     })
 })

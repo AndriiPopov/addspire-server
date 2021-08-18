@@ -49,7 +49,7 @@ const editAccount = {
 
 const seenNotification = {
     body: Joi.object().keys({
-        notId: Joi.objectId().required(),
+        notId: Joi.string().required(),
     }),
 }
 

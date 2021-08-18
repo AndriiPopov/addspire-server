@@ -267,7 +267,7 @@ const seenNotification = async (req) => {
             await Account.updateOne(
                 {
                     _id: accountId,
-                    'notifications._id': notId,
+                    'notifications.notId': notId,
                 },
                 { $set: { 'notifications.$.seen': true } },
                 { useFindAndModify: false }

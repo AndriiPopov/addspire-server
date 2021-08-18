@@ -3,6 +3,7 @@ const httpStatus = require('http-status')
 const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
 const { Club, Account, Reputation } = require('../../../src/models')
+const { createClubTest } = require('../../utils/requests')
 
 setupTestDB()
 
@@ -10,20 +11,12 @@ describe('POST /api/club/create', () => {
     test('should return 201 and successfully create new club if data is ok', async () => {
         const oldUser = await Account.findOne({ facebookProfile: 'f_0' }).lean()
         const userId = oldUser._id
-        const res = await request(app)
-            .post('/api/club/create')
-            .set('accountId', 'f_0')
-            .send({
-                name: 'Rollers of US',
-                description: 'For all of us',
-                image: 'roller.jpeg',
-                tags: ['club1', 'club2'],
-            })
-            .expect(httpStatus.CREATED)
 
-        expect(res.body).toEqual({
-            redirect: expect.anything(),
-            message: 'created',
+        await createClubTest('0', {
+            name: 'Rollers of US',
+            description: 'For all of us',
+            image: 'roller.jpeg',
+            tags: ['club1', 'club2'],
         })
 
         const dbClub = await Club.findOne({ name: 'Rollers of US' }).lean()
