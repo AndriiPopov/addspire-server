@@ -6,6 +6,8 @@ const getResourcesFromList = require('../utils/getResourcesFromList')
 const resources = require('../config/resources')
 const getModelFromType = require('../utils/getModelFromType')
 const { get, client } = require('./redis.service')
+const { System } = require('../models')
+const getDistributeCoinsToday = require('../utils/getDistributeCoinsToday')
 
 const poll = {}
 const responseIds = {}
@@ -183,13 +185,23 @@ const sendUpdatedData = (data, keys) => {
     })
 }
 
-setInterval(() => {
+setInterval(async () => {
+    let coinsTomorrow = await get('coinsTomorrow')
+    if (!coinsTomorrow) {
+        const system = await System.System.findOne({ name: 'system' })
+            .select('date')
+            .lean()
+            .exec()
+        coinsTomorrow = getDistributeCoinsToday(system.date, true)
+        client.set('coinsTomorrow', coinsTomorrow)
+    }
     Object.keys(responseIds).forEach((resId) => {
         const res = responseIds[resId]
         if (res && res.res) {
             res.res.write(
                 `data: ${JSON.stringify({
                     messageCode: 'ping',
+                    coinsTomorrow,
                 })}\n\n`
             )
             res.res.flush()

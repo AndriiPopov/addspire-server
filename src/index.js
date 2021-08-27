@@ -25,7 +25,8 @@ mongoose
         })
         // Push changes to long poll requests
         pushChanges()
-        if (config.env === 'development') createDevUsers()
+        if (config.env === 'development') createDevUsers(20)
+        if (config.env === 'test') createDevUsers(1000)
     })
 
 const exitHandler = () => {

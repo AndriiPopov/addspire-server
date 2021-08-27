@@ -89,12 +89,6 @@ reputationSchema.index({
     starred: 1,
 })
 
-// Banned club
-reputationSchema.index({
-    club: 1,
-    banned: 1,
-})
-
 // For sorting
 reputationSchema.index({
     reputation: -1,

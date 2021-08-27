@@ -17,18 +17,6 @@ const createUser = async (id) => {
     )
 }
 
-module.exports = () => {
-    createUser('0')
-    createUser('1')
-    createUser('2')
-    createUser('3')
-    createUser('4')
-    createUser('5')
-    createUser('6')
-    createUser('7')
-    createUser('8')
-    createUser('9')
-    createUser('10')
-    createUser('11')
-    createUser('12')
+module.exports = (length) => {
+    for (let i = 0; i <= length; i += 1) createUser(i.toString())
 }

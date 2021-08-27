@@ -226,18 +226,13 @@ const editAccount = async (req) => {
         if (res1.nModified) {
             await Reputation.updateMany(
                 { owner: accountId },
-                [
-                    {
-                        $set: {
-                            name,
-                            image,
-                            profileTags: tags,
-                            tags: {
-                                $setUnion: ['$reputationTags', tags],
-                            },
-                        },
+                {
+                    $set: {
+                        name,
+                        image,
+                        profileTags: tags,
                     },
-                ],
+                },
 
                 { useFindAndModify: false }
             )

@@ -23,6 +23,7 @@
         "test:watch": "jest -i --watchAll",
         "coverage": "jest -i --coverage",
         "coverage:coveralls": "jest -i --coverage --coverageReporters=text-lcov | coveralls",
+        "k6": "cross-env NODE_ENV=test PORT=5001 node src/index.js",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "prettier": "prettier --check **/*.js",

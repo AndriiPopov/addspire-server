@@ -529,7 +529,6 @@ const requestResidence = async (req) => {
         } else throw new ApiError(httpStatus.CONFLICT, 'Already requested')
     } catch (error) {
         if (!error.isOperational) {
-            console.log(error)
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error
     }
@@ -837,17 +836,19 @@ const editReputation = async (req) => {
         }
         await Reputation.updateOne(
             { _id: reputationId, owner: accountId },
-            [
-                {
-                    $set: {
-                        description,
-                        reputationTags: tags,
-                        tags: {
-                            $setUnion: [tags, '$profileTags'],
-                        },
-                    },
+
+            {
+                $set: {
+                    description,
+                    reputationTags: tags,
+                    ...(tags.length
+                        ? {
+                              tags,
+                          }
+                        : {}),
                 },
-            ],
+            },
+
             { useFindAndModify: false }
         )
     } catch (error) {

@@ -83,7 +83,7 @@ describe('POST /api/question/create', () => {
                 name: 'How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
-                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
+                tags: ['testQ'],
                 bonusCoins: 100,
             })
             .expect(httpStatus.OK)

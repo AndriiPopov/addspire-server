@@ -26,7 +26,9 @@ const notify = async (accountsIds, message) => {
         const search =
             typeof accountsIds === 'string' ? accountsIds : { $in: accountsIds }
 
-        const accounts = await Account.find({ _id: search })
+        const accounts = await Account.find(
+            search !== 'all' ? { _id: search } : {}
+        )
             .select('expoTokens')
             .lean()
             .exec()

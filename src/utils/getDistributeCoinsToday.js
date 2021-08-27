@@ -1,7 +1,8 @@
 const dayjs = require('dayjs')
 
-module.exports = (date) => {
-    const dayCoef = dayjs().diff(dayjs(date), 'day') / 365 - 2
+module.exports = (date, tomorrow) => {
+    const dayCoef =
+        (dayjs().diff(dayjs(date), 'day') + (tomorrow ? 1 : 0)) / 365 - 2
 
     const t = 0.6 * dayCoef
 

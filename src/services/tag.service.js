@@ -6,15 +6,16 @@ const saveTags = async (tags) => {
     try {
         if (tags) {
             tags.forEach(async (tag) => {
-                const res = await Tag.findById(tag)
-
-                if (!res) {
-                    const tagDoc = new Tag({
+                await Tag.findOneAndUpdate(
+                    { _id: tag },
+                    {
                         _id: tag,
                         length: tag.length,
-                    })
-                    await tagDoc.save()
-                }
+                    },
+                    {
+                        upsert: true,
+                    }
+                )
             })
         }
     } catch (error) {}

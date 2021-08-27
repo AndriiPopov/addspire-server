@@ -42,6 +42,7 @@ const clubSchema = new mongoose.Schema(
                 },
             },
         ],
+        banned: [String],
     },
     { minimize: false }
 )

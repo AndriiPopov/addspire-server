@@ -35,6 +35,9 @@ describe('POST /api/account/ban', () => {
         const reputation = await Reputation.findById(reputationId).lean()
         expect(reputation.banned).toBeTruthy()
 
+        const club = await Club.findById(clubId).lean()
+        expect(club.banned).toContain(reputationId.toString())
+
         await request(app)
             .post('/api/question/create')
             .set('accountId', 'f_2')
@@ -58,8 +61,10 @@ describe('POST /api/account/ban', () => {
 
         const newReputationObj = await Reputation.findById(reputationId).lean()
         expect(newReputationObj).not.toBeNull()
-
         expect(newReputationObj.banned).toBeFalsy()
+
+        const newClub = await Club.findById(clubId).lean()
+        expect(newClub.banned).not.toContain(reputationId.toString())
 
         await request(app)
             .post('/api/question/create')
