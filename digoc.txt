@@ -18,5 +18,8 @@ nc -vz localhost 5000
 sudo certbot --nginx -d addspire.com
 sudo nano /etc/environment
 
+ ssh root@143.198.60.131
+
+
 
 
