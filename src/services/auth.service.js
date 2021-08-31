@@ -12,9 +12,9 @@ const { Credential, Account } = require('../models')
 const { get, client } = require('./redis.service')
 
 const getAppleSecret = async () => {
-    let clientSecret = await get('appleClientSecret')
-    if (!clientSecret) {
-        clientSecret = appleSignin.getClientSecret({
+    // let clientSecret = await get('appleClientSecret')
+    // if (!clientSecret) {
+        let clientSecret = appleSignin.getClientSecret({
             clientID: 'com.addspire.web',
             privateKeyPath: '../AuthKey_7XMDXL8TD3.p8',
             keyIdentifier: '7XMDXL8TD3',
