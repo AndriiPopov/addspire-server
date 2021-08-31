@@ -111,7 +111,7 @@ const refreshOauthToken = async (data) => {
             }
             case 'apple': {
                 const options = {
-                    clientID: 'com.addspire', // identifier of Apple Service ID.
+                    clientID: 'com.addspire.web', // identifier of Apple Service ID.
                     clientSecret: await getAppleSecret(),
                 }
 
@@ -244,7 +244,7 @@ const loginApp = async (req) => {
                     const clientSecret = await getAppleSecret()
                     console.log(clientSecret)
                     const options = {
-                        clientID: 'com.addspire',
+                        clientID: 'com.addspire.web',
                         redirectUri: 'https://addspire.com/auth/callback',
                         clientSecret,
                     }
@@ -256,7 +256,7 @@ const loginApp = async (req) => {
 
                     const { sub: userId } = await appleSignin.verifyIdToken(
                         response.id_token,
-                        'com.addspire'
+                        'com.addspire.web'
                     )
 
                     console.log(userId)
