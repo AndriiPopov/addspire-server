@@ -15,7 +15,7 @@ const getAppleSecret = async () => {
     let clientSecret = await get('appleClientSecret')
     if (!clientSecret) {
         clientSecret = appleSignin.getClientSecret({
-            clientID: 'com.addspire',
+            clientID: 'com.addspire.web',
             privateKeyPath: '../AuthKey_7XMDXL8TD3.p8',
             keyIdentifier: '7XMDXL8TD3',
             teamId: 'L8MPTS7SFS',
