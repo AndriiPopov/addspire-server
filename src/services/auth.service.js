@@ -18,6 +18,7 @@ const getAppleSecret = async () => {
             clientID: 'com.addspire',
             privateKeyPath: '../AuthKey_7XMDXL8TD3.p8',
             keyIdentifier: '7XMDXL8TD3',
+            teamId: 'L8MPTS7SFS',
         })
         client.set('appleClientSecret', clientSecret, 'EX', 86400)
     }
@@ -293,6 +294,7 @@ const loginApp = async (req) => {
                 return
         }
     } catch (err) {
+        console.log(err)
         throw new ApiError(httpStatus.CONFLICT, 'Please try again')
     }
 }
@@ -301,5 +303,6 @@ module.exports = {
     logout,
     refreshOauthToken,
     updateCredentials,
+    getAppleSecret,
     loginApp,
 }
