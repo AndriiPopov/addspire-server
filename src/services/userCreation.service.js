@@ -123,8 +123,42 @@ const createUserGH = async (profile, done) => {
     }
 }
 
+const createUserApple = async (profile, done) => {
+    try {
+        let account = await Account.findOne({
+            appleProfile: `a_${profile.id}`,
+        })
+            .select('accountInfo image __v')
+            .exec()
+        if (!account) {
+            let name = profile.displayName || profile.username
+            name = name && name.length > 1 && name
+            account = new Account({
+                appleProfile: `a_${profile.id}`,
+                name: name || `a_${profile.id}`,
+                userid: profile.id,
+                platformId: 'apple',
+                logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
+            })
+        }
+
+        account.accountInfo = {
+            displayName: profile.displayName,
+            emails: [profile.email],
+            userid: profile.id,
+        }
+        account.markModified('accountInfo')
+        account = await account.save()
+        if (account) return await done(null, account)
+        return done()
+    } catch (error) {
+        throw new ApiError(httpStatus.CONFLICT, 'Not created')
+    }
+}
+
 module.exports = {
     createUserFB,
     createUserGG,
     createUserGH,
+    createUserApple,
 }

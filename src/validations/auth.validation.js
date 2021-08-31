@@ -17,6 +17,7 @@ const loginApp = {
         platform: Joi.string().required(),
         token: Joi.string().required(),
         type: Joi.string().required(),
+        user: Joi.any().optional(),
     }),
 }
 

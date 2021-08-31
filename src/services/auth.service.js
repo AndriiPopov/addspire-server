@@ -1,5 +1,7 @@
 const httpStatus = require('http-status')
 const { default: axios } = require('axios')
+const jwt = require('jsonwebtoken')
+const appleSignin = require('apple-signin')
 const tokenService = require('./token.service')
 const userCreationService = require('./userCreation.service')
 const Token = require('../models/token.model')
@@ -7,6 +9,21 @@ const ApiError = require('../utils/ApiError')
 const { tokenTypes } = require('../config/tokens')
 const config = require('../config/config')
 const { Credential, Account } = require('../models')
+const { get, client } = require('./redis.service')
+
+const getAppleSecret = async () => {
+    let clientSecret = await get('appleClientSecret')
+    if (!clientSecret) {
+        clientSecret = appleSignin.getClientSecret({
+            clientID: 'com.addspire',
+            privateKeyPath: '../AuthKey_7XMDXL8TD3.p8',
+            keyIdentifier: '7XMDXL8TD3',
+        })
+        client.set('appleClientSecret', clientSecret, 'EX', 86400)
+    }
+
+    return clientSecret
+}
 
 const logout = async (refreshToken) => {
     if (refreshToken) {
@@ -33,19 +50,21 @@ const refreshOauthToken = async (data) => {
         }
         const getCredentials = () => {
             if (platform === 'facebook') return config.facebook
-            switch (type) {
-                case 'web': {
-                    return config.google.web
+            if (platform === 'google')
+                switch (type) {
+                    case 'web': {
+                        return config.google.web
+                    }
+                    case 'android': {
+                        return config.google.android
+                    }
+                    case 'ios': {
+                        return config.google.ios
+                    }
+                    default:
+                        return {}
                 }
-                case 'android': {
-                    return config.google.android
-                }
-                case 'ios': {
-                    return config.google.ios
-                }
-                default:
-                    return {}
-            }
+            if (platform === 'apple') return {}
         }
         const cred = getCredentials()
 
@@ -89,6 +108,21 @@ const refreshOauthToken = async (data) => {
                     codeResponse.data.access_token
                 return { authToken, platform, type }
             }
+            case 'apple': {
+                const options = {
+                    clientID: 'com.addspire', // identifier of Apple Service ID.
+                    clientSecret: await getAppleSecret(),
+                }
+
+                const codeResponse = appleSignin.refreshAuthorizationToken(
+                    token,
+                    options
+                )
+
+                const authToken = codeResponse && token
+
+                return { authToken, platform, type }
+            }
             default:
                 return {}
         }
@@ -123,7 +157,7 @@ const loginApp = async (req) => {
     try {
         const data = req.body
 
-        const { platform, token, type } = data
+        const { platform, token, type, user } = data
         const done = async (
             _empty,
             account,
@@ -142,9 +176,6 @@ const loginApp = async (req) => {
             return tokenService.generateAuthTokens(account)
         }
 
-        let link = ''
-        let createFunc = () => {}
-
         switch (platform) {
             case 'facebook':
                 {
@@ -155,62 +186,100 @@ const loginApp = async (req) => {
                     })
 
                     if (authToken) {
-                        link = `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${authToken}`
-                        createFunc = (response) => {
-                            const profileData = response.data
-                            const picture =
-                                profileData.picture &&
-                                profileData.picture.data &&
-                                profileData.picture.data.url
-                            return userCreationService.createUserFB(
-                                {
-                                    ...profileData,
-                                    displayName: `${profileData.first_name} ${profileData.last_name}`,
-                                    picture,
-                                    photos: [{ value: picture }],
-                                },
-                                (empty, account) =>
-                                    done(empty, account, authToken)
-                            )
-                        }
-                    } else {
-                        return
+                        const response = await axios.get(
+                            `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${authToken}`
+                        )
+
+                        const profileData = response.data
+                        const picture =
+                            profileData.picture &&
+                            profileData.picture.data &&
+                            profileData.picture.data.url
+                        return userCreationService.createUserFB(
+                            {
+                                ...profileData,
+                                displayName: `${profileData.first_name} ${profileData.last_name}`,
+                                picture,
+                                photos: [{ value: picture }],
+                            },
+                            (empty, account) => done(empty, account, authToken)
+                        )
                     }
                 }
                 break
 
-            case 'google':
+            case 'google': {
+                const { authToken } = await refreshOauthToken({
+                    token,
+                    platform,
+                    type,
+                })
+
+                if (authToken) {
+                    const response = await axios.get(
+                        `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${authToken}`
+                    )
+                    const profileData = response.data
+                    return userCreationService.createUserGG(
+                        {
+                            ...profileData,
+                            id: profileData.sub,
+                            displayName: profileData.name,
+                            emails: profileData.email,
+                            photos: [
+                                {
+                                    value: profileData.picture,
+                                },
+                            ],
+                        },
+                        (empty, account) => done(empty, account, authToken)
+                    )
+                }
+                break
+            }
+
+            case 'apple': {
                 {
-                    const { authToken } = await refreshOauthToken({
+                    const clientSecret = await getAppleSecret()
+                    console.log(clientSecret)
+                    const options = {
+                        clientID: 'com.addspire',
+                        redirectUri: 'https://addspire.com/auth/callback',
+                        clientSecret,
+                    }
+                    const response = await appleSignin.getAuthorizationToken(
                         token,
+                        options
+                    )
+                    console.log(response)
+
+                    const { sub: userId } = await appleSignin.verifyIdToken(
+                        response.id_token,
+                        'com.addspire'
+                    )
+
+                    console.log(userId)
+
+                    const { authToken } = await refreshOauthToken({
+                        token: response.refresh_token,
                         platform,
                         type,
                     })
+                    console.log(authToken)
 
                     if (authToken) {
-                        link = `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${authToken}`
-                        createFunc = (response) => {
-                            const profileData = response.data
-                            return userCreationService.createUserGG(
-                                {
-                                    ...profileData,
-                                    id: profileData.sub,
-                                    displayName: profileData.name,
-                                    emails: profileData.email,
-                                    photos: [
-                                        {
-                                            value: profileData.picture,
-                                        },
-                                    ],
-                                },
-                                (empty, account) =>
-                                    done(empty, account, authToken)
-                            )
-                        }
+                        return userCreationService.createUserApple(
+                            {
+                                id: userId,
+                                displayName: `${user.firstName} ${user.lastName.name}`,
+                                emails: user.email,
+                            },
+                            (empty, account) => done(empty, account, authToken)
+                        )
                     }
                 }
                 break
-
+            }
             case 'dev': {
                 if (config.env === 'development') {
                     const account = await Account.findOne({
@@ -223,9 +292,6 @@ const loginApp = async (req) => {
             default:
                 return
         }
-
-        const response = await axios.get(link)
-        return await createFunc(response)
     } catch (err) {
         throw new ApiError(httpStatus.CONFLICT, 'Please try again')
     }
