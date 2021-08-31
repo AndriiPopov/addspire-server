@@ -1,7 +1,6 @@
 const httpStatus = require('http-status')
 const { default: axios } = require('axios')
-const jwt = require('jsonwebtoken')
-const appleSignin = require('apple-signin')
+const appleSignin = require('apple-signin-auth')
 const tokenService = require('./token.service')
 const userCreationService = require('./userCreation.service')
 const Token = require('../models/token.model')
@@ -19,6 +18,7 @@ const getAppleSecret = async () => {
         privateKeyPath: '../AuthKey_7XMDXL8TD3.p8',
         keyIdentifier: '7XMDXL8TD3',
         teamId: 'L8MPTS7SFS',
+        expAfter: 10000000,
     })
     client.set('appleClientSecret', clientSecret, 'EX', 86400)
     // }
@@ -256,7 +256,7 @@ const loginApp = async (req) => {
 
                     const { sub: userId } = await appleSignin.verifyIdToken(
                         response.id_token,
-                        'com.addspire.web'
+                        { audience: 'com.addspire.web' }
                     )
 
                     console.log(userId)
