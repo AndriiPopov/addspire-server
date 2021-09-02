@@ -115,7 +115,7 @@ const refreshOauthToken = async (data) => {
             case 'apple': {
                 const options = {
                     clientID: getAppleClientId(type), // identifier of Apple Service ID.
-                    clientSecret: await getAppleSecret(),
+                    clientSecret: await getAppleSecret(type),
                 }
 
                 const codeResponse = appleSignin.refreshAuthorizationToken(
@@ -244,7 +244,7 @@ const loginApp = async (req) => {
 
             case 'apple': {
                 {
-                    const clientSecret = await getAppleSecret()
+                    const clientSecret = await getAppleSecret(type)
                     console.log(clientSecret)
                     const options = {
                         clientID: getAppleClientId(type),
