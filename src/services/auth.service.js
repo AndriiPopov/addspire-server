@@ -276,7 +276,7 @@ const loginApp = async (req) => {
                             {
                                 id: userId,
                                 displayName: user
-                                    ? `${user.firstName} ${user.lastName.name}`
+                                    ? `${user.firstName} ${user.lastName}`
                                     : '',
                                 emails: user.email,
                             },
