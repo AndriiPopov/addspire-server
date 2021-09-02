@@ -10,11 +10,14 @@ const config = require('../config/config')
 const { Credential, Account } = require('../models')
 const { get, client } = require('./redis.service')
 
-const getAppleSecret = async () => {
+const getAppleClientId = (type) =>
+    type === 'web' ? 'com.addspire.web' : 'com.addspire'
+
+const getAppleSecret = async (type) => {
     // let clientSecret = await get('appleClientSecret')
     // if (!clientSecret) {
     const clientSecret = appleSignin.getClientSecret({
-        clientID: 'com.addspire.web',
+        clientID: getAppleClientId(type),
         privateKeyPath: '../AuthKey_7XMDXL8TD3.p8',
         keyIdentifier: '7XMDXL8TD3',
         teamId: 'L8MPTS7SFS',
@@ -111,7 +114,7 @@ const refreshOauthToken = async (data) => {
             }
             case 'apple': {
                 const options = {
-                    clientID: 'com.addspire.web', // identifier of Apple Service ID.
+                    clientID: getAppleClientId(type), // identifier of Apple Service ID.
                     clientSecret: await getAppleSecret(),
                 }
 
@@ -244,7 +247,7 @@ const loginApp = async (req) => {
                     const clientSecret = await getAppleSecret()
                     console.log(clientSecret)
                     const options = {
-                        clientID: 'com.addspire.web',
+                        clientID: getAppleClientId(type),
                         redirectUri: 'https://addspire.com/auth/callback',
                         clientSecret,
                     }
@@ -256,7 +259,7 @@ const loginApp = async (req) => {
 
                     const { sub: userId } = await appleSignin.verifyIdToken(
                         response.id_token,
-                        { audience: 'com.addspire.web' }
+                        { audience: getAppleClientId(type) }
                     )
 
                     console.log(userId)
@@ -272,7 +275,9 @@ const loginApp = async (req) => {
                         return userCreationService.createUserApple(
                             {
                                 id: userId,
-                                displayName: `${user.firstName} ${user.lastName.name}`,
+                                displayName: user
+                                    ? `${user.firstName} ${user.lastName.name}`
+                                    : '',
                                 emails: user.email,
                             },
                             (empty, account) => done(empty, account, authToken)
