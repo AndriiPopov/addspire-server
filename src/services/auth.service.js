@@ -245,7 +245,6 @@ const loginApp = async (req) => {
             case 'apple': {
                 {
                     const clientSecret = await getAppleSecret(type)
-                    console.log(clientSecret)
                     const options = {
                         clientID: getAppleClientId(type),
                         redirectUri: 'https://addspire.com/auth/callback',
@@ -255,21 +254,17 @@ const loginApp = async (req) => {
                         token,
                         options
                     )
-                    console.log(response)
 
                     const { sub: userId } = await appleSignin.verifyIdToken(
                         response.id_token,
                         { audience: getAppleClientId(type) }
                     )
 
-                    console.log(userId)
-
                     const { authToken } = await refreshOauthToken({
                         token: response.refresh_token,
                         platform,
                         type,
                     })
-                    console.log(authToken)
 
                     if (authToken) {
                         return userCreationService.createUserApple(
