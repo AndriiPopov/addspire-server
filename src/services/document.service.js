@@ -187,7 +187,6 @@ const sendUpdatedData = (data, keys) => {
 
 setInterval(async () => {
     let coinsTomorrow = await get('coinsTomorrow')
-    console.log('coinsTomorrowRedis', coinsTomorrow)
     if (!coinsTomorrow) {
         const system = await System.System.findOne({ name: 'system' })
             .select('date')
@@ -195,9 +194,7 @@ setInterval(async () => {
             .exec()
         coinsTomorrow = getDistributeCoinsToday(system.date, true)
         client.set('coinsTomorrow', coinsTomorrow)
-        console.log('coinsTomorrowNew', coinsTomorrow)
     }
-    console.log('coinsTomorrow', coinsTomorrow)
     Object.keys(responseIds).forEach((resId) => {
         const res = responseIds[resId]
         if (res && res.res) {

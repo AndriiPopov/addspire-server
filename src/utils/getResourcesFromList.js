@@ -102,10 +102,9 @@ module.exports = async (data, req) => {
                     if (req) {
                         let realIp = ''
                         if (!req.get('preloading')) {
-                            const { ip } = req
-                            realIp = req.get('x-forwarded-for') || ip
+                            realIp = req.get('real_ip_header')
                         } else if (req.get('preloading') && req.get('ip')) {
-                            realIp = req.get('ip')
+                            realIp = data.ip
                         }
                         if (realIp) {
                             const questionId = data.ids[0]
