@@ -34,12 +34,6 @@ const clubSchema = new mongoose.Schema(
                     minlength: mongoLength.message.min,
                     required: true,
                 },
-                contact: {
-                    type: String,
-                    maxlength: mongoLength.message.max,
-                    minlength: mongoLength.message.min,
-                    required: true,
-                },
             },
         ],
         banned: [String],

@@ -112,8 +112,8 @@ const create = async (req) => {
                                 {
                                     user: accountId,
                                     code: 'asked question',
+                                    questionId: resource._id,
                                     details: {
-                                        questionId: resource._id,
                                         club: clubId,
                                     },
                                     notId: newNotificationId,

@@ -31,18 +31,19 @@ const editAccount = {
     body: Joi.object().keys({
         name: Joi.string()
             .required()
-            .min(JoiLength.message.min)
-            .max(JoiLength.message.max),
+            .min(JoiLength.name.min)
+            .max(JoiLength.name.max),
         description: Joi.string()
-            .required()
-            .min(JoiLength.description.min)
-            .max(JoiLength.description.max),
-        contact: Joi.string()
             .optional()
-            .min(JoiLength.description.min)
             .max(JoiLength.description.max)
             .allow(''),
-        image: Joi.string().required(),
+        address: Joi.string().optional().max(JoiLength.name.max).allow(''),
+        phone: Joi.string().optional().max(JoiLength.name.max).allow(''),
+        web: Joi.string().optional().max(JoiLength.name.max).allow(''),
+        email: Joi.string().optional().max(JoiLength.name.max).allow(''),
+        social: Joi.string().optional().max(JoiLength.message.max).allow(''),
+        image: Joi.string().optional(),
+        background: Joi.string().optional(),
         tags: Joi.array().items(Joi.string()).optional(),
     }),
 }
@@ -53,7 +54,19 @@ const seenNotification = {
     }),
 }
 
+const seenFeed = {
+    body: Joi.object().keys({
+        id: Joi.objectId().required(),
+    }),
+}
+
 const saveNotificationToken = {
+    body: Joi.object().keys({
+        token: Joi.string().required(),
+    }),
+}
+
+const removeNotificationToken = {
     body: Joi.object().keys({
         token: Joi.string().required(),
     }),
@@ -67,4 +80,6 @@ module.exports = {
     editAccount,
     seenNotification,
     saveNotificationToken,
+    removeNotificationToken,
+    seenFeed,
 }

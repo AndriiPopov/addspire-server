@@ -214,11 +214,22 @@ const editAccount = async (req) => {
     try {
         const { account, body } = req
         const { _id: accountId } = account
-        const { name, description, contact, image, tags } = body
+        const {
+            name,
+            description,
+            address,
+            phone,
+            web,
+            email,
+            background,
+            image,
+            social,
+            tags,
+        } = body
 
         const res1 = await Account.updateOne(
             { _id: accountId },
-            { $set: { name, description, contact, image, tags } },
+            { $set: body },
             { useFindAndModify: false }
         )
 
@@ -231,6 +242,13 @@ const editAccount = async (req) => {
                         name,
                         image,
                         profileTags: tags,
+                        profileDescription: description,
+                        profileAddress: address,
+                        profilePhone: phone,
+                        profileWeb: web,
+                        profileEmail: email,
+                        profileBackground: background,
+                        profileSocial: social,
                     },
                 },
 
@@ -277,13 +295,18 @@ const seenNotification = async (req) => {
 
 const seenFeed = async (req) => {
     try {
-        const { account } = req
+        const { account, body } = req
         const { _id: accountId } = account
+        const { id } = body
 
         await Account.updateOne(
             { _id: accountId },
-            { $set: { 'feed.$[].seen': true } },
-            { useFindAndModify: false }
+            { $set: { 'feed.$[elem].seen': true } },
+            {
+                useFindAndModify: false,
+                arrayFilters: [{ 'elem.questionId': id }],
+                multi: true,
+            }
         )
     } catch (error) {
         if (!error.isOperational) {
@@ -298,9 +321,32 @@ const saveNotificationToken = async (req) => {
         const { _id: accountId } = account
         const { token } = body
 
+        await Account.updateMany(
+            { expoTokens: token },
+            { $pull: { expoTokens: token } },
+            { useFindAndModify: false }
+        )
+
         await Account.updateOne(
             { _id: accountId },
             { $addToSet: { expoTokens: token } },
+            { useFindAndModify: false }
+        )
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
+const removeNotificationToken = async (req) => {
+    try {
+        const { body } = req
+        const { token } = body
+
+        await Account.updateMany(
+            { expoTokens: token },
+            { $pull: { expoTokens: token } },
             { useFindAndModify: false }
         )
     } catch (error) {
@@ -319,4 +365,5 @@ module.exports = {
     seenNotification,
     seenFeed,
     saveNotificationToken,
+    removeNotificationToken,
 }

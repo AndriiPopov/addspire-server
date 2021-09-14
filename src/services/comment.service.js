@@ -133,9 +133,8 @@ const createComment = async (req) => {
                                 {
                                     user: accountId,
                                     code: 'commented',
-                                    details: {
-                                        questionId,
-                                    },
+                                    questionId,
+                                    details: {},
                                     notId: newNotificationId,
                                 },
                             ],

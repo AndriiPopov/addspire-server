@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
+const { mongoLength } = require('../config/fieldLength')
 const basicModel = require('./basicModel/basicModel')
 const basicTag = require('./basicModel/basicTag')
 const { increaseVersion } = require('./plugins')
@@ -54,6 +55,56 @@ const reputationSchema = new mongoose.Schema(
         ],
         starred: { type: Boolean, default: false },
         member: { type: Boolean, default: false },
+        background: { type: String, default: '' },
+        description: {
+            type: String,
+            maxlength: mongoLength.description.max,
+        },
+        address: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        phone: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        web: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        email: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        social: {
+            type: String,
+            maxlength: mongoLength.message.max,
+        },
+        profileBackground: { type: String, default: '' },
+        profileDescription: {
+            type: String,
+            maxlength: mongoLength.description.max,
+        },
+        profileAddress: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        profilePhone: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        profileWeb: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        profileEmail: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        profileSocial: {
+            type: String,
+            maxlength: mongoLength.message.max,
+        },
     },
     { minimize: false }
 )

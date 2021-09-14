@@ -19,7 +19,6 @@ describe('POST /api/account/edit', () => {
             .send({
                 name: 'Test Tester',
                 image: 'image.png',
-                description: 'I am a superhero',
             })
             .expect(httpStatus.OK)
 
@@ -29,7 +28,6 @@ describe('POST /api/account/edit', () => {
         expect(oldUser.name).not.toEqual(user1.name)
         expect(user1.name).toEqual('Test Tester')
         expect(user1.image).toEqual('image.png')
-        expect(user1.description).toEqual('I am a superhero')
 
         const oldReputation = await Reputation.findOne({ owner: userId }).lean()
         const reputationId = oldReputation._id.toString()
@@ -48,26 +46,29 @@ describe('POST /api/account/edit', () => {
             })
             .expect(httpStatus.OK)
 
+        const editData = {
+            name: 'Test Tester1',
+            description: 'desc',
+            address: 'addr',
+            phone: 'phone',
+            web: 'webb',
+            email: 'emaill',
+            tags: ['tag1', 'newTagTester'],
+            image: 'testImage.jpeg',
+            background: 'back.jpeg',
+            social: 'socials are cool',
+        }
+
         await request(app)
             .post('/api/account/edit')
             .set('accountId', 'f_0')
-            .send({
-                name: 'Test Tester1',
-                description: 'description test',
-                contact: 'Contact test 1',
-                tags: ['tag1', 'newTagTester'],
-                image: 'testImage.jpeg',
-            })
+            .send(editData)
             .expect(httpStatus.OK)
 
         const user2 = await Account.findById(userId).lean()
         expect(user2).not.toBeNull()
 
-        expect(user2.name).toEqual('Test Tester1')
-        expect(user2.description).toEqual('description test')
-        expect(user2.contact).toEqual('Contact test 1')
-        expect(user2.image).toEqual('testImage.jpeg')
-        expect(user2.tags).toEqual(['tag1', 'newTagTester'])
+        expect(user2).toMatchObject(editData)
 
         const tags = await Tag.find({})
 
@@ -79,16 +80,18 @@ describe('POST /api/account/edit', () => {
 
         const reputation = await Reputation.findById(reputationId).lean()
 
-        expect(reputation).not.toBeNull()
-        expect(reputation.name).toEqual('Test Tester1')
-        expect(reputation.image).toEqual('testImage.jpeg')
-        expect(reputation.profileTags).toEqual(['tag1', 'newTagTester'])
-        expect(reputation.tags).toEqual([
-            'happy',
-            'mate',
-            'newTagTester',
-            'tag1',
-        ])
+        expect(reputation).toMatchObject({
+            name: 'Test Tester1',
+            profileDescription: 'desc',
+            profileAddress: 'addr',
+            profilePhone: 'phone',
+            profileWeb: 'webb',
+            profileEmail: 'emaill',
+            profileTags: ['tag1', 'newTagTester'],
+            profileBackground: 'back.jpeg',
+            profileSocial: 'socials are cool',
+            tags: ['happy', 'mate'],
+        })
     })
 
     test('should return 400 error if  validation fails', async () => {

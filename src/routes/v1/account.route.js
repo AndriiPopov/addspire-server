@@ -50,7 +50,13 @@ router
         accountController.seenNotification
     )
 
-router.route('/seen-feed').post(auth(), accountController.seenFeed)
+router
+    .route('/seen-feed')
+    .post(
+        validate(accountValidation.seenFeed),
+        auth(),
+        accountController.seenFeed
+    )
 
 router
     .route('/save-notification-token')
@@ -58,6 +64,12 @@ router
         validate(accountValidation.saveNotificationToken),
         auth(),
         accountController.saveNotificationToken
+    )
+router
+    .route('/remove-notification-token')
+    .post(
+        validate(accountValidation.removeNotificationToken),
+        accountController.removeNotificationToken
     )
 
 module.exports = router

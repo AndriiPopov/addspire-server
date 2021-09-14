@@ -455,7 +455,7 @@ const leaveResidence = async (req) => {
 const requestResidence = async (req) => {
     try {
         const { account, body } = req
-        const { clubId, message, contact } = body
+        const { clubId, message } = body
         const { _id: accountId } = account
 
         const reputationLean = await getReputationId(accountId, clubId, true)
@@ -473,7 +473,6 @@ const requestResidence = async (req) => {
                 $push: {
                     residenceRequests: {
                         message,
-                        contact,
                         accountId,
                         reputationId: reputationLean._id,
                     },
@@ -822,7 +821,17 @@ const ban = async (req) => {
 const editReputation = async (req) => {
     try {
         const { account, body } = req
-        const { reputationId, description, tags } = body
+        const {
+            reputationId,
+            description,
+            address,
+            phone,
+            web,
+            email,
+            background,
+            tags,
+            social,
+        } = body
         const { _id: accountId } = account
 
         const result = await Reputation.updateOne(
@@ -840,8 +849,14 @@ const editReputation = async (req) => {
             {
                 $set: {
                     description,
+                    address,
+                    phone,
+                    web,
+                    email,
+                    background,
+                    social,
                     reputationTags: tags,
-                    ...(tags.length
+                    ...(tags?.length
                         ? {
                               tags,
                           }

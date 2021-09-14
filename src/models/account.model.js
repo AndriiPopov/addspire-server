@@ -36,6 +36,7 @@ const accountSchema = new mongoose.Schema(
             sparse: true,
         },
         image: { type: String, default: '' },
+        background: { type: String, default: '' },
         notifications: [notificationSchema],
         feed: [notificationSchema],
         lastSeenNot: { type: Number, default: 0 },
@@ -67,12 +68,26 @@ const accountSchema = new mongoose.Schema(
         description: {
             type: String,
             maxlength: mongoLength.description.max,
-            minlength: mongoLength.description.min,
         },
-        contact: {
+        address: {
             type: String,
-            maxlength: mongoLength.description.max,
-            minlength: mongoLength.description.min,
+            maxlength: mongoLength.name.max,
+        },
+        phone: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        web: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        email: {
+            type: String,
+            maxlength: mongoLength.name.max,
+        },
+        social: {
+            type: String,
+            maxlength: mongoLength.message.max,
         },
         reputations: {
             type: [

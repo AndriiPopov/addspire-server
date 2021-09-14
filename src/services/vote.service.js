@@ -114,8 +114,8 @@ const acceptAnswer = async (req) => {
                                     {
                                         user: accountId,
                                         code: 'accepted answer',
+                                        questionId,
                                         details: {
-                                            questionId,
                                             answerId,
                                             clubId,
                                         },
@@ -269,9 +269,9 @@ const vote = async (req) => {
                                 $each: [
                                     {
                                         code: minus ? 'voteDown' : 'voteUp',
+                                        questionId: question._id,
                                         details: {
                                             id: resourceId,
-                                            questionId: question._id,
                                             type,
                                             minus,
                                         },

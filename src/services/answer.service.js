@@ -92,9 +92,9 @@ const create = async (req) => {
                                     details: {
                                         answer: resource._id,
                                         club: question.club,
-                                        questionId,
                                     },
                                     notId: newNotificationId,
+                                    questionId,
                                 },
                             ],
                             $slice: -50,

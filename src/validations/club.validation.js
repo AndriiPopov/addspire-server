@@ -66,10 +66,6 @@ const requestResidence = {
             .required()
             .min(JoiLength.message.min)
             .max(JoiLength.message.max),
-        contact: Joi.string()
-            .required()
-            .min(JoiLength.message.min)
-            .max(JoiLength.message.max),
     }),
 }
 
@@ -108,9 +104,15 @@ const editReputation = {
     body: Joi.object().keys({
         reputationId: Joi.objectId().required(),
         description: Joi.string()
-            .required()
-            .min(JoiLength.description.min)
-            .max(JoiLength.description.max),
+            .optional()
+            .max(JoiLength.description.max)
+            .allow(''),
+        address: Joi.string().optional().max(JoiLength.name.max).allow(''),
+        phone: Joi.string().optional().max(JoiLength.name.max).allow(''),
+        web: Joi.string().optional().max(JoiLength.name.max).allow(''),
+        email: Joi.string().optional().max(JoiLength.name.max).allow(''),
+        social: Joi.string().optional().max(JoiLength.message.max).allow(''),
+        background: Joi.string().optional(),
         tags: Joi.array().items(Joi.string()).optional(),
     }),
 }
