@@ -856,7 +856,7 @@ const editReputation = async (req) => {
                     background,
                     social,
                     reputationTags: tags,
-                    ...(tags?.length
+                    ...(tags && tags.length
                         ? {
                               tags,
                           }
