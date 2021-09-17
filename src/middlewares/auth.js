@@ -110,7 +110,8 @@ const auth = () => async (req, res, next) => {
                         .select(accountFields)
                         .lean()
                         .exec()
-                    if (!req.account) {
+
+                    if (!req.account || !req.account._id) {
                         return logout()
                     }
                     if (decoded.iat * 1000 < req.account.logoutAllDate) {
