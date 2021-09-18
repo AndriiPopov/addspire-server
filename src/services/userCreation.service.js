@@ -133,9 +133,13 @@ const createUserApple = async (profile, done) => {
         if (!account) {
             let name = profile.displayName || profile.username
             name = name && name.length > 1 && name
+            if (!name) {
+                name = `a_${profile.id.trim}`
+                if (name.length > 10) name = name.substring(0, 10)
+            }
             account = new Account({
                 appleProfile: `a_${profile.id}`,
-                name: name || `a_${profile.id}`,
+                name,
                 userid: profile.id,
                 platformId: 'apple',
                 logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
