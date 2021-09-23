@@ -14,7 +14,11 @@ const unfollow = catchAsync(async (req, res) => {
 
 const deleteAccount = catchAsync(async (req, res) => {
     await accountService.deleteAccount(req)
-    res.status(httpStatus.OK).send({ message: 'deleted' })
+    res.status(httpStatus.OK).send({
+        message: 'deleted',
+        logout: true,
+        redirect: 'Home',
+    })
 })
 
 const starClub = catchAsync(async (req, res) => {
