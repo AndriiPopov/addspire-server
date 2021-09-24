@@ -101,7 +101,7 @@ const create = async (req) => {
 
         if (club.followers.length) {
             const notifiedAccounts = club.followers.filter(
-                (i) => i !== accountId
+                (i) => i.toString() !== accountId.toString()
             )
             await Account.updateMany(
                 { _id: { $in: notifiedAccounts } },
@@ -127,7 +127,7 @@ const create = async (req) => {
             )
             notificationService.notify(notifiedAccounts, {
                 title: 'New question',
-                body: `${reputationLean.name} asked a question ${resource.name} in club ${reputationLean.clubName}`,
+                body: `${reputationLean.name} asked a question: ${resource.name} ▶ ${reputationLean.clubName}`,
                 data: {
                     id: resource._id,
                     type: 'question',

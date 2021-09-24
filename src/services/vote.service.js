@@ -99,7 +99,7 @@ const acceptAnswer = async (req) => {
             if (question.followers.length) {
                 const newNotificationId = await System.getNotificationId()
                 const notifiedAccounts = question.followers.filter(
-                    (i) => i !== accountId
+                    (i) => i.toString() !== accountId.toString()
                 )
                 await Account.updateMany(
                     {

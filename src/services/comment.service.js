@@ -123,7 +123,9 @@ const createComment = async (req) => {
 
         if (followers.length) {
             const newNotificationId = await System.getNotificationId()
-            const notifiedAccounts = followers.filter((i) => i !== accountId)
+            const notifiedAccounts = followers.filter(
+                (i) => i.toString() !== accountId.toString()
+            )
             await Account.updateOne(
                 { _id: { $in: notifiedAccounts } },
                 {

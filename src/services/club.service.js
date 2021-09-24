@@ -254,7 +254,9 @@ const acceptInvite = async (req) => {
             )
 
             const newNotificationId = await System.getNotificationId()
-            const notifiedAccounts = [...club.followers, accountId]
+            const notifiedAccounts = club.followers.filter(
+                (i) => i.toString() !== accountId.toString()
+            )
             await Account.updateMany(
                 { _id: { $in: notifiedAccounts } },
                 {
@@ -338,7 +340,9 @@ const addResident = async (req) => {
             )
 
             const newNotificationId = await System.getNotificationId()
-            const notifiedAccounts = [...club.followers, residentId]
+            const notifiedAccounts = club.followers.filter(
+                (i) => i.toString() !== accountId.toString()
+            )
             await Account.updateMany(
                 { _id: { $in: notifiedAccounts } },
                 {
@@ -492,7 +496,10 @@ const requestResidence = async (req) => {
                 .exec()
             if (reputations.length) {
                 const newNotificationId = await System.getNotificationId()
-                const notifiedAccounts = reputations.map((rep) => rep.owner)
+                const notifiedAccounts = reputations
+                    .map((rep) => rep.owner)
+                    .filter((i) => i.toString() !== accountId.toString())
+
                 await Account.updateMany(
                     { _id: { $in: notifiedAccounts } },
                     {
@@ -522,6 +529,7 @@ const requestResidence = async (req) => {
                     data: {
                         id: club._id,
                         type: 'club',
+                        param: 'residenceRequests',
                     },
                 })
             }
@@ -581,7 +589,12 @@ const acceptResidenceRequest = async (req) => {
             )
 
             const newNotificationId = await System.getNotificationId()
-            const notifiedAccounts = [...club.followers, residentId]
+            const notifiedAccounts = [
+                ...club.followers.filter(
+                    (i) => i.toString() !== accountId.toString()
+                ),
+                residentId,
+            ]
             await Account.updateMany(
                 { _id: { $in: notifiedAccounts } },
                 {
