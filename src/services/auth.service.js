@@ -1,6 +1,7 @@
 const httpStatus = require('http-status')
 const { default: axios } = require('axios')
 const appleSignin = require('apple-signin-auth')
+const { OAuth2Client } = require('google-auth-library')
 const tokenService = require('./token.service')
 const userCreationService = require('./userCreation.service')
 const Token = require('../models/token.model')
@@ -12,6 +13,10 @@ const { get, client } = require('./redis.service')
 
 const getAppleClientId = (type) =>
     type === 'web' ? 'com.addspire.web' : 'com.addspire'
+
+const clientGoogle = new OAuth2Client(
+    '43232749750-6lqb1lqv2b231cecmm0etd1f99k7c80m.apps.googleusercontent.com'
+)
 
 const getAppleSecret = async (type) => {
     // let clientSecret = await get('appleClientSecret')
@@ -157,7 +162,7 @@ const updateCredentials = async (
     }
 }
 
-const loginApp = async (req, res) => {
+const loginApp = async (req) => {
     try {
         const data = req.body
 
@@ -223,30 +228,31 @@ const loginApp = async (req, res) => {
                 break
 
             case 'google': {
-                const { authToken } = await refreshOauthToken({
-                    token,
-                    platform,
-                    type,
+                const ticket = await clientGoogle.verifyIdToken({
+                    idToken: token,
+                    audience: [
+                        '43232749750-6lqb1lqv2b231cecmm0etd1f99k7c80m.apps.googleusercontent.com',
+                        '43232749750-oqd2m87nhuu5rrltkho0n4rm2p94i0cc.apps.googleusercontent.com',
+                        '43232749750-nvv9cpt3vsrvn0j7niklqj62lj52sq98.apps.googleusercontent.com',
+                        '43232749750-69l8oivj5evikrr3msfdomitqgkiu6ca.apps.googleusercontent.com',
+                    ],
                 })
+                const payload = ticket.getPayload()
+                const userid = payload.sub
 
-                if (authToken) {
-                    const response = await axios.get(
-                        `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${authToken}`
-                    )
-                    const profileData = response.data
+                if (userid) {
                     return userCreationService.createUserGG(
                         {
-                            ...profileData,
-                            id: profileData.sub,
-                            displayName: profileData.name,
-                            emails: profileData.email,
+                            id: userid,
+                            displayName: payload.name,
+                            emails: payload.email,
                             photos: [
                                 {
-                                    value: profileData.picture,
+                                    value: payload.picture,
                                 },
                             ],
                         },
-                        (empty, account) => done(empty, account, authToken)
+                        (empty, account) => done(empty, account, token)
                     )
                 }
                 break
@@ -301,8 +307,11 @@ const loginApp = async (req, res) => {
             case 'dev': {
                 if (config.env === 'development') {
                     const account = await Account.findOne({
-                        [type === 'apple' ? 'appleProfile' : 'facebookProfile']:
-                            token,
+                        [type === 'apple'
+                            ? 'appleProfile'
+                            : type === 'facebook'
+                            ? 'facebookProfile'
+                            : 'googleProfile']: token,
                     })
                     return tokenService.generateAuthTokens(account)
                 }
@@ -312,6 +321,7 @@ const loginApp = async (req, res) => {
                 return
         }
     } catch (error) {
+        console.log(error)
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Please try again')
         } else throw error
@@ -342,10 +352,35 @@ const linkAccount = async (req) => {
                         { _id: accountId },
                         {
                             $set: {
-                                [type === 'apple'
-                                    ? 'appleProfile'
-                                    : 'facebookProfile']:
-                                    profileData.id.toString(),
+                                facebookProfile: profileData.id.toString(),
+                            },
+                        },
+                        { useFindAndModify: false }
+                    )
+                    return
+                }
+                throw new ApiError(httpStatus.CONFLICT, 'Not created')
+            }
+
+            case 'google': {
+                const ticket = await clientGoogle.verifyIdToken({
+                    idToken: token,
+                    audience: [
+                        '43232749750-6lqb1lqv2b231cecmm0etd1f99k7c80m.apps.googleusercontent.com',
+                        '43232749750-oqd2m87nhuu5rrltkho0n4rm2p94i0cc.apps.googleusercontent.com',
+                        '43232749750-nvv9cpt3vsrvn0j7niklqj62lj52sq98.apps.googleusercontent.com',
+                        '43232749750-69l8oivj5evikrr3msfdomitqgkiu6ca.apps.googleusercontent.com',
+                    ],
+                })
+                const payload = ticket.getPayload()
+                const userid = payload.sub
+
+                if (userid) {
+                    await Account.updateOne(
+                        { _id: accountId },
+                        {
+                            $set: {
+                                googleProfile: userid.toString(),
                             },
                         },
                         { useFindAndModify: false }
@@ -402,7 +437,9 @@ const linkAccount = async (req) => {
                             $set: {
                                 [type === 'apple'
                                     ? 'appleProfile'
-                                    : 'facebookProfile']: token.toString(),
+                                    : type === 'facebook'
+                                    ? 'facebookProfile'
+                                    : 'googleProfile']: token.toString(),
                             },
                         },
                         { useFindAndModify: false }
@@ -414,7 +451,6 @@ const linkAccount = async (req) => {
                 return
         }
     } catch (error) {
-        console.log(error)
         if (!error.isOperational) {
             if (error && error.code === 11000)
                 throw new ApiError(httpStatus.CONFLICT, 'Account exists')
@@ -430,17 +466,38 @@ const unlinkAccount = async (req) => {
 
         const { platform } = body
 
+        let reverse0
+        let reverse1
+
+        if (platform === 'facebook') {
+            reverse0 = 'appleProfile'
+            reverse1 = 'googleProfile'
+        }
+        if (platform === 'apple') {
+            reverse0 = 'facebookProfile'
+            reverse1 = 'googleProfile'
+        }
+
+        if (platform === 'google') {
+            reverse0 = 'facebookProfile'
+            reverse1 = 'appleProfile'
+        }
+
+        if (!reverse0 || !reverse1) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        }
+
         const result = await Account.updateOne(
             {
                 _id: accountId,
-                [platform === 'facebook' ? 'appleProfile' : 'facebookProfile']:
-                    { $exists: true },
+                $or: [
+                    { [reverse0]: { $exists: true } },
+                    { [reverse1]: { $exists: true } },
+                ],
             },
             {
                 $unset: {
-                    [platform === 'facebook'
-                        ? 'facebookProfile'
-                        : 'appleProfile']: '',
+                    [`${platform}Profile`]: '',
                 },
             },
             { useFindAndModify: false }
@@ -448,7 +505,6 @@ const unlinkAccount = async (req) => {
         if (!result.nModified)
             throw new ApiError(httpStatus.CONFLICT, 'Not unlink last')
     } catch (error) {
-        console.log(error)
         if (!error.isOperational)
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         else throw error

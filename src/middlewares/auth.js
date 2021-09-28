@@ -77,23 +77,23 @@ const auth = () => async (req, res, next) => {
 
                             await Token.deleteOne({ token: refreshToken })
 
-                            if (process.env.NODE_ENV !== 'development') {
-                                const { authToken, platform, type } =
-                                    await authService.refreshOauthToken({
-                                        accountId: req.account._id,
-                                    })
-                                if (!authToken) {
-                                    return logout()
-                                }
+                            // if (process.env.NODE_ENV !== 'development') {
+                            //     const { authToken, platform, type } =
+                            //         await authService.refreshOauthToken({
+                            //             accountId: req.account._id,
+                            //         })
+                            //     if (!authToken) {
+                            //         return logout()
+                            //     }
 
-                                await authService.updateCredentials(
-                                    req.account,
-                                    accessToken,
-                                    platform,
-                                    type,
-                                    refreshToken
-                                )
-                            }
+                            //     await authService.updateCredentials(
+                            //         req.account,
+                            //         accessToken,
+                            //         platform,
+                            //         type,
+                            //         refreshToken
+                            //     )
+                            // }
                             const tokens =
                                 await tokenService.generateAuthTokens(
                                     req.account
