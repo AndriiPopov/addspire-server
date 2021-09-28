@@ -1,5 +1,6 @@
 const { Count, Account, System, Question } = require('../models')
 const notificationService = require('../services/notification.service')
+const roundCoins = require('./roundCoins')
 
 module.exports = async (question) => {
     try {
@@ -101,7 +102,9 @@ module.exports = async (question) => {
                             returnCoins += distributionCoins[userId]
                         notificationService.notify(userId, {
                             title: 'Bonus',
-                            body: `You received a bonus for your contribution in ${count.questionName}`,
+                            body: `You received a bonus ${roundCoins(
+                                distributionCoins[userId]
+                            )} for your contribution in ${count.questionName}`,
                             data: {
                                 id: count.question,
                                 type: 'question',

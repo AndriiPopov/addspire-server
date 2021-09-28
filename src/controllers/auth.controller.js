@@ -13,7 +13,7 @@ const refreshTokens = catchAsync(async (req, res) => {
 })
 
 const loginApp = catchAsync(async (req, res) => {
-    const tokens = await authService.loginApp(req, res)
+    const tokens = await authService.loginApp(req)
     res.status(httpStatus.OK)
         .set({
             accesstoken: tokens.access.token,
@@ -22,8 +22,20 @@ const loginApp = catchAsync(async (req, res) => {
         .send({ message: 'success' })
 })
 
+const linkAccount = catchAsync(async (req, res) => {
+    await authService.linkAccount(req)
+    res.status(httpStatus.OK).send()
+})
+
+const unlinkAccount = catchAsync(async (req, res) => {
+    await authService.unlinkAccount(req)
+    res.status(httpStatus.OK).send()
+})
+
 module.exports = {
     logout,
     refreshTokens,
     loginApp,
+    linkAccount,
+    unlinkAccount,
 }

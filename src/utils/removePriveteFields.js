@@ -16,5 +16,9 @@ module.exports = (doc) => {
     } = {
         ...doc,
     }
+
+    if (doc.appleProfile) newDoc.appleProfile = true
+    if (doc.facebookProfile) newDoc.facebookProfile = true
+    if (doc.googleProfile) newDoc.googleProfile = true
     return newDoc
 }

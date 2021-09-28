@@ -5,7 +5,7 @@ const { Account } = require('../models')
 const createUserFB = async (profile, done) => {
     try {
         let account = await Account.findOne({
-            facebookProfile: `f_${profile.id}`,
+            facebookProfile: profile.id.toString(),
         })
             .select('accountInfo image __v')
             .exec()
@@ -13,7 +13,7 @@ const createUserFB = async (profile, done) => {
             let name = profile.displayName || profile.username
             name = name && name.length > 1 && name
             account = new Account({
-                facebookProfile: `f_${profile.id}`,
+                facebookProfile: profile.id.toString(),
                 name: name || `f_${profile.id}`,
                 userid: profile.id,
                 platformId: 'facebook',
@@ -46,7 +46,7 @@ const createUserFB = async (profile, done) => {
 const createUserGG = async (profile, done) => {
     try {
         let account = await Account.findOne({
-            googleProfile: `g_${profile.id}`,
+            googleProfile: profile.id.toString(),
         })
             .select('_id accountInfo image __v')
             .exec()
@@ -54,7 +54,7 @@ const createUserGG = async (profile, done) => {
             let name = profile.displayName || profile.username
             name = name && name.length > 1 && name
             account = new Account({
-                googleProfile: `g_${profile.id}`,
+                googleProfile: profile.id.toString(),
                 name: name || `g_${profile.id}`,
                 platformId: 'google',
                 userid: profile.id,
@@ -126,7 +126,7 @@ const createUserGH = async (profile, done) => {
 const createUserApple = async (profile, done) => {
     try {
         let account = await Account.findOne({
-            appleProfile: `a_${profile.id}`,
+            appleProfile: profile.id.toString(),
         })
             .select('accountInfo image __v')
             .exec()
@@ -138,7 +138,7 @@ const createUserApple = async (profile, done) => {
                 if (name.length > 10) name = name.substring(0, 10)
             }
             account = new Account({
-                appleProfile: `a_${profile.id}`,
+                appleProfile: profile.id.toString(),
                 name,
                 userid: profile.id,
                 platformId: 'apple',

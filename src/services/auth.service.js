@@ -157,7 +157,7 @@ const updateCredentials = async (
     }
 }
 
-const loginApp = async (req) => {
+const loginApp = async (req, res) => {
     try {
         const data = req.body
 
@@ -177,7 +177,10 @@ const loginApp = async (req) => {
                 refreshToken
             )
 
-            return tokenService.generateAuthTokens(account)
+            const tokens = tokenService.generateAuthTokens(account)
+            if (!tokens) {
+                throw new ApiError(httpStatus.CONFLICT, 'Not created')
+            } else return tokens
         }
 
         switch (platform) {
@@ -193,6 +196,13 @@ const loginApp = async (req) => {
                         const response = await axios.get(
                             `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${authToken}`
                         )
+
+                        if (!response || !response.data) {
+                            throw new ApiError(
+                                httpStatus.CONFLICT,
+                                'Not created'
+                            )
+                        }
 
                         const profileData = response.data
                         const picture =
@@ -243,8 +253,114 @@ const loginApp = async (req) => {
             }
 
             case 'apple': {
+                const clientSecret = await getAppleSecret(type)
+                if (!clientSecret)
+                    throw new ApiError(httpStatus.CONFLICT, 'Not created')
+
+                const options = {
+                    clientID: getAppleClientId(type),
+                    redirectUri: 'https://addspire.com/auth/callback',
+                    clientSecret,
+                }
+                const response = await appleSignin.getAuthorizationToken(
+                    token,
+                    options
+                )
+
+                if (!response || !response.id_token)
+                    throw new ApiError(httpStatus.CONFLICT, 'Not created')
+
+                const { sub: userId } = await appleSignin.verifyIdToken(
+                    response.id_token,
+                    { audience: getAppleClientId(type) }
+                )
+
+                if (!userId)
+                    throw new ApiError(httpStatus.CONFLICT, 'Not created')
+
+                const { authToken } = await refreshOauthToken({
+                    token: response.refresh_token,
+                    platform,
+                    type,
+                })
+
+                if (authToken) {
+                    return userCreationService.createUserApple(
+                        {
+                            id: userId,
+                            displayName: user
+                                ? `${user.firstName} ${user.lastName}`
+                                : '',
+                            emails: user.email,
+                        },
+                        (empty, account) => done(empty, account, authToken)
+                    )
+                }
+                throw new ApiError(httpStatus.CONFLICT, 'Not created')
+            }
+            case 'dev': {
+                if (config.env === 'development') {
+                    const account = await Account.findOne({
+                        [type === 'apple' ? 'appleProfile' : 'facebookProfile']:
+                            token,
+                    })
+                    return tokenService.generateAuthTokens(account)
+                }
+                break
+            }
+            default:
+                return
+        }
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Please try again')
+        } else throw error
+    }
+}
+
+const linkAccount = async (req) => {
+    try {
+        const { account, body } = req
+        const { _id: accountId } = account
+        const { platform, token, type } = body
+
+        switch (platform) {
+            case 'facebook': {
+                const { authToken } = await refreshOauthToken({
+                    token,
+                    platform,
+                    type,
+                })
+
+                if (authToken) {
+                    const response = await axios.get(
+                        `https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture&access_token=${authToken}`
+                    )
+
+                    const profileData = response.data
+                    await Account.updateOne(
+                        { _id: accountId },
+                        {
+                            $set: {
+                                [type === 'apple'
+                                    ? 'appleProfile'
+                                    : 'facebookProfile']:
+                                    profileData.id.toString(),
+                            },
+                        },
+                        { useFindAndModify: false }
+                    )
+                    return
+                }
+                throw new ApiError(httpStatus.CONFLICT, 'Not created')
+            }
+
+            case 'apple': {
                 {
                     const clientSecret = await getAppleSecret(type)
+                    if (!clientSecret)
+                        throw new ApiError(httpStatus.CONFLICT, 'Not created')
+
                     const options = {
                         clientID: getAppleClientId(type),
                         redirectUri: 'https://addspire.com/auth/callback',
@@ -255,47 +371,87 @@ const loginApp = async (req) => {
                         options
                     )
 
+                    if (!response || !response.id_token)
+                        throw new ApiError(httpStatus.CONFLICT, 'Not created')
+
                     const { sub: userId } = await appleSignin.verifyIdToken(
                         response.id_token,
                         { audience: getAppleClientId(type) }
                     )
 
-                    const { authToken } = await refreshOauthToken({
-                        token: response.refresh_token,
-                        platform,
-                        type,
-                    })
+                    if (!userId)
+                        throw new ApiError(httpStatus.CONFLICT, 'Not created')
 
-                    if (authToken) {
-                        return userCreationService.createUserApple(
-                            {
-                                id: userId,
-                                displayName: user
-                                    ? `${user.firstName} ${user.lastName}`
-                                    : '',
-                                emails: user.email,
+                    await Account.updateOne(
+                        { _id: accountId },
+                        {
+                            $set: {
+                                appleProfile: userId.toString(),
                             },
-                            (empty, account) => done(empty, account, authToken)
-                        )
-                    }
+                        },
+                        { useFindAndModify: false }
+                    )
                 }
                 break
             }
             case 'dev': {
                 if (config.env === 'development') {
-                    const account = await Account.findOne({
-                        facebookProfile: token,
-                    })
-                    return tokenService.generateAuthTokens(account)
+                    await Account.updateOne(
+                        { _id: accountId },
+                        {
+                            $set: {
+                                [type === 'apple'
+                                    ? 'appleProfile'
+                                    : 'facebookProfile']: token.toString(),
+                            },
+                        },
+                        { useFindAndModify: false }
+                    )
                 }
                 break
             }
             default:
                 return
         }
-    } catch (err) {
-        console.log(err)
-        throw new ApiError(httpStatus.CONFLICT, 'Please try again')
+    } catch (error) {
+        console.log(error)
+        if (!error.isOperational) {
+            if (error && error.code === 11000)
+                throw new ApiError(httpStatus.CONFLICT, 'Account exists')
+            else throw new ApiError(httpStatus.CONFLICT, 'Please try again')
+        } else throw error
+    }
+}
+
+const unlinkAccount = async (req) => {
+    try {
+        const { account, body } = req
+        const { _id: accountId } = account
+
+        const { platform } = body
+
+        const result = await Account.updateOne(
+            {
+                _id: accountId,
+                [platform === 'facebook' ? 'appleProfile' : 'facebookProfile']:
+                    { $exists: true },
+            },
+            {
+                $unset: {
+                    [platform === 'facebook'
+                        ? 'facebookProfile'
+                        : 'appleProfile']: '',
+                },
+            },
+            { useFindAndModify: false }
+        )
+        if (!result.nModified)
+            throw new ApiError(httpStatus.CONFLICT, 'Not unlink last')
+    } catch (error) {
+        console.log(error)
+        if (!error.isOperational)
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        else throw error
     }
 }
 
@@ -305,4 +461,6 @@ module.exports = {
     updateCredentials,
     getAppleSecret,
     loginApp,
+    linkAccount,
+    unlinkAccount,
 }

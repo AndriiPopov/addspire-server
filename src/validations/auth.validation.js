@@ -21,8 +21,24 @@ const loginApp = {
     }),
 }
 
+const linkAccount = {
+    body: Joi.object().keys({
+        platform: Joi.string().required(),
+        token: Joi.string().required(),
+        type: Joi.string().required(),
+    }),
+}
+
+const unlinkAccount = {
+    body: Joi.object().keys({
+        platform: Joi.string().required(),
+    }),
+}
+
 module.exports = {
     logout,
     refreshTokens,
     loginApp,
+    linkAccount,
+    unlinkAccount,
 }

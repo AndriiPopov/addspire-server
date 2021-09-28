@@ -270,6 +270,7 @@ const acceptInvite = async (req) => {
                                         clubId: doc.club,
                                         clubName: club.name,
                                         userName: account.name,
+                                        image: account.image,
                                     },
                                     notId: newNotificationId,
                                 },
@@ -356,6 +357,7 @@ const addResident = async (req) => {
                                         clubId,
                                         clubName: club.name,
                                         userName: account.name,
+                                        image: reputationLean.image,
                                     },
                                     notId: newNotificationId,
                                 },
@@ -430,6 +432,7 @@ const leaveResidence = async (req) => {
                                         clubId,
                                         clubName: club.name,
                                         userName: account.name,
+                                        image: account.image,
                                     },
                                     notId: newNotificationId,
                                 },
@@ -513,6 +516,7 @@ const requestResidence = async (req) => {
                                             clubId,
                                             clubName: club.name,
                                             userName: account.name,
+                                            image: account.image,
                                         },
                                         notId: newNotificationId,
                                     },
@@ -577,7 +581,7 @@ const acceptResidenceRequest = async (req) => {
             },
             { useFindAndModify: false }
         )
-            .select('followers name')
+            .select('followers name image')
             .lean()
             .exec()
 
@@ -607,6 +611,7 @@ const acceptResidenceRequest = async (req) => {
                                     details: {
                                         clubId,
                                         clubName: club.name,
+                                        image: club.image,
                                     },
                                     notId: newNotificationId,
                                 },
@@ -665,7 +670,7 @@ const declineResidenceRequest = async (req) => {
             { $pull: { residenceRequests: { _id: requestId } } },
             { useFindAndModify: false }
         )
-            .select('name')
+            .select('name image')
             .lean()
             .exec()
 
@@ -678,7 +683,11 @@ const declineResidenceRequest = async (req) => {
                             {
                                 user: residentId,
                                 code: 'decline residence request',
-                                details: { clubId, clubName: club.name },
+                                details: {
+                                    clubId,
+                                    clubName: club.name,
+                                    image: club.image,
+                                },
                                 notId: newNotificationId,
                             },
                         ],
@@ -720,7 +729,7 @@ const editStartRule = async (req) => {
             { $set: { startConversation: ruleValue } },
             { useFindAndModify: false }
         )
-            .select('followers name')
+            .select('followers name image')
             .lean()
             .exec()
 
@@ -735,7 +744,11 @@ const editStartRule = async (req) => {
                                 {
                                     user: accountId,
                                     code: 'changed rules',
-                                    details: { clubId, clubName: club.name },
+                                    details: {
+                                        clubId,
+                                        clubName: club.name,
+                                        image: club.image,
+                                    },
                                     notId: newNotificationId,
                                 },
                             ],
@@ -783,7 +796,7 @@ const ban = async (req) => {
             { $set: { banned: banning } },
             { useFindAndModify: false }
         )
-            .select('owner club clubName')
+            .select('owner club clubName image')
             .lean()
             .exec()
         if (reputation) {
@@ -801,7 +814,10 @@ const ban = async (req) => {
                                 {
                                     user: accountId,
                                     code: banning ? 'ban' : 'unban',
-                                    details: { reputationId },
+                                    details: {
+                                        reputationId,
+                                        image: reputation.image,
+                                    },
                                     notId: newNotificationId,
                                 },
                             ],

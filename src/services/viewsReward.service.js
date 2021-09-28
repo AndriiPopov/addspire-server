@@ -2,6 +2,7 @@ const notificationService = require('./notification.service')
 const { Count, System, Account } = require('../models')
 const getDistributeCoinsToday = require('../utils/getDistributeCoinsToday')
 const { client } = require('./redis.service')
+const roundCoins = require('../utils/roundCoins')
 
 const getTodayDate = () => {
     const today = new Date()
@@ -113,7 +114,11 @@ const viewsReward = async () => {
                                     distributeToday -= userGain
                                 notificationService.notify(userId, {
                                     title: 'Coins for contribution',
-                                    body: `Addspire has sent you ${userGain} coins for your contribution in question ${count.questionName}`,
+                                    body: `Addspire has sent you ${roundCoins(
+                                        userGain
+                                    )} coins for your contribution in question ${
+                                        count.questionName
+                                    }`,
                                     data: {
                                         id: count.question,
                                         type: 'question',
@@ -143,7 +148,9 @@ const viewsReward = async () => {
 
             notificationService.notify('all', {
                 title: 'Addspire coins',
-                body: `Today we distributed ${distributeToday} coins. Tomorrow We will distribute ${distributeTomorrow}. The more you contribute the more coins you get.`,
+                body: `Today we distributed ${roundConts(
+                    distributeToday
+                )} coins. Tomorrow We will distribute ${distributeTomorrow}. The more you contribute the more coins you get.`,
                 data: {
                     id: '',
                     type: 'feed',

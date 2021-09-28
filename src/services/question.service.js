@@ -310,6 +310,7 @@ const remove = async (req) => {
                                         questionId: resource._id,
                                         questionName: resource.name,
                                         coins: resource.bonusCoins,
+                                        image: account.image,
                                     },
                                     notId: newNotificationId,
                                 },

@@ -54,6 +54,7 @@ const notify = async (accountsIds, message) => {
                     title: message.title,
                     body: message.body,
                     data: message.data,
+                    'content-available': 1,
                 })
             }
         })
