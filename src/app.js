@@ -11,6 +11,7 @@ const { authLimiter } = require('./middlewares/rateLimiter')
 const routes = require('./routes/v1')
 const { errorConverter, errorHandler } = require('./middlewares/error')
 const ApiError = require('./utils/ApiError')
+const { sitemapService } = require('./services')
 require('./services/redis.service')
 // const { redis } = require('./services')
 
@@ -61,6 +62,9 @@ app.use('/api/ping', (req, res) => {
 
 // v1 api routes
 app.use('/api', routes)
+
+// v1 api routes
+app.get('/sitemap.xml', sitemapService.sendSitemap)
 
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {
