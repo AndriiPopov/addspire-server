@@ -59,51 +59,63 @@ const reputationSchema = new mongoose.Schema(
         description: {
             type: String,
             maxlength: mongoLength.description.max,
+            default: '',
         },
         address: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         phone: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         web: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         email: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         social: {
             type: String,
             maxlength: mongoLength.message.max,
+            default: '',
         },
         profileBackground: { type: String, default: '' },
         profileDescription: {
             type: String,
             maxlength: mongoLength.description.max,
+            default: '',
         },
         profileAddress: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         profilePhone: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         profileWeb: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         profileEmail: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         profileSocial: {
             type: String,
             maxlength: mongoLength.message.max,
+            default: '',
         },
     },
     { minimize: false }

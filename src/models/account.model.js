@@ -68,26 +68,32 @@ const accountSchema = new mongoose.Schema(
         description: {
             type: String,
             maxlength: mongoLength.description.max,
+            default: '',
         },
         address: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         phone: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         web: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         email: {
             type: String,
             maxlength: mongoLength.name.max,
+            default: '',
         },
         social: {
             type: String,
             maxlength: mongoLength.message.max,
+            default: '',
         },
         reputations: {
             type: [

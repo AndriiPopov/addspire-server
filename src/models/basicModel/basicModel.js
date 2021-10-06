@@ -6,8 +6,9 @@ module.exports = {
     settings: {},
     name: {
         type: String,
+        default: '',
     },
-    image: String,
+    image: { type: String, default: '' },
     date: {
         type: Date,
         default: Date.now,
