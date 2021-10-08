@@ -5,7 +5,8 @@ const ApiError = require('../utils/ApiError')
 const saveTags = async (tags) => {
     try {
         if (tags) {
-            tags.forEach(async (tag) => {
+            tags.forEach(async (item) => {
+                const tag = item.toLowerCase()
                 await Tag.findOneAndUpdate(
                     { _id: tag },
                     {
@@ -26,7 +27,7 @@ const findTags = async (req) => {
         const { tag } = req.query
         if (tag) {
             const tags = await Tag.find({
-                _id: { $regex: tag, $options: 'gi' },
+                _id: { $regex: tag.toLowerCase(), $options: 'gi' },
             })
                 .sort('length')
                 .limit(20)
