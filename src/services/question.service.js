@@ -29,7 +29,8 @@ const create = async (req) => {
         const realCoinsBonusTotal = bonusCoins
             ? Math.min(account.wallet, bonusCoins)
             : 0
-        const realCoinsBonus = realCoinsBonusTotal * 0.95
+        const realCoinsBonus = realCoinsBonusTotal
+        // const realCoinsBonus = realCoinsBonusTotal * 0.95
         const addspireCommission = realCoinsBonusTotal - realCoinsBonus
 
         const bonusPending = !!realCoinsBonus
@@ -178,7 +179,8 @@ const edit = async (req) => {
             realCoinsBonusTotal = bonusCoins
                 ? Math.min(account.wallet, bonusCoins)
                 : 0
-            realCoinsBonus = realCoinsBonusTotal * 0.95
+            // realCoinsBonus = realCoinsBonusTotal * 0.95
+            realCoinsBonus = realCoinsBonusTotal
             addspireCommission = realCoinsBonusTotal - realCoinsBonus
 
             if (!resource.bonusPending) {
