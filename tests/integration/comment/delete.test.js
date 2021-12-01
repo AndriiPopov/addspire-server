@@ -21,7 +21,7 @@ describe('POST /api/comment/delete', () => {
 
         await request(app)
             .post('/api/comment/delete')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 commentId,
             })
@@ -51,7 +51,7 @@ describe('POST /api/comment/delete', () => {
 
         await request(app)
             .post('/api/comment/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 commentId,
             })
@@ -71,7 +71,7 @@ describe('POST /api/comment/delete', () => {
     test('should return 400 error if validation fails', async () => {
         await request(app)
             .post('/api/comment/delete')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({})
             .expect(httpStatus.BAD_REQUEST)
     })
@@ -83,7 +83,7 @@ describe('POST /api/comment/delete', () => {
 
         await request(app)
             .post('/api/comment/delete')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 commentId,
             })
@@ -102,7 +102,7 @@ describe('POST /api/comment/delete', () => {
 
         await request(app)
             .post('/api/vote/vote')
-            .set('accountId', 'f_5')
+            .set('accountId', '5')
             .send({
                 resourceId: commentId,
                 type: 'comment',
@@ -117,7 +117,7 @@ describe('POST /api/comment/delete', () => {
 
         await request(app)
             .post('/api/comment/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 commentId,
             })

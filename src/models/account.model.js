@@ -133,11 +133,10 @@ const accountSchema = new mongoose.Schema(
     { minimize: false }
 )
 
-// General search
-accountSchema.index({ tags: 1 })
-accountSchema.index({ name: 'text' })
-accountSchema.index({ reputationsCount: -1 })
 accountSchema.index({ expoTokens: 1 })
+accountSchema.index({ appleProfile: 1 })
+accountSchema.index({ facebookProfile: 1 })
+accountSchema.index({ googleProfile: 1 })
 
 accountSchema.plugin(mongoosePaginate)
 

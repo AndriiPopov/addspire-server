@@ -6,7 +6,7 @@ export default () => {
             'http://localhost:5001/api/club/invite',
             { clubId },
             {
-                headers: { accountId: `f_0` },
+                headers: { accountId: `0` },
             }
         )
 
@@ -24,7 +24,7 @@ export default () => {
             'http://localhost:5001/api/club/accept-invite',
             { code },
             {
-                headers: { accountId: `f_${id}` },
+                headers: { accountId: `${id}` },
             }
         )
         check(res2, {
@@ -42,7 +42,7 @@ export default () => {
             tags: ['club1', 'club2'],
         },
         {
-            headers: { accountId: `f_0` },
+            headers: { accountId: `0` },
         }
     )
     check(newCrocResp, {
@@ -72,7 +72,7 @@ export default () => {
             tags: ['adsasd', 'questionER'],
         },
         {
-            headers: { accountId: `f_0` },
+            headers: { accountId: `0` },
         }
     )
     check(newCrocResp, {

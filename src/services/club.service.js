@@ -12,7 +12,15 @@ const { saveTags } = require('./tag.service')
 const createClub = async (req) => {
     try {
         const { account, body } = req
-        const { image, name, description, tags } = body
+        const {
+            image,
+            name,
+            description,
+            tags,
+            global,
+            location,
+            clubAddress,
+        } = body
         const { _id: accountId } = account
 
         const reputation = new Reputation({
@@ -22,6 +30,7 @@ const createClub = async (req) => {
             clubImage: image,
             clubTags: tags,
             member: true,
+            global,
         })
 
         const club = new Club({
@@ -34,7 +43,18 @@ const createClub = async (req) => {
             image,
             description,
             tags,
+            global,
         })
+        if (!global) {
+            club.location = {
+                type: 'Point',
+                coordinates: [location.longitude, location.latitude],
+            }
+            club.clubAddress = clubAddress
+
+            reputation.location = club.location
+            reputation.clubAddress = club.clubAddress
+        }
 
         const accountObj = await Account.findOneAndUpdate(
             { _id: accountId },
@@ -114,6 +134,7 @@ const createClub = async (req) => {
 
         return club
     } catch (error) {
+        console.log(error)
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error

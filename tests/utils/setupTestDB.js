@@ -108,7 +108,13 @@ const setupTestDB = () => {
                 name: 'Test club 1',
                 description: 'This is a test club',
                 image: 'test.jpeg',
-                tags: ['tag1', 'tag2'],
+                tags: ['tag1', 'tag2', 'tag3', 'tag4', 'tag5'],
+                location: {
+                    longitude: 30,
+                    latitude: 30,
+                },
+                clubAddress: 'Test address',
+                global: false,
             },
         })
 

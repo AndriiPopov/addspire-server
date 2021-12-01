@@ -148,9 +148,9 @@ const viewsReward = async () => {
 
             notificationService.notify('all', {
                 title: 'Addspire coins',
-                body: `Today we distributed ${roundConts(
+                body: `Today we gave ${roundCoins(
                     distributeToday
-                )} coins. Tomorrow We will distribute ${distributeTomorrow}. The more you contribute the more coins you get.`,
+                )} coins. Tomorrow We will give ${distributeTomorrow}. The more you contribute the more coins you get.`,
                 data: {
                     id: '',
                     type: 'feed',

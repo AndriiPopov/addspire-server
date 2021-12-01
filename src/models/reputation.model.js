@@ -117,43 +117,64 @@ const reputationSchema = new mongoose.Schema(
             maxlength: mongoLength.message.max,
             default: '',
         },
+        location: {
+            type: { type: String },
+            coordinates: [Number],
+        },
+        clubAddress: { type: String, default: '' },
+        global: { type: Boolean, default: false },
+        answersCount: { type: Number, default: 0 },
+        questionsCount: { type: Number, default: 0 },
+        commentsCount: { type: Number, default: 0 },
+        lastContent: {
+            resourceId: String,
+            resourceType: String,
+        },
     },
     { minimize: false }
 )
 
 // General search
+reputationSchema.index(
+    { tags: 1, reputation: -1 },
+    {
+        partialFilterExpression: { global: true },
+    }
+)
+
 reputationSchema.index({
+    location: '2dsphere',
     tags: 1,
+    reputation: -1,
 })
 
 reputationSchema.index({
-    name: 'text',
+    location: '2dsphere',
+    reputation: -1,
 })
+
+reputationSchema.index(
+    { reputation: -1 },
+    { partialFilterExpression: { global: true } }
+)
 
 // Club search
 reputationSchema.index({
     club: 1,
-    tags: 1,
+    reputation: -1,
 })
 
-reputationSchema.index({
-    club: 1,
-    name: 'text',
-})
-
-// User search
-reputationSchema.index({
-    owner: 1,
-    clubName: 'text',
-})
+// My clubs search
+reputationSchema.index(
+    {
+        owner: 1,
+        reputation: -1,
+    },
+    { partialFilterExpression: { starred: true } }
+)
 
 reputationSchema.index({
     owner: 1,
-    starred: 1,
-})
-
-// For sorting
-reputationSchema.index({
     reputation: -1,
 })
 

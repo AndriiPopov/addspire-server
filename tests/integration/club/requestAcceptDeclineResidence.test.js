@@ -20,50 +20,58 @@ describe('POST /api/club/invite', () => {
     accept request if data is ok,
     fail accept if too many admins,
     decline request`, async () => {
-        const oldUser0 = await Account.findOne({ facebookProfile: 'f_0' })
+        const oldUser0 = await Account.findOne({ facebookProfile: '0' })
         const userId0 = oldUser0._id.toString()
-        const oldUser1 = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldUser1 = await Account.findOne({ facebookProfile: '1' })
         const userId1 = oldUser1._id.toString()
-        const oldUser2 = await Account.findOne({ facebookProfile: 'f_2' })
+        const oldUser2 = await Account.findOne({ facebookProfile: '2' })
         const userId2 = oldUser2._id.toString()
-        const oldUser3 = await Account.findOne({ facebookProfile: 'f_3' })
+        const oldUser3 = await Account.findOne({ facebookProfile: '3' })
         const userId3 = oldUser3._id.toString()
-        const oldUser4 = await Account.findOne({ facebookProfile: 'f_4' })
+        const oldUser4 = await Account.findOne({ facebookProfile: '4' })
         const userId4 = oldUser4._id.toString()
-        const oldUser5 = await Account.findOne({ facebookProfile: 'f_5' })
+        const oldUser5 = await Account.findOne({ facebookProfile: '5' })
         const userId5 = oldUser5._id.toString()
-        const oldUser6 = await Account.findOne({ facebookProfile: 'f_6' })
+        const oldUser6 = await Account.findOne({ facebookProfile: '6' })
         const userId6 = oldUser6._id.toString()
-        const oldUser7 = await Account.findOne({ facebookProfile: 'f_7' })
+        const oldUser7 = await Account.findOne({ facebookProfile: '7' })
         const userId7 = oldUser7._id.toString()
-        const oldUser8 = await Account.findOne({ facebookProfile: 'f_8' })
+        const oldUser8 = await Account.findOne({ facebookProfile: '8' })
         const userId8 = oldUser8._id.toString()
-        const oldUser9 = await Account.findOne({ facebookProfile: 'f_9' })
+        const oldUser9 = await Account.findOne({ facebookProfile: '9' })
         const userId9 = oldUser9._id.toString()
 
         await request(app)
             .post('/api/club/create')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
+                location: { latitude: 20, longitude: 10 },
+                clubAddress: 'Kremenchuk, 35100',
+                global: false,
             })
             .expect(httpStatus.CREATED)
 
-        const club0 = await Club.findOne({ name: 'Rollers of US' })
+        const club0 = await Club.findOne({ name: 'Rollers of US' }).lean()
         expect(club0).not.toBeNull()
         const clubId = club0._id.toString()
 
         await requestResidenceTest(0, httpStatus.CONFLICT, '', '', clubId)
         await requestResidenceTest(1, httpStatus.BAD_REQUEST, 'f', '', clubId)
-        await requestResidenceTest(1, httpStatus.BAD_REQUEST, '', 'f', clubId)
         await requestResidenceTest(1, httpStatus.BAD_REQUEST, '', '', {})
 
         await requestResidenceTest(1, undefined, '', '', clubId)
 
-        const club1 = await Club.findById(clubId)
-        expect(club1).not.toBeNull()
+        const club1 = await Club.findById(clubId).lean()
+
+        expect(club1.location).toMatchObject({
+            type: 'Point',
+            coordinates: [10, 20],
+        })
+        expect(club1.clubAddress).toEqual('Kremenchuk, 35100')
+        expect(club1.global).toBeFalsy()
 
         expect(
             club1.residenceRequests.length - club0.residenceRequests.length
@@ -74,7 +82,6 @@ describe('POST /api/club/invite', () => {
         expect(req).toMatchObject({
             accountId: userId1,
             message: `I am 1 and want to be an admin.`,
-            contact: `Find 1 here`,
         })
         const reqId1 = req._id.toString()
 
@@ -132,7 +139,6 @@ describe('POST /api/club/invite', () => {
         expect(req3).toMatchObject({
             accountId: userId1,
             message: `I am 1 and want to be an admin.`,
-            contact: `Find 1 here`,
         })
         const reqId3 = req3._id.toString()
 
@@ -171,6 +177,8 @@ describe('POST /api/club/invite', () => {
             club: clubId,
             owner: userId1,
         })
+            .lean()
+            .exec()
         const reputationId1 = reputationObj1._id.toString()
         const req4 = club4.residenceRequests.find(
             (i) => i.accountId === userId1
@@ -180,6 +188,9 @@ describe('POST /api/club/invite', () => {
         expect(club4.adminReputations).toContain(reputationId1)
         expect(reputationObj1).toBeDefined()
         expect(reputationObj1.admin).toBeTruthy()
+        expect(reputationObj1.location).toEqual(club1.location)
+        expect(reputationObj1.clubAddress).toEqual(club1.clubAddress)
+        expect(reputationObj1.global).toEqual(club1.global)
 
         expect(club4.adminsCount - club3.adminsCount).toEqual(1)
         expect(club4.adminsCount).toEqual(club4.adminReputations.length)

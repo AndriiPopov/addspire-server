@@ -8,7 +8,7 @@ setupTestDB()
 
 describe('POST /api/account/follow', () => {
     test('should return 200 and successfully follow reputation, return 400 if follow again, return 200 if unfollow and 400 on unfollow again', async () => {
-        const oldFollower = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldFollower = await Account.findOne({ facebookProfile: '1' })
         const followerId = oldFollower._id.toString()
 
         const oldReputation = await Reputation.findOne({
@@ -18,7 +18,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/follow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'reputation',
                 resourceId: reputationId,
@@ -40,7 +40,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/follow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'reputation',
                 resourceId: reputationId,
@@ -49,7 +49,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/unfollow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'reputation',
                 resourceId: reputationId,
@@ -71,7 +71,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/unfollow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'reputation',
                 resourceId: reputationId,
@@ -80,7 +80,7 @@ describe('POST /api/account/follow', () => {
     })
 
     test('should return 200 and successfully follow club, return 400 if follow again, return 200 if unfollow and 400 on unfollow again', async () => {
-        const oldFollower = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldFollower = await Account.findOne({ facebookProfile: '1' })
         const followerId = oldFollower._id.toString()
 
         const oldClub = await Club.findOne({
@@ -96,7 +96,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/follow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'club',
                 resourceId: clubId,
@@ -120,7 +120,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/follow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'club',
                 resourceId: clubId,
@@ -129,7 +129,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/unfollow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'club',
                 resourceId: clubId,
@@ -158,7 +158,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/unfollow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'club',
                 resourceId: clubId,
@@ -167,7 +167,7 @@ describe('POST /api/account/follow', () => {
     })
 
     test('should return 200 and successfully follow question, return 400 if follow again, return 200 if unfollow and 400 on unfollow again', async () => {
-        const oldFollower = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldFollower = await Account.findOne({ facebookProfile: '1' })
         const followerId = oldFollower._id.toString()
 
         const oldQuestion = await Question.findOne({
@@ -177,7 +177,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/follow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'question',
                 resourceId: questionId,
@@ -197,7 +197,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/follow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'question',
                 resourceId: questionId,
@@ -206,7 +206,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/unfollow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'question',
                 resourceId: questionId,
@@ -231,7 +231,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/unfollow')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 type: 'question',
                 resourceId: questionId,
@@ -240,12 +240,12 @@ describe('POST /api/account/follow', () => {
     })
 
     test('should return 400 error if  validation fails', async () => {
-        const oldFollowing = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldFollowing = await Account.findOne({ facebookProfile: '1' })
         const followingId = oldFollowing._id.toString()
 
         await request(app)
             .post('/api/account/follow')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 type: 'acdfgfdgcount',
                 resourceId: followingId,
@@ -254,7 +254,7 @@ describe('POST /api/account/follow', () => {
 
         await request(app)
             .post('/api/account/unfollow')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 type: 'reputation',
             })

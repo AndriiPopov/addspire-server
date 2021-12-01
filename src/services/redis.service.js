@@ -22,9 +22,14 @@ const scanAll = async () => {
     return new Set(found)
 }
 
+const closeInstance = (callback) => {
+    client.quit(callback)
+}
+
 module.exports = {
     get,
     mget,
     scanAll,
     client,
+    closeInstance,
 }

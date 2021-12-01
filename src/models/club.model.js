@@ -37,23 +37,49 @@ const clubSchema = new mongoose.Schema(
             },
         ],
         banned: [String],
+        fresh: { type: Boolean, default: true },
+        location: {
+            type: {
+                type: String,
+                enum: ['Point'],
+            },
+            coordinates: {
+                type: [Number],
+            },
+        },
+        clubAddress: { type: String, default: '' },
+        global: { type: Boolean, default: false },
+        images: [String],
     },
     { minimize: false }
 )
 
 // General search
+clubSchema.index(
+    {
+        tags: 1,
+        followersCount: -1,
+    },
+    {
+        partialFilterExpression: { global: true },
+    }
+)
+
 clubSchema.index({
+    location: '2dsphere',
     tags: 1,
+    followersCount: -1,
 })
 
 clubSchema.index({
-    name: 'text',
+    location: '2dsphere',
+    followersCount: -1,
 })
 
-// For sorting
-clubSchema.index({
-    reputationsCount: -1,
-})
+clubSchema.index(
+    { followersCount: -1 },
+    { partialFilterExpression: { global: true } }
+)
 
 clubSchema.plugin(mongoosePaginate)
 

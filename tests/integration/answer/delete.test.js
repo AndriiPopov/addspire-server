@@ -18,7 +18,7 @@ describe('POST /api/answer/delete', () => {
 
         await request(app)
             .post('/api/answer/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: answerId,
             })
@@ -33,7 +33,7 @@ describe('POST /api/answer/delete', () => {
     test('should return 400 error if validation fails', async () => {
         await request(app)
             .post('/api/answer/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: 'sdfsdfs',
             })
@@ -47,7 +47,7 @@ describe('POST /api/answer/delete', () => {
 
         await request(app)
             .post('/api/answer/delete')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: answerId,
             })
@@ -64,7 +64,7 @@ describe('POST /api/answer/delete', () => {
 
         await request(app)
             .post('/api/vote/vote')
-            .set('accountId', 'f_5')
+            .set('accountId', '5')
             .send({
                 resourceId: answerId,
                 type: 'answer',
@@ -79,7 +79,7 @@ describe('POST /api/answer/delete', () => {
 
         await request(app)
             .post('/api/answer/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: answerId,
             })

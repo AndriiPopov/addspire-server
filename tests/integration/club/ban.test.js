@@ -12,7 +12,7 @@ describe('POST /api/account/ban', () => {
         const clubId = oldClub._id.toString()
 
         const user = await Account.findOne({
-            facebookProfile: 'f_2',
+            facebookProfile: '2',
         }).lean()
         const userId = user._id
 
@@ -24,7 +24,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/club/ban')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 banning: true,
@@ -40,7 +40,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/question/create')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 clubId,
                 name: 'How to drive a car?',
@@ -51,7 +51,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/club/ban')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 banning: false,
@@ -68,7 +68,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/question/create')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 clubId,
                 name: 'How to drive a car?',
@@ -83,7 +83,7 @@ describe('POST /api/account/ban', () => {
         const clubId = oldClub._id.toString()
 
         const user = await Account.findOne({
-            facebookProfile: 'f_1',
+            facebookProfile: '1',
         }).lean()
         const userId = user._id
 
@@ -95,7 +95,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/club/ban')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 clubId,
                 banning: true,
@@ -114,7 +114,7 @@ describe('POST /api/account/ban', () => {
         const clubId = oldClub._id.toString()
 
         const user = await Account.findOne({
-            facebookProfile: 'f_0',
+            facebookProfile: '0',
         }).lean()
         const userId = user._id
 
@@ -126,7 +126,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/club/ban')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 banning: false,
@@ -145,7 +145,7 @@ describe('POST /api/account/ban', () => {
         const clubId = oldClub._id.toString()
 
         const user = await Account.findOne({
-            facebookProfile: 'f_1',
+            facebookProfile: '1',
         }).lean()
         const userId = user._id
 
@@ -157,7 +157,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/club/ban')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 banning: false,
@@ -166,7 +166,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/club/ban')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 banning: false,
                 reputationId,
@@ -175,7 +175,7 @@ describe('POST /api/account/ban', () => {
 
         await request(app)
             .post('/api/club/ban')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 banning: 'asdas',

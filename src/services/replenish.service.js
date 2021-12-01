@@ -1,5 +1,5 @@
 const notificationService = require('./notification.service')
-const { Reputation, System, Account } = require('../models')
+const { Reputation, System, Account, Club } = require('../models')
 
 const getTodayDate = () => {
     const today = new Date()
@@ -91,6 +91,16 @@ const replenish = async () => {
                 },
             ],
             { useFindAndModify: false }
+        )
+
+        await Club.updateMany(
+            {
+                fresh: true,
+                date: {
+                    $lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+                },
+            },
+            { $set: { fresh: false } }
         )
 
         await System.System.updateOne(

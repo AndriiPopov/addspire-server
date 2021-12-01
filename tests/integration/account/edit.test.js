@@ -8,14 +8,14 @@ setupTestDB()
 
 describe('POST /api/account/edit', () => {
     test('should return 200 and successfully edit account', async () => {
-        const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
+        const oldUser = await Account.findOne({ facebookProfile: '0' })
         const userId = oldUser._id.toString()
 
         const oldTags = await Tag.find({})
 
         await request(app)
             .post('/api/account/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 name: 'Test Tester',
                 image: 'image.png',
@@ -38,7 +38,7 @@ describe('POST /api/account/edit', () => {
 
         await request(app)
             .post('/api/club/edit-reputation')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 reputationId,
                 tags: ['happy', 'mate'],
@@ -61,7 +61,7 @@ describe('POST /api/account/edit', () => {
 
         await request(app)
             .post('/api/account/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send(editData)
             .expect(httpStatus.OK)
 
@@ -97,7 +97,7 @@ describe('POST /api/account/edit', () => {
     test('should return 400 error if  validation fails', async () => {
         await request(app)
             .post('/api/account/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 name: 'T',
             })

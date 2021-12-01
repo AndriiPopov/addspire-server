@@ -9,7 +9,7 @@ setupTestDB()
 describe('POST /api/account/delete', () => {
     test('should return 200 and successfully delete account one time', async () => {
         const oldUser = await Account.findOne({
-            facebookProfile: 'f_0',
+            facebookProfile: '0',
         }).lean()
         const userId = oldUser._id.toString()
 
@@ -26,7 +26,7 @@ describe('POST /api/account/delete', () => {
 
         await request(app)
             .post('/api/account/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({})
             .expect(httpStatus.OK)
 
@@ -45,7 +45,7 @@ describe('POST /api/account/delete', () => {
 
         await request(app)
             .post('/api/account/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({})
             .expect(httpStatus.UNAUTHORIZED)
     })

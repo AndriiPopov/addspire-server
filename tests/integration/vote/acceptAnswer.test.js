@@ -29,7 +29,7 @@ describe('POST /api/vote/accept', () => {
         }).lean()
         const answerId = oldAnswer._id.toString()
 
-        const oldUser = await Account.findOne({ facebookProfile: 'f_1' }).lean()
+        const oldUser = await Account.findOne({ facebookProfile: '1' }).lean()
         const userId = oldUser._id.toString()
 
         const oldReputationObj = await Reputation.findOne({
@@ -40,7 +40,7 @@ describe('POST /api/vote/accept', () => {
 
         await request(app)
             .post('/api/vote/accept')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 answerId,
             })
@@ -79,7 +79,7 @@ describe('POST /api/vote/accept', () => {
 
         await request(app)
             .post('/api/vote/accept')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 answerId,
             })
@@ -91,7 +91,7 @@ describe('POST /api/vote/accept', () => {
         const answerId2 = oldAnswer2._id.toString()
         await request(app)
             .post('/api/vote/accept')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 answerId: answerId2,
             })
@@ -112,7 +112,7 @@ describe('POST /api/vote/accept', () => {
         }).lean()
         const answerId = oldAnswer._id.toString()
 
-        const oldUser = await Account.findOne({ facebookProfile: 'f_1' }).lean()
+        const oldUser = await Account.findOne({ facebookProfile: '1' }).lean()
         const userId = oldUser._id.toString()
 
         const oldReputationObj = await Reputation.findOne({
@@ -123,7 +123,7 @@ describe('POST /api/vote/accept', () => {
 
         await request(app)
             .post('/api/vote/accept')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 answerId,
             })
@@ -155,7 +155,7 @@ describe('POST /api/vote/accept', () => {
     test('should return 400 error if  validation fails', async () => {
         await request(app)
             .post('/api/vote/accept')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({})
 
             .expect(httpStatus.BAD_REQUEST)

@@ -14,7 +14,7 @@ describe('POST /api/comment/edit', () => {
         const commentId = oldComment._id.toString()
         await request(app)
             .post('/api/comment/edit')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 text: 'New value long enough',
                 commentId,
@@ -33,7 +33,7 @@ describe('POST /api/comment/edit', () => {
         const commentId = oldComment._id.toString()
         await request(app)
             .post('/api/comment/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 text: 'New value long enough',
                 commentId,
@@ -55,7 +55,7 @@ describe('POST /api/comment/edit', () => {
         const commentId = oldComment._id.toString()
         await request(app)
             .post('/api/comment/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 commentId,
                 text: 'short',
@@ -64,7 +64,7 @@ describe('POST /api/comment/edit', () => {
 
         await request(app)
             .post('/api/comment/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 text: 'New value long enough',
@@ -78,7 +78,7 @@ describe('POST /api/comment/edit', () => {
         const commentId = oldComment._id.toString()
         await request(app)
             .post('/api/comment/edit')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 text: 'New value long enough',
                 commentId,

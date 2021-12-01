@@ -10,29 +10,45 @@ const general = async (req) => {
         const {
             page,
             tags,
-            name,
+            // name,
             type,
             clubId,
             ownerId,
-            clubName,
+            // clubName,
             starred,
             banned,
             questionId,
             reputationId,
             followerId,
             sort,
+            global,
+            location,
         } = body
+
+        const tagsExist = tags && tags.length
 
         const options = { lean: true, limit: 20 }
         if (page) options.page = page + 1
 
         const query = {}
+        if (location) {
+            query.location = {
+                $geoWithin: {
+                    $centerSphere: [
+                        [location.longitude, location.latitude],
+                        location.distance / 6378.1,
+                    ],
+                },
+            }
+        }
+        if (global) query.global = true
         if (clubId) query.club = clubId
         if (ownerId) query.owner = ownerId
         if (reputationId) query.reputation = reputationId
-        if (tags) query.tags = { $all: tags }
-        else if (name) query.$text = { $search: name }
-        else if (clubName) query.$text = { $search: clubName }
+        // eslint-disable-next-line prefer-destructuring
+        if (tagsExist) query.tags = tags[0]
+        // else if (name) query.name = { $search: name }
+        // else if (clubName) query.$text = { $search: clubName }
         if (starred) query.starred = starred
         if (banned) query.banned = banned
         if (questionId) query.question = questionId
@@ -40,11 +56,11 @@ const general = async (req) => {
 
         switch (type) {
             case 'club':
-                options.sort = { reputationsCount: -1 }
+                options.sort = { followersCount: -1 }
                 options.select = selectFields.clubD
                 break
             case 'question':
-                options.sort = { date: -1 }
+                options.sort = { [!tagsExist ? 'date' : 'vote']: -1 }
                 options.select = selectFields.questionD
                 break
             case 'account':
@@ -56,10 +72,10 @@ const general = async (req) => {
                 options.select = selectFields.reputationD
                 break
             case 'comment':
-                options.sort = { vote: -1 }
+                options.sort = { date: -1 }
                 break
             case 'answer':
-                options.sort = { vote: -1 }
+                options.sort = { [reputationId ? 'date' : 'vote']: -1 }
                 options.select = selectFields.answer
                 break
             default:

@@ -6,7 +6,7 @@ const { Question } = require('../../src/models')
 const createQuestion = async (id, clubId, name) =>
     request(app)
         .post('/api/question/create')
-        .set('accountId', `f_${id}`)
+        .set('accountId', `${id}`)
         .send({
             clubId,
             name,
@@ -19,7 +19,7 @@ const createQuestion = async (id, clubId, name) =>
 const createAnswer = async (id, questionId, description) =>
     request(app)
         .post('/api/answer/create')
-        .set('accountId', `f_${id}`)
+        .set('accountId', `${id}`)
         .send({
             description,
             images: ['test2.jpg'],

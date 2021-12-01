@@ -10,11 +10,17 @@ const saveTags = async (tags) => {
                 await Tag.findOneAndUpdate(
                     { _id: tag },
                     {
-                        _id: tag,
-                        length: tag.length,
+                        $set: {
+                            _id: tag,
+                            length: tag.length,
+                        },
+                        $inc: {
+                            count: 1,
+                        },
                     },
                     {
                         upsert: true,
+                        useFindAndModify: false,
                     }
                 )
             })
@@ -27,13 +33,13 @@ const findTags = async (req) => {
         const { tag } = req.query
         if (tag) {
             const tags = await Tag.find({
-                _id: { $regex: tag.toLowerCase(), $options: 'gi' },
+                _id: { $regex: `^${tag.toLowerCase()}` },
             })
-                .sort('length')
+                .sort('count')
                 .limit(20)
-                .select('_id')
+                .select('_id count')
                 .lean()
-            return tags.map((i) => i._id)
+            return tags
         }
         throw new ApiError(httpStatus.CONFLICT, 'No tag')
     } catch (error) {

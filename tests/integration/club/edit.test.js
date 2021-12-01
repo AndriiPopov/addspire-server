@@ -21,13 +21,13 @@ describe('POST /api/club/edit', () => {
 
         await request(app)
             .post('/api/club/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId: oldClub._id,
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
-                tags: ['club1', 'club2'],
+                tags: ['club1', 'club2', 'club3', 'club7', 'club6', 'club5'],
             })
             .expect(httpStatus.CREATED)
 
@@ -38,7 +38,14 @@ describe('POST /api/club/edit', () => {
         expect(dbClub.description).toEqual('For all of us')
         expect(dbClub.image).toEqual('roller.jpeg')
         expect(dbClub.activated).toBeFalsy()
-        expect(dbClub.tags).toEqual(['club1', 'club2'])
+        expect(dbClub.tags).toEqual([
+            'club1',
+            'club2',
+            'club3',
+            'club7',
+            'club6',
+            'club5',
+        ])
 
         const reputation = await Reputation.findById(reputationId).lean()
 
@@ -56,6 +63,7 @@ describe('POST /api/club/edit', () => {
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
+                tags: ['club1', 'club2', 'club3', 'club7', 'club6', 'club5'],
             })
             .expect(httpStatus.UNAUTHORIZED)
     })
@@ -64,12 +72,13 @@ describe('POST /api/club/edit', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         await request(app)
             .post('/api/club/edit')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 clubId: oldClub._id,
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
+                tags: ['club1', 'club2', 'club3', 'club7', 'club6', 'club5'],
             })
             .expect(httpStatus.UNAUTHORIZED)
     })
@@ -78,21 +87,23 @@ describe('POST /api/club/edit', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         await request(app)
             .post('/api/club/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId: oldClub._id,
                 name: 'Rol',
                 description: 'For',
                 image: 'roller.jpeg',
+                tags: ['club1', 'club2', 'club3', 'club7', 'club6', 'club5'],
             })
             .expect(httpStatus.BAD_REQUEST)
         await request(app)
             .post('/api/club/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
+                tags: ['club1', 'club2', 'club3', 'club7', 'club6', 'club5'],
             })
             .expect(httpStatus.BAD_REQUEST)
     })

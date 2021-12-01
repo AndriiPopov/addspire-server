@@ -36,10 +36,6 @@ const commentSchema = new mongoose.Schema(
 // Club search and in profile search
 commentSchema.index({
     reputation: 1,
-    vote: -1,
-})
-
-commentSchema.index({
     date: -1,
 })
 

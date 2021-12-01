@@ -15,6 +15,7 @@ const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
 const distributeBonus = require('../utils/distributeBonus')
 const notificationService = require('./notification.service')
+const { questionService } = require('.')
 
 const acceptAnswer = async (req) => {
     try {
@@ -292,6 +293,9 @@ const vote = async (req) => {
                         type: 'question',
                     },
                 })
+            }
+            if (type === 'answer') {
+                await questionService.saveBestAnswer(question._id)
             }
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'Already voted')

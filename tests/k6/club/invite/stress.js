@@ -18,7 +18,7 @@ export function setup() {
     return createAndActivateClub()
 }
 
-let httpReqParams = { headers: { accountId: `f_` + __VU } } // token is set in init()
+let httpReqParams = { headers: { accountId: `` + __VU } } // token is set in init()
 
 export default function (data) {
     const { clubId } = data

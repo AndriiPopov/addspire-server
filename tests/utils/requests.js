@@ -6,7 +6,7 @@ const app = require('../../src/app')
 const createInviteTest = async (id, clubId, expected) => {
     const res = await request(app)
         .post('/api/club/invite')
-        .set('accountId', `f_${id}`)
+        .set('accountId', `${id}`)
         .send({ clubId })
         .expect(expected || httpStatus.OK)
     if (res.body.inviteLink) {
@@ -18,7 +18,7 @@ const createInviteTest = async (id, clubId, expected) => {
 const acceptInviteTest = async (id, code, expected) => {
     await request(app)
         .post('/api/club/accept-invite')
-        .set('accountId', `f_${id}`)
+        .set('accountId', `${id}`)
         .send({ code })
         .expect(expected || httpStatus.OK)
 }
@@ -26,11 +26,10 @@ const acceptInviteTest = async (id, code, expected) => {
 const requestResidenceTest = async (id, expected, message, contact, clubId) => {
     await request(app)
         .post('/api/club/request-residence')
-        .set('accountId', `f_${id}`)
+        .set('accountId', `${id}`)
         .send({
             clubId,
             message: message || `I am ${id} and want to be an admin.`,
-            contact: contact || `Find ${id} here`,
         })
         .expect(expected || httpStatus.OK)
 }
@@ -43,7 +42,7 @@ const acceptResidenceTest = async (
 ) => {
     await request(app)
         .post('/api/club/accept-residence-request')
-        .set('accountId', `f_${id}`)
+        .set('accountId', `${id}`)
         .send({
             clubId,
             residentId,
@@ -61,7 +60,7 @@ const declineResidenceRequestTest = async (
 ) => {
     await request(app)
         .post('/api/club/decline-residence-request')
-        .set('accountId', `f_${id}`)
+        .set('accountId', `${id}`)
         .send({
             clubId,
             residentId,
@@ -70,19 +69,24 @@ const declineResidenceRequestTest = async (
         .expect(expected || httpStatus.OK)
 }
 
-const createClubTest = async (id, data) => {
+const createClubTest = async (id, data, status = httpStatus.CREATED) => {
     const res = await request(app)
         .post('/api/club/create')
-        .set('accountId', `f_${id}`)
-        .send(data)
-        .expect(httpStatus.CREATED)
-
-    expect(res.body).toEqual({
-        redirect: expect.anything(),
-        message: 'created',
-    })
-    expect(res.body.redirect._id).toBeDefined()
-    return res.body.redirect._id
+        .set('accountId', `${id}`)
+        .send({
+            location: { latitude: 40, longitude: 50 },
+            global: false,
+            ...data,
+        })
+        .expect(status)
+    if (!status) {
+        expect(res.body).toEqual({
+            redirect: expect.anything(),
+            message: 'created',
+        })
+        expect(res.body.redirect._id).toBeDefined()
+        return res.body.redirect._id
+    }
 }
 
 module.exports = {

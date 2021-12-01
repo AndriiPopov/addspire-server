@@ -44,7 +44,10 @@ const editAccount = {
         social: Joi.string().optional().max(JoiLength.message.max).allow(''),
         image: Joi.string().optional(),
         background: Joi.string().optional(),
-        tags: Joi.array().items(Joi.string()).optional(),
+        tags: Joi.array()
+            .items(Joi.string().min(JoiLength.tag.min).max(JoiLength.tag.max))
+            .max(20)
+            .optional(),
     }),
 }
 

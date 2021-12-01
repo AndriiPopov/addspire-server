@@ -8,7 +8,7 @@ setupTestDB()
 
 describe('POST /api/account/star-club', () => {
     test('should add a club to starred, not allow to star it again, unstar it and not allow to unstar it again', async () => {
-        const oldAccount = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldAccount = await Account.findOne({ facebookProfile: '1' })
         const accountId = oldAccount._id.toString()
 
         const oldClub = await Club.findOne({})
@@ -23,7 +23,7 @@ describe('POST /api/account/star-club', () => {
 
         await request(app)
             .post('/api/account/star-club')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 clubId,
                 add: true,
@@ -36,7 +36,7 @@ describe('POST /api/account/star-club', () => {
 
         await request(app)
             .post('/api/account/star-club')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 clubId,
                 add: true,
@@ -48,7 +48,7 @@ describe('POST /api/account/star-club', () => {
 
         await request(app)
             .post('/api/account/star-club')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 clubId,
                 add: false,
@@ -60,7 +60,7 @@ describe('POST /api/account/star-club', () => {
 
         await request(app)
             .post('/api/account/star-club')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 clubId,
                 add: false,
@@ -77,7 +77,7 @@ describe('POST /api/account/star-club', () => {
 
         await request(app)
             .post('/api/account/star-club')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 clubId,
             })
@@ -85,7 +85,7 @@ describe('POST /api/account/star-club', () => {
 
         await request(app)
             .post('/api/account/star-club')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 add: true,
             })

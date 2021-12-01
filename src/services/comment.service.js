@@ -1,6 +1,13 @@
 const httpStatus = require('http-status')
 
-const { Account, System, Comment, Question, Count } = require('../models')
+const {
+    Account,
+    System,
+    Comment,
+    Question,
+    Count,
+    Reputation,
+} = require('../models')
 const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
@@ -155,6 +162,19 @@ const createComment = async (req) => {
                 },
             })
         }
+        await Reputation.updateOne(
+            { _id: reputationLean._id },
+            {
+                $inc: { commentsCount: 1 },
+                $set: {
+                    lastContent: {
+                        resourceId: comment._id,
+                        resourceType: 'comment',
+                    },
+                },
+            },
+            { useFindAndModify: false }
+        )
 
         return { success: true }
     } catch (error) {

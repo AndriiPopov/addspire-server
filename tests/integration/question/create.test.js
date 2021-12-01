@@ -16,25 +16,32 @@ describe('POST /api/question/create', () => {
     test('should return 201 and successfully create new question if data is ok', async () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
-        const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
+        const oldUser = await Account.findOne({ facebookProfile: '0' })
         const userId = oldUser._id.toString()
         await request(app)
             .post('/api/question/create')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 name: 'How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
-                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
+                tags: [
+                    'res1',
+                    'res2',
+                    'res3sdfsfsdfsdfsdfsd',
+                    'res3sdfsfsdfsdfsdfsd',
+
+                    'res3sdfsfsdfsdfsdfsd',
+                ],
                 bonusCoins: 100,
                 bookmark: true,
             })
             .expect(httpStatus.OK)
 
-        const club = await Club.findById(clubId)
+        const club = await Club.findById(clubId).lean()
 
-        const user = await Account.findById(userId)
+        const user = await Account.findById(userId).lean()
 
         const resource = await Question.findOne({
             name: 'How to drive a car?',
@@ -48,6 +55,9 @@ describe('POST /api/question/create', () => {
         }).lean()
         expect(reputation).not.toBeNull()
         const reputationId = reputation._id.toString()
+
+        expect(reputation.location).toEqual(club.location)
+        expect(reputation.global).toEqual(club.global)
 
         expect(club.questionsCount - oldClub.questionsCount).toEqual(1)
 
@@ -66,24 +76,43 @@ describe('POST /api/question/create', () => {
         expect(resource.answersCount).toEqual(0)
         expect(resource.answered.length).toEqual(0)
         expect(resource.acceptedAnswer).toEqual('no')
-        expect(resource.tags).toEqual(['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'])
+        expect(resource.tags).toEqual([
+            'res1',
+            'res2',
+            'res3sdfsfsdfsdfsdfsd',
+            'res3sdfsfsdfsdfsdfsd',
+            'res3sdfsfsdfsdfsdfsd',
+        ])
         expect(resource.bonusCoins).toEqual(0)
+        expect(resource.location).toMatchObject({
+            type: 'Point',
+            coordinates: [30, 30],
+        })
+        expect(resource.global).toBeFalsy()
+        expect(resource.clubAddress).toEqual('Test address')
     })
 
     test('should not add to followers if bookmark is not true', async () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
-        const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
+        const oldUser = await Account.findOne({ facebookProfile: '0' })
         const userId = oldUser._id.toString()
         await request(app)
             .post('/api/question/create')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 name: 'How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
-                tags: ['testQ'],
+                tags: [
+                    'res1',
+                    'res2',
+                    'res3sdfsfsdfsdfsdfsd',
+                    'res3sdfsfsdfsdfsdfsd',
+
+                    'res3sdfsfsdfsdfsdfsd',
+                ],
                 bonusCoins: 100,
             })
             .expect(httpStatus.OK)
@@ -104,20 +133,27 @@ describe('POST /api/question/create', () => {
         test('should return 201 and successfully create new question if data is ok and add coins to bonus', async () => {
             const oldClub = await Club.findOne({ name: 'Test club 1' })
             const clubId = oldClub._id.toString()
-            const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
+            const oldUser = await Account.findOne({ facebookProfile: '0' })
             const userId = oldUser._id.toString()
 
             await Account.updateOne({ _id: userId }, { wallet: accountCoins })
 
             await request(app)
                 .post('/api/question/create')
-                .set('accountId', 'f_0')
+                .set('accountId', '0')
                 .send({
                     clubId,
                     name: 'How to drive a car?',
                     description: 'I want to know how to o it.',
                     images: ['test1.jpg', 'test2.jpg'],
-                    tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
+                    tags: [
+                        'res1',
+                        'res2',
+                        'res3sdfsfsdfsdfsdfsd',
+                        'res3sdfsfsdfsdfsdfsd',
+
+                        'res3sdfsfsdfsdfsdfsd',
+                    ],
                     bonusCoins,
                 })
                 .expect(httpStatus.OK)
@@ -130,14 +166,14 @@ describe('POST /api/question/create', () => {
 
             const realCoins = Math.min(bonusCoins, accountCoins)
 
-            expect(resource.bonusCoins).toEqual(realCoins * 0.95)
+            expect(resource.bonusCoins).toEqual(realCoins)
 
             expect(user.wallet).toEqual(accountCoins - realCoins)
             expect(user.totalSpent).toEqual(realCoins)
             expect(user.totalEarned).toEqual(0)
 
             const system = await System.System.findOne({}).lean()
-            expect(system.myCoins).toEqual(realCoins * 0.05)
+            expect(system.myCoins).toEqual(0)
         })
 
     testWithCoins(50, 100)
@@ -149,11 +185,23 @@ describe('POST /api/question/create', () => {
         const clubId = oldClub._id.toString()
         await request(app)
             .post('/api/question/create')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId,
                 name: 'How to drive a car?',
                 description: 'I want',
+                images: ['test1.jpg', 'test2.jpg'],
+                tags: ['ssasdas'],
+            })
+            .expect(httpStatus.BAD_REQUEST)
+
+        await request(app)
+            .post('/api/question/create')
+            .set('accountId', '0')
+            .send({
+                clubId,
+                name: 'How to drive a car?',
+                description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
             })
             .expect(httpStatus.BAD_REQUEST)
@@ -165,7 +213,7 @@ describe('POST /api/question/create', () => {
 
         await request(app)
             .post('/api/club/edit-start-rule')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId: oldClub._id,
                 value: '100',
@@ -174,12 +222,13 @@ describe('POST /api/question/create', () => {
 
         await request(app)
             .post('/api/question/create')
-            .set('accountId', 'f_6')
+            .set('accountId', '6')
             .send({
                 clubId,
                 name: 'I know how to help',
                 description: 'Here is the information',
                 images: ['test2.jpg'],
+                tags: ['rte'],
             })
             .expect(httpStatus.UNAUTHORIZED)
     })

@@ -2,6 +2,12 @@ const Joi = require('joi')
 const { JoiLength } = require('../config/fieldLength')
 Joi.objectId = require('joi-objectid')(Joi)
 
+const tagsValidationClub = Joi.array()
+    .items(Joi.string().min(JoiLength.tag.min).max(JoiLength.tag.max))
+    .min(5)
+    .max(20)
+    .required()
+
 const createClub = {
     body: Joi.object().keys({
         name: Joi.string()
@@ -13,8 +19,19 @@ const createClub = {
             .min(JoiLength.description.min)
             .max(JoiLength.description.max),
         image: Joi.string().optional(),
-
-        tags: Joi.array().items(Joi.string()).optional(),
+        tags: tagsValidationClub,
+        global: Joi.boolean().required(),
+        location: Joi.object()
+            .keys({
+                longitude: Joi.number().min(-180).max(180).required(),
+                latitude: Joi.number().min(-90).max(90).required(),
+            })
+            .when('global', {
+                is: true,
+                then: Joi.allow(null).optional(),
+                otherwise: Joi.required(),
+            }),
+        clubAddress: Joi.string().allow('').optional(),
     }),
 }
 
@@ -30,7 +47,7 @@ const editClub = {
             .max(JoiLength.description.max),
         image: Joi.string().optional(),
         clubId: Joi.objectId().required(),
-        tags: Joi.array().items(Joi.string()).optional(),
+        tags: tagsValidationClub,
     }),
 }
 
@@ -113,7 +130,10 @@ const editReputation = {
         email: Joi.string().optional().max(JoiLength.name.max).allow(''),
         social: Joi.string().optional().max(JoiLength.message.max).allow(''),
         background: Joi.string().optional(),
-        tags: Joi.array().items(Joi.string()).optional(),
+        tags: Joi.array()
+            .items(Joi.string().min(JoiLength.tag.min).max(JoiLength.tag.max))
+            .max(20)
+            .optional(),
     }),
 }
 

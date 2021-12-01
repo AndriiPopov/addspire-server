@@ -15,40 +15,42 @@ describe('POST /api/club/invite', () => {
     return 400 on validation fail, 
     allow max 8 residents,
       if data is ok`, async () => {
-        const oldUser0 = await Account.findOne({ facebookProfile: 'f_0' })
+        const oldUser0 = await Account.findOne({ facebookProfile: '0' })
         const userId0 = oldUser0._id.toString()
-        const oldUser1 = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldUser1 = await Account.findOne({ facebookProfile: '1' })
         const userId1 = oldUser1._id.toString()
-        const oldUser2 = await Account.findOne({ facebookProfile: 'f_2' })
+        const oldUser2 = await Account.findOne({ facebookProfile: '2' })
         const userId2 = oldUser2._id.toString()
-        const oldUser3 = await Account.findOne({ facebookProfile: 'f_3' })
+        const oldUser3 = await Account.findOne({ facebookProfile: '3' })
         const userId3 = oldUser3._id.toString()
-        const oldUser4 = await Account.findOne({ facebookProfile: 'f_4' })
+        const oldUser4 = await Account.findOne({ facebookProfile: '4' })
         const userId4 = oldUser4._id.toString()
-        const oldUser5 = await Account.findOne({ facebookProfile: 'f_5' })
+        const oldUser5 = await Account.findOne({ facebookProfile: '5' })
         const userId5 = oldUser5._id.toString()
-        const oldUser6 = await Account.findOne({ facebookProfile: 'f_6' })
+        const oldUser6 = await Account.findOne({ facebookProfile: '6' })
         const userId6 = oldUser6._id.toString()
-        const oldUser7 = await Account.findOne({ facebookProfile: 'f_7' })
+        const oldUser7 = await Account.findOne({ facebookProfile: '7' })
         const userId7 = oldUser7._id.toString()
-        const oldUser8 = await Account.findOne({ facebookProfile: 'f_8' })
+        const oldUser8 = await Account.findOne({ facebookProfile: '8' })
         const userId8 = oldUser8._id.toString()
-        const oldUser9 = await Account.findOne({ facebookProfile: 'f_9' })
+        const oldUser9 = await Account.findOne({ facebookProfile: '9' })
         const userId9 = oldUser9._id.toString()
-        const oldUser10 = await Account.findOne({ facebookProfile: 'f_10' })
+        const oldUser10 = await Account.findOne({ facebookProfile: '10' })
         const userId10 = oldUser10._id.toString()
 
         await request(app)
             .post('/api/club/create')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 name: 'Rollers of US',
                 description: 'For all of us',
                 image: 'roller.jpeg',
+                location: null,
+                global: true,
             })
             .expect(httpStatus.CREATED)
 
-        const club0 = await Club.findOne({ name: 'Rollers of US' })
+        const club0 = await Club.findOne({ name: 'Rollers of US' }).lean()
         expect(club0).not.toBeNull()
         const clubId = club0._id.toString()
 
@@ -65,9 +67,10 @@ describe('POST /api/club/invite', () => {
 
         await acceptInviteTest(1, code1)
 
-        const club1 = await Club.findById(clubId)
+        const club1 = await Club.findById(clubId).lean()
         expect(club1).not.toBeNull()
         expect(club1.adminsCount - club0.adminsCount).toEqual(1)
+
         const reputation1 = await Reputation.findOne({
             owner: userId1,
             club: clubId,
@@ -76,6 +79,9 @@ describe('POST /api/club/invite', () => {
         expect(reputation1).toBeDefined()
 
         expect(reputation1.admin).toBeTruthy()
+        expect(reputation1.location).toEqual(club1.location)
+        expect(reputation1.global).toEqual(club1.global)
+        expect(reputation1.clubAddress).toEqual(club1.clubAddress)
         await acceptInviteTest(1, `${code1}gty`, httpStatus.CONFLICT)
         await acceptInviteTest(1, code1, httpStatus.CONFLICT)
         await acceptInviteTest(1, code20, httpStatus.CONFLICT)

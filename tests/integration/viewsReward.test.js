@@ -12,27 +12,27 @@ describe('Reward coins for views', () => {
             .lean()
             .exec()
         const oldUser0 = await Account.findOne({
-            facebookProfile: 'f_0',
+            facebookProfile: '0',
         }).lean()
         const userId0 = oldUser0._id.toString()
         const oldUser1 = await Account.findOne({
-            facebookProfile: 'f_1',
+            facebookProfile: '1',
         }).lean()
         const userId1 = oldUser1._id.toString()
         const oldUser2 = await Account.findOne({
-            facebookProfile: 'f_2',
+            facebookProfile: '2',
         }).lean()
         const userId2 = oldUser2._id.toString()
         const oldUser3 = await Account.findOne({
-            facebookProfile: 'f_3',
+            facebookProfile: '3',
         }).lean()
         const userId3 = oldUser3._id.toString()
         const oldUser4 = await Account.findOne({
-            facebookProfile: 'f_4',
+            facebookProfile: '4',
         }).lean()
         const userId4 = oldUser4._id.toString()
         const oldUser5 = await Account.findOne({
-            facebookProfile: 'f_5',
+            facebookProfile: '5',
         }).lean()
         const userId5 = oldUser5._id.toString()
 

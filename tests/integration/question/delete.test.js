@@ -18,7 +18,7 @@ describe('POST /api/question/delete', () => {
 
         await request(app)
             .post('/api/question/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: questionId,
             })
@@ -35,7 +35,7 @@ describe('POST /api/question/delete', () => {
     test('should return 400 error if validation fails', async () => {
         await request(app)
             .post('/api/question/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({})
             .expect(httpStatus.BAD_REQUEST)
     })
@@ -47,7 +47,7 @@ describe('POST /api/question/delete', () => {
 
         await request(app)
             .post('/api/question/delete')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: questionId,
             })
@@ -60,14 +60,14 @@ describe('POST /api/question/delete', () => {
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldUser = await Account.findOne({ facebookProfile: 'f_2' })
+        const oldUser = await Account.findOne({ facebookProfile: '2' })
         const userId = oldUser._id.toString()
 
         await Account.updateOne({ _id: userId }, { wallet: 200 })
 
         await request(app)
             .post('/api/question/edit')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: questionId,
                 name: 'Test value?',
@@ -79,7 +79,7 @@ describe('POST /api/question/delete', () => {
 
         await request(app)
             .post('/api/question/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: questionId,
             })
@@ -103,14 +103,14 @@ describe('POST /api/question/delete', () => {
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldUser = await Account.findOne({ facebookProfile: 'f_2' })
+        const oldUser = await Account.findOne({ facebookProfile: '2' })
         const userId = oldUser._id.toString()
 
         await Account.updateOne({ _id: userId }, { wallet: 200 })
 
         await request(app)
             .post('/api/question/edit')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: questionId,
                 name: 'Test value?',
@@ -123,7 +123,7 @@ describe('POST /api/question/delete', () => {
 
         await request(app)
             .post('/api/question/delete')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: questionId,
             })

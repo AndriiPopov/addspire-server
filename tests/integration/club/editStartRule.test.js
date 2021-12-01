@@ -14,7 +14,7 @@ describe('POST /api/club/edit-start-rule', () => {
         const editRule = (rule) =>
             request(app)
                 .post('/api/club/edit-start-rule')
-                .set('accountId', 'f_0')
+                .set('accountId', '0')
                 .send({
                     clubId,
                     value: rule,
@@ -42,7 +42,7 @@ describe('POST /api/club/edit-start-rule', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         await request(app)
             .post('/api/club/edit-start-rule')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 clubId: oldClub._id,
                 value: 'adsadsad',
@@ -50,7 +50,7 @@ describe('POST /api/club/edit-start-rule', () => {
             .expect(httpStatus.BAD_REQUEST)
         await request(app)
             .post('/api/club/edit-start-rule')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 value: '10',
             })

@@ -1,6 +1,14 @@
 const httpStatus = require('http-status')
 const notificationService = require('./notification.service')
-const { System, Club, Account, Question, Count } = require('../models')
+const {
+    System,
+    Club,
+    Account,
+    Question,
+    Count,
+    Answer,
+    Reputation,
+} = require('../models')
 const ApiError = require('../utils/ApiError')
 
 const { checkVote } = require('../utils/checkRights')
@@ -59,18 +67,31 @@ const create = async (req) => {
         await count.save()
         resource.count = count._id
 
-        await resource.save()
-
         const newNotificationId = await System.getNotificationId()
 
         const club = await Club.findOneAndUpdate(
             { _id: clubId },
-            { $inc: { questionsCount: 1 } },
+            {
+                $inc: { questionsCount: 1 },
+                ...(images.length
+                    ? { $push: { images: { $each: [images[0]], $slice: -20 } } }
+                    : {}),
+            },
             { useFindAndModify: false }
         )
-            .select('followers')
+            .select('followers global location clubAddress')
             .lean()
             .exec()
+
+        if (!club) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        }
+
+        if (club.location) resource.location = club.location
+        if (club.clubAddress) resource.clubAddress = club.clubAddress
+        if (club.global) resource.global = club.global
+
+        await resource.save()
 
         await Account.updateOne(
             { _id: accountId },
@@ -135,6 +156,20 @@ const create = async (req) => {
                 },
             })
         }
+
+        await Reputation.updateOne(
+            { _id: reputationLean._id },
+            {
+                $inc: { questionsCount: 1 },
+                $set: {
+                    lastContent: {
+                        resourceId: resource._id,
+                        resourceType: 'question',
+                    },
+                },
+            },
+            { useFindAndModify: false }
+        )
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -339,8 +374,31 @@ const remove = async (req) => {
     }
 }
 
+const saveBestAnswer = async (questionId) => {
+    const answers = await Answer.find({ question: questionId })
+        .sort({ vote: -1 })
+        .limit(1)
+        .select('_id')
+        .exec()
+
+    if (answers && answers.length) {
+        const answer = answers[0]
+        if (answer) {
+            const answerId = answer._id
+            if (answerId) {
+                await Question.updateOne(
+                    { _id: questionId },
+                    { $set: { bestAnswer: answerId } },
+                    { useFindAndModify: false }
+                )
+            }
+        }
+    }
+}
+
 module.exports = {
     create,
     edit,
     remove,
+    saveBestAnswer,
 }

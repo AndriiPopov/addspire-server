@@ -15,7 +15,7 @@ describe('POST /api/answer/edit', () => {
 
         await request(app)
             .post('/api/answer/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: answerId,
                 description: 'Test description for answer2.',
@@ -38,7 +38,7 @@ describe('POST /api/answer/edit', () => {
 
         await request(app)
             .post('/api/answer/edit')
-            .set('accountId', 'f_3')
+            .set('accountId', '3')
             .send({
                 resourceId: answerId,
                 description: 'Test description for answer2.',
@@ -56,7 +56,7 @@ describe('POST /api/answer/edit', () => {
     test('should return 400 error if  validation fails', async () => {
         await request(app)
             .post('/api/answer/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 description: 'Test description for answer2.',
                 images: ['test3.jpg', 'test4.jpg'],
@@ -71,7 +71,7 @@ describe('POST /api/answer/edit', () => {
 
         await request(app)
             .post('/api/answer/edit')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: answerId,
                 description: 'Test description for answer2.',

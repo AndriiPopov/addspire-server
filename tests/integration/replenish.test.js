@@ -7,7 +7,7 @@ setupTestDB()
 describe('Replenish reputation', () => {
     test('should save reputation history and account history, add upto 5 to reputation if it is less than zero', async () => {
         const oldUser0 = await Account.findOne({
-            facebookProfile: 'f_0',
+            facebookProfile: '0',
         }).lean()
         const userId0 = oldUser0._id.toString()
         const oldReputationObj0 = await Reputation.findOne({
@@ -16,7 +16,7 @@ describe('Replenish reputation', () => {
         const reputationId0 = oldReputationObj0._id.toString()
 
         const oldUser1 = await Account.findOne({
-            facebookProfile: 'f_1',
+            facebookProfile: '1',
         }).lean()
         const userId1 = oldUser1._id.toString()
         const oldReputationObj1 = await Reputation.findOne({
@@ -25,7 +25,7 @@ describe('Replenish reputation', () => {
         const reputationId1 = oldReputationObj1._id.toString()
 
         const oldUser2 = await Account.findOne({
-            facebookProfile: 'f_2',
+            facebookProfile: '2',
         }).lean()
         const userId2 = oldUser2._id.toString()
         const oldReputationObj2 = await Reputation.findOne({

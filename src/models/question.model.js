@@ -26,49 +26,62 @@ const questionSchema = new mongoose.Schema(
         bonusPaid: { type: Boolean, default: false },
         bonusPending: { type: Boolean, default: false },
         bonusCreatedDate: Date,
+        location: {
+            type: { type: String },
+            coordinates: [Number],
+        },
+        clubAddress: { type: String, default: '' },
+        global: { type: Boolean, default: false },
+        bestAnswer: String,
     },
     { minimize: false }
 )
 
 // General search
+questionSchema.index(
+    { tags: 1, vote: -1 },
+    {
+        partialFilterExpression: { global: true },
+    }
+)
+
 questionSchema.index({
+    location: '2dsphere',
     tags: 1,
+    vote: -1,
 })
 
 questionSchema.index({
-    name: 'text',
+    location: '2dsphere',
+    date: -1,
 })
+
+questionSchema.index(
+    { date: -1 },
+    { partialFilterExpression: { global: true } }
+)
 
 // Club search
 questionSchema.index({
     club: 1,
     tags: 1,
+    vote: -1,
 })
 
 questionSchema.index({
     club: 1,
-    name: 'text',
+    date: 1,
 })
 
 // Profile search
 questionSchema.index({
     reputation: 1,
+    date: -1,
 })
 
-// My questions
+// My questions search
 questionSchema.index({
     owner: 1,
-})
-questionSchema.index({
-    followers: 1,
-})
-
-// For sorting
-questionSchema.index({
-    vote: -1,
-})
-
-questionSchema.index({
     date: -1,
 })
 

@@ -8,7 +8,7 @@ setupTestDB()
 
 describe('POST /api/club/edit-reputation', () => {
     test('should return 200 and successfully edit reputation', async () => {
-        const oldUser = await Account.findOne({ facebookProfile: 'f_0' }).lean()
+        const oldUser = await Account.findOne({ facebookProfile: '0' }).lean()
 
         const oldReputationObj = await Reputation.findOne({
             owner: oldUser._id,
@@ -25,11 +25,12 @@ describe('POST /api/club/edit-reputation', () => {
             tags: ['happy', 'mate'],
             social: 'socials are cool',
             background: 'back.jpeg',
+            tags: ['tag1'],
         }
 
         await request(app)
             .post('/api/club/edit-reputation')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 ...editData,
                 reputationId,
@@ -43,7 +44,7 @@ describe('POST /api/club/edit-reputation', () => {
     })
 
     test('should return 400 error if  validation fails except for tags. They can be empty', async () => {
-        const oldUser = await Account.findOne({ facebookProfile: 'f_0' })
+        const oldUser = await Account.findOne({ facebookProfile: '0' })
 
         const oldReputationObj = await Reputation.findOne({
             owner: oldUser._id,
@@ -52,7 +53,7 @@ describe('POST /api/club/edit-reputation', () => {
         expect(oldReputationObj).not.toBeNull()
         await request(app)
             .post('/api/club/edit-reputation')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 tags: ['happy', 'mate'],
                 description: 'Super pro is ready!',
@@ -61,7 +62,7 @@ describe('POST /api/club/edit-reputation', () => {
 
         await request(app)
             .post('/api/club/edit-reputation')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 reputationId,
                 description: 'Super pro is ready!',

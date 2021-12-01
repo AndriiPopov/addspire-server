@@ -2,7 +2,14 @@ const request = require('supertest')
 const httpStatus = require('http-status')
 const app = require('../../../src/app')
 const setupTestDB = require('../../utils/setupTestDB')
-const { Account, Reputation, Question, Count } = require('../../../src/models')
+const {
+    Account,
+    Reputation,
+    Question,
+    Count,
+    Club,
+    Answer,
+} = require('../../../src/models')
 const value = require('../../../src/config/value')
 
 setupTestDB()
@@ -19,7 +26,7 @@ describe('POST /api/vote/vote', () => {
         const clubId = oldQuestion.club
 
         const oldUserG = await Account.findOne({
-            facebookProfile: 'f_1',
+            facebookProfile: '1',
         }).lean()
         const userIdG = oldUserG._id.toString()
 
@@ -30,7 +37,7 @@ describe('POST /api/vote/vote', () => {
         const reputationIdG = oldReputationObjG._id.toString()
 
         const oldUserG2 = await Account.findOne({
-            facebookProfile: 'f_2',
+            facebookProfile: '2',
         }).lean()
         const userIdG2 = oldUserG2._id.toString()
 
@@ -41,7 +48,7 @@ describe('POST /api/vote/vote', () => {
         const reputationIdG2 = oldReputationObjG2._id.toString()
 
         const oldUserR = await Account.findOne({
-            facebookProfile: 'f_0',
+            facebookProfile: '0',
         }).lean()
         const userIdR = oldUserR._id.toString()
 
@@ -53,7 +60,7 @@ describe('POST /api/vote/vote', () => {
 
         await request(app)
             .post('/api/vote/vote')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 resourceId: questionId,
                 type: 'question',
@@ -99,7 +106,7 @@ describe('POST /api/vote/vote', () => {
 
         await request(app)
             .post('/api/vote/vote')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 resourceId: questionId,
                 type: 'question',
@@ -109,7 +116,7 @@ describe('POST /api/vote/vote', () => {
 
         await request(app)
             .post('/api/vote/vote')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: questionId,
                 type: 'question',
@@ -164,7 +171,7 @@ describe('POST /api/vote/vote', () => {
 
         await request(app)
             .post('/api/vote/vote')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: questionId,
                 type: 'question',
@@ -180,7 +187,7 @@ describe('POST /api/vote/vote', () => {
 
         await request(app)
             .post('/api/vote/vote')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: questionId,
                 type: 'question',
@@ -196,10 +203,112 @@ describe('POST /api/vote/vote', () => {
 
         await request(app)
             .post('/api/vote/vote')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 resourceId: questionId,
             })
             .expect(httpStatus.BAD_REQUEST)
+    })
+
+    test('should save the best answer after vote', async () => {
+        const oldClub = await Club.findOne({ name: 'Test club 1' })
+        const clubId = oldClub._id.toString()
+
+        await request(app)
+            .post('/api/question/create')
+            .set('accountId', '0')
+            .send({
+                clubId,
+                name: 'Voting question?',
+                description: 'I want to know how to o it.',
+                images: ['test1.jpg', 'test2.jpg'],
+                tags: [
+                    'res1',
+                    'res2',
+                    'res3sdfsfsdfsdfsdfsd',
+                    'res3sdfsfsdfsdfsdfsd',
+                    'res3sdfsfsdfsdfsdfsd',
+                ],
+                bookmark: true,
+            })
+            .expect(httpStatus.OK)
+
+        const question = await Question.findOne({
+            name: 'Voting question?',
+        }).lean()
+        const questionId = question._id.toString()
+        expect(question.bestAnswer).not.toBeDefined()
+
+        await request(app)
+            .post('/api/answer/create')
+            .set('accountId', '3')
+            .send({
+                description: 'Here is the information',
+                images: ['test2.jpg'],
+                questionId,
+                bookmark: true,
+            })
+            .expect(httpStatus.OK)
+
+        const answer1 = await Answer.findOne({
+            question: questionId,
+            description: 'Here is the information',
+        }).lean()
+        const answer1Id = answer1._id.toString()
+
+        const question1 = await Question.findById(questionId).lean()
+        expect(question1.bestAnswer).toEqual(answer1Id)
+
+        await request(app)
+            .post('/api/vote/vote')
+            .set('accountId', '1')
+            .send({
+                resourceId: answer1Id,
+                type: 'answer',
+            })
+            .expect(httpStatus.OK)
+
+        const question2 = await Question.findById(questionId).lean()
+        expect(question2.bestAnswer).toEqual(answer1Id)
+
+        await request(app)
+            .post('/api/answer/create')
+            .set('accountId', '7')
+            .send({
+                description: 'Here is the information2',
+                images: ['test2.jpg'],
+                questionId,
+                bookmark: true,
+            })
+            .expect(httpStatus.OK)
+
+        const answer2 = await Answer.findOne({
+            question: questionId,
+            description: 'Here is the information2',
+        }).lean()
+        const answer2Id = answer2._id.toString()
+
+        const question3 = await Question.findById(questionId).lean()
+        expect(question3.bestAnswer).toEqual(answer1Id)
+
+        await request(app)
+            .post('/api/vote/vote')
+            .set('accountId', '1')
+            .send({
+                resourceId: answer2Id,
+                type: 'answer',
+            })
+            .expect(httpStatus.OK)
+        await request(app)
+            .post('/api/vote/vote')
+            .set('accountId', '4')
+            .send({
+                resourceId: answer2Id,
+                type: 'answer',
+            })
+            .expect(httpStatus.OK)
+
+        const question4 = await Question.findById(questionId).lean()
+        expect(question4.bestAnswer).toEqual(answer2Id)
     })
 })

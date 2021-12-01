@@ -20,12 +20,12 @@ describe('POST /api/answer/create', () => {
             name: 'Test question',
         })
         const questionId = oldQuestion._id.toString()
-        const oldUser = await Account.findOne({ facebookProfile: 'f_3' })
+        const oldUser = await Account.findOne({ facebookProfile: '3' })
         const userId = oldUser._id.toString()
 
         await request(app)
             .post('/api/answer/create')
-            .set('accountId', 'f_3')
+            .set('accountId', '3')
             .send({
                 description: 'Here is the information',
                 images: ['test2.jpg'],
@@ -78,12 +78,12 @@ describe('POST /api/answer/create', () => {
             name: 'Test question',
         })
         const questionId = oldQuestion._id.toString()
-        const oldUser = await Account.findOne({ facebookProfile: 'f_3' })
+        const oldUser = await Account.findOne({ facebookProfile: '3' })
         const userId = oldUser._id.toString()
 
         await request(app)
             .post('/api/answer/create')
-            .set('accountId', 'f_3')
+            .set('accountId', '3')
             .send({
                 description: 'Here is the information',
                 images: ['test2.jpg'],
@@ -103,7 +103,7 @@ describe('POST /api/answer/create', () => {
     test('should return 400 error if  validation fails', async () => {
         await request(app)
             .post('/api/answer/create')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 description: 'I want',
                 images: ['test1.jpg', 'test2.jpg'],
@@ -119,7 +119,7 @@ describe('POST /api/answer/create', () => {
 
         await request(app)
             .post('/api/answer/create')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 description: 'Here is the information',
                 images: ['test2.jpg'],

@@ -8,7 +8,7 @@ setupTestDB()
 
 describe('POST /api/account/seen-notification', () => {
     test('should mark notification as seen, if all, mark all as seen', async () => {
-        const oldAccount = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldAccount = await Account.findOne({ facebookProfile: '1' })
         const accountId = oldAccount._id.toString()
 
         await Account.updateOne(
@@ -33,7 +33,7 @@ describe('POST /api/account/seen-notification', () => {
 
         await request(app)
             .post('/api/account/seen-notification')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 notId: '1',
             })
@@ -47,7 +47,7 @@ describe('POST /api/account/seen-notification', () => {
 
         await request(app)
             .post('/api/account/seen-notification')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 notId: 'all',
             })
@@ -61,7 +61,7 @@ describe('POST /api/account/seen-notification', () => {
 
         await request(app)
             .post('/api/account/seen-notification')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({
                 notId: '1',
             })
@@ -69,7 +69,7 @@ describe('POST /api/account/seen-notification', () => {
     })
 
     test('should return 400 error if  validation fails', async () => {
-        const oldAccount = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldAccount = await Account.findOne({ facebookProfile: '1' })
         const accountId = oldAccount._id.toString()
 
         await Account.updateOne(
@@ -94,7 +94,7 @@ describe('POST /api/account/seen-notification', () => {
 
         await request(app)
             .post('/api/account/seen-notification')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({})
             .expect(httpStatus.BAD_REQUEST)
     })

@@ -13,12 +13,12 @@ describe('POST /api/comment/create', () => {
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldUser = await Account.findOne({ facebookProfile: 'f_5' })
+        const oldUser = await Account.findOne({ facebookProfile: '5' })
         const userId = oldUser._id.toString()
 
         await request(app)
             .post('/api/comment/create')
-            .set('accountId', 'f_5')
+            .set('accountId', '5')
             .send({
                 text: 'This is a very nice article!',
                 resourceId: questionId,
@@ -53,12 +53,12 @@ describe('POST /api/comment/create', () => {
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldUser = await Account.findOne({ facebookProfile: 'f_5' })
+        const oldUser = await Account.findOne({ facebookProfile: '5' })
         const userId = oldUser._id.toString()
 
         await request(app)
             .post('/api/comment/create')
-            .set('accountId', 'f_5')
+            .set('accountId', '5')
             .send({
                 text: 'This is a very nice article!',
                 resourceId: questionId,
@@ -86,12 +86,12 @@ describe('POST /api/comment/create', () => {
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldUser = await Account.findOne({ facebookProfile: 'f_5' })
+        const oldUser = await Account.findOne({ facebookProfile: '5' })
         const userId = oldUser._id.toString()
 
         await request(app)
             .post('/api/comment/create')
-            .set('accountId', 'f_5')
+            .set('accountId', '5')
             .send({
                 text: 'This is a very nice answer!',
                 resourceId: answerId,
@@ -128,7 +128,7 @@ describe('POST /api/comment/create', () => {
 
         await request(app)
             .post('/api/comment/create')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: answerId,
             })

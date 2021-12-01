@@ -28,11 +28,11 @@ const checkVote = async (reputation, type) => {
     switch (type) {
         case 'start': {
             const club = await Club.findById(reputation.club)
-                .select('startConversation adminsCount')
+                .select('startConversation adminsCount fresh')
                 .lean()
                 .exec()
 
-            if (!club || club.adminsCount < value.minAdmins) {
+            if (!club || (club.adminsCount < value.minAdmins && !club.fresh)) {
                 throw new ApiError(httpStatus.CONFLICT, 'Club not active')
             }
             let enoughReputation

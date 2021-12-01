@@ -8,15 +8,15 @@ setupTestDB()
 
 describe('POST /api/account/save-notification-token and /api/account/remove-notification-token', () => {
     test('should save push token', async () => {
-        const oldAccount1 = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldAccount1 = await Account.findOne({ facebookProfile: '1' })
         const accountId1 = oldAccount1._id.toString()
 
-        const oldAccount2 = await Account.findOne({ facebookProfile: 'f_2' })
+        const oldAccount2 = await Account.findOne({ facebookProfile: '2' })
         const accountId2 = oldAccount2._id.toString()
 
         await request(app)
             .post('/api/account/save-notification-token')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({ token: '12345' })
             .expect(httpStatus.OK)
 
@@ -25,7 +25,7 @@ describe('POST /api/account/save-notification-token and /api/account/remove-noti
 
         await request(app)
             .post('/api/account/save-notification-token')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({ token: '12345' })
             .expect(httpStatus.OK)
 
@@ -34,7 +34,7 @@ describe('POST /api/account/save-notification-token and /api/account/remove-noti
 
         await request(app)
             .post('/api/account/save-notification-token')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({ token: '123456' })
             .expect(httpStatus.OK)
 
@@ -43,7 +43,7 @@ describe('POST /api/account/save-notification-token and /api/account/remove-noti
 
         await request(app)
             .post('/api/account/save-notification-token')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({ token: '12345' })
             .expect(httpStatus.OK)
 
@@ -54,7 +54,7 @@ describe('POST /api/account/save-notification-token and /api/account/remove-noti
 
         await request(app)
             .post('/api/account/save-notification-token')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({ token: '1234567' })
             .expect(httpStatus.OK)
 
@@ -72,13 +72,13 @@ describe('POST /api/account/save-notification-token and /api/account/remove-noti
     test('should return 400 error if  validation fails', async () => {
         await request(app)
             .post('/api/account/save-notification-token')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({ token: 123456 })
             .expect(httpStatus.BAD_REQUEST)
 
         await request(app)
             .post('/api/account/save-notification-token')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({})
             .expect(httpStatus.BAD_REQUEST)
     })

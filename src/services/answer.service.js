@@ -1,10 +1,18 @@
 const httpStatus = require('http-status')
 const notificationService = require('./notification.service')
-const { System, Account, Question, Answer, Count } = require('../models')
+const {
+    System,
+    Account,
+    Question,
+    Answer,
+    Count,
+    Reputation,
+} = require('../models')
 const ApiError = require('../utils/ApiError')
 
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
+const { questionService } = require('.')
 
 const create = async (req) => {
     try {
@@ -111,6 +119,20 @@ const create = async (req) => {
                 type: 'question',
             },
         })
+        await Reputation.updateOne(
+            { _id: reputationLean._id },
+            {
+                $inc: { answersCount: 1 },
+                $set: {
+                    lastContent: {
+                        resourceId: resource._id,
+                        resourceType: 'answer',
+                    },
+                },
+            },
+            { useFindAndModify: false }
+        )
+        await questionService.saveBestAnswer(questionId)
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -214,6 +236,7 @@ const remove = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+            await questionService.saveBestAnswer(questionId)
         }
     } catch (error) {
         if (!error.isOperational) {

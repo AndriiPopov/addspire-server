@@ -23,6 +23,7 @@ describe('GET /api/tag/findTags', () => {
             'dullTag7777777',
             'dullTag88888888',
             'dullTag999999999',
+            'dullMyTag999999999',
         ])
 
         let res = await request(app)
@@ -31,7 +32,9 @@ describe('GET /api/tag/findTags', () => {
             .expect(httpStatus.OK)
 
         let { tags } = res.body
-        expect(tags).toEqual(['myFirstTag', 'mySecondTag', 'MYVERYLONGTag'])
+        expect(tags.map((i) => i._id).sort()).toEqual(
+            ['myfirsttag', 'mysecondtag', 'myverylongtag'].sort()
+        )
 
         res = await request(app)
             .get('/api/tag/find-tags')
@@ -39,7 +42,7 @@ describe('GET /api/tag/findTags', () => {
             .expect(httpStatus.OK)
 
         tags = res.body.tags
-        expect(tags).toEqual(['veryStrange', 'MYVERYLONGTag'])
+        expect(tags.map((i) => i._id).sort()).toEqual(['verystrange'].sort())
 
         await request(app)
             .get('/api/tag/find-tags')

@@ -21,7 +21,7 @@ export let options = {
     noConnectionReuse: true,
 }
 
-let httpReqParams = { headers: { accountId: `f_${__VU}` } } // token is set in init()
+let httpReqParams = { headers: { accountId: `${__VU}` } } // token is set in init()
 
 export default function () {
     const url = 'http://localhost:5001/api/club/create'

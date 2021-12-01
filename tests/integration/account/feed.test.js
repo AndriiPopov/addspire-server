@@ -9,7 +9,7 @@ setupTestDB()
 
 describe('POST /api/account/seen-feed', () => {
     test('should mark feed entries as seen for one question', async () => {
-        const oldAccount = await Account.findOne({ facebookProfile: 'f_1' })
+        const oldAccount = await Account.findOne({ facebookProfile: '1' })
         const accountId = oldAccount._id.toString()
 
         const questionId0 = new mongoose.Types.ObjectId()
@@ -79,7 +79,7 @@ describe('POST /api/account/seen-feed', () => {
 
         await request(app)
             .post('/api/account/seen-feed')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({ id: questionId0 })
             .expect(httpStatus.OK)
 
@@ -138,7 +138,7 @@ describe('POST /api/account/seen-feed', () => {
 
         await request(app)
             .post('/api/account/seen-feed')
-            .set('accountId', 'f_1')
+            .set('accountId', '1')
             .send({ id: questionId0 })
             .expect(httpStatus.OK)
     })

@@ -17,7 +17,7 @@ describe('POST /api/question/edit', () => {
 
         await request(app)
             .post('/api/question/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: questionId,
                 name: 'Test value?',
@@ -50,7 +50,7 @@ describe('POST /api/question/edit', () => {
 
         await request(app)
             .post('/api/question/edit')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: questionId,
                 name: 'Test value?',
@@ -73,14 +73,14 @@ describe('POST /api/question/edit', () => {
             }).lean()
             const questionId = oldQuestion._id.toString()
 
-            const oldUser = await Account.findOne({ facebookProfile: 'f_2' })
+            const oldUser = await Account.findOne({ facebookProfile: '2' })
             const userId = oldUser._id.toString()
 
             await Account.updateOne({ _id: userId }, { wallet: accountCoins })
 
             await request(app)
                 .post('/api/question/edit')
-                .set('accountId', 'f_2')
+                .set('accountId', '2')
                 .send({
                     resourceId: questionId,
                     name: 'Test value?',
@@ -92,7 +92,7 @@ describe('POST /api/question/edit', () => {
 
             await request(app)
                 .post('/api/question/edit')
-                .set('accountId', 'f_2')
+                .set('accountId', '2')
                 .send({
                     resourceId: questionId,
                     name: 'Test value?',
@@ -129,7 +129,7 @@ describe('POST /api/question/edit', () => {
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldUser = await Account.findOne({ facebookProfile: 'f_2' })
+        const oldUser = await Account.findOne({ facebookProfile: '2' })
         const userId = oldUser._id.toString()
 
         await Account.updateOne({ _id: userId }, { wallet: 200 })
@@ -138,7 +138,7 @@ describe('POST /api/question/edit', () => {
 
         await request(app)
             .post('/api/question/edit')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 resourceId: questionId,
                 name: 'Test value?',
@@ -169,7 +169,7 @@ describe('POST /api/question/edit', () => {
 
         await request(app)
             .post('/api/question/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 name: 'Test value?',
                 description: 'Test description.',
@@ -178,7 +178,7 @@ describe('POST /api/question/edit', () => {
             .expect(httpStatus.BAD_REQUEST)
         await request(app)
             .post('/api/question/edit')
-            .set('accountId', 'f_0')
+            .set('accountId', '0')
             .send({
                 resourceId: questionId,
                 name: 'Test value?',
@@ -195,7 +195,7 @@ describe('POST /api/question/edit', () => {
 
         await request(app)
             .post('/api/question/edit')
-            .set('accountId', 'f_2')
+            .set('accountId', '2')
             .send({
                 name: 'Test value?',
                 resourceId: questionId,
