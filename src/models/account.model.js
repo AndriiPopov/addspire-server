@@ -1,19 +1,12 @@
 const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
-const { mongoLength } = require('../config/fieldLength')
 
 const notificationSchema = require('./schemas/notification')
 const { increaseVersion } = require('./plugins')
-const basicTag = require('./basicModel/basicTag')
+const Profile = require('./schemas/profile.schema')
 
 const accountSchema = new mongoose.Schema(
     {
-        name: {
-            type: String,
-            required: true,
-            maxlength: mongoLength.name.max,
-            minlength: mongoLength.name.min,
-        },
         googleProfile: {
             type: String,
             trim: true,
@@ -35,7 +28,6 @@ const accountSchema = new mongoose.Schema(
             unique: true,
             sparse: true,
         },
-        image: { type: String, default: '' },
         background: { type: String, default: '' },
         notifications: [notificationSchema],
         feed: [notificationSchema],
@@ -64,37 +56,6 @@ const accountSchema = new mongoose.Schema(
         following: [String],
         followingClubs: [String],
         followingQuestions: [String],
-        tags: [basicTag],
-        description: {
-            type: String,
-            maxlength: mongoLength.description.max,
-            default: '',
-        },
-        address: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        phone: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        web: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        email: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        social: {
-            type: String,
-            maxlength: mongoLength.message.max,
-            default: '',
-        },
         reputations: {
             type: [
                 {
@@ -129,6 +90,8 @@ const accountSchema = new mongoose.Schema(
         ],
         totalEarned: { type: Number, default: 0 },
         totalSpent: { type: Number, default: 0 },
+        profiles: [Profile],
+        defaultProfile: String,
     },
     { minimize: false }
 )

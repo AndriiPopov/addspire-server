@@ -1,19 +1,15 @@
 const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
-const { mongoLength } = require('../config/fieldLength')
 const basicModel = require('./basicModel/basicModel')
-const basicTag = require('./basicModel/basicTag')
 const { increaseVersion } = require('./plugins')
+const { mongoLength } = require('../config/fieldLength')
 
 const reputationSchema = new mongoose.Schema(
     {
         ...basicModel,
         club: { type: String, required: true },
         clubName: { type: String, required: true },
-        clubImage: { type: String },
-        clubTags: [basicTag],
-        reputationTags: [basicTag],
-        profileTags: [basicTag],
+        clubImage: { type: String, default: '' },
         owner: { type: String, required: true },
         reputation: { type: Number, default: 0 },
         plusToday: { type: Number, default: 0 },
@@ -55,68 +51,7 @@ const reputationSchema = new mongoose.Schema(
         ],
         starred: { type: Boolean, default: false },
         member: { type: Boolean, default: false },
-        background: { type: String, default: '' },
-        description: {
-            type: String,
-            maxlength: mongoLength.description.max,
-            default: '',
-        },
-        address: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        phone: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        web: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        email: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        social: {
-            type: String,
-            maxlength: mongoLength.message.max,
-            default: '',
-        },
-        profileBackground: { type: String, default: '' },
-        profileDescription: {
-            type: String,
-            maxlength: mongoLength.description.max,
-            default: '',
-        },
-        profileAddress: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        profilePhone: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        profileWeb: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        profileEmail: {
-            type: String,
-            maxlength: mongoLength.name.max,
-            default: '',
-        },
-        profileSocial: {
-            type: String,
-            maxlength: mongoLength.message.max,
-            default: '',
-        },
+
         location: {
             type: { type: String },
             coordinates: [Number],
@@ -129,6 +64,16 @@ const reputationSchema = new mongoose.Schema(
         lastContent: {
             resourceId: String,
             resourceType: String,
+        },
+        profile: {
+            type: String,
+            required: true,
+        },
+        label: {
+            type: String,
+            required: true,
+            maxlength: mongoLength.label.max,
+            minlength: mongoLength.label.min,
         },
     },
     { minimize: false }

@@ -4,7 +4,7 @@ const config = require('./config/config')
 const logger = require('./config/logger')
 const { pushChanges } = require('./services/pushChanges.service')
 const { System, Club } = require('./models')
-// const createDevUsers = require('../dev/createDevUsers')
+const createDevUsers = require('../dev/createDevUsers')
 
 let server
 mongoose
@@ -25,18 +25,8 @@ mongoose
         })
         // Push changes to long poll requests
         pushChanges()
-        // if (config.env === 'development') createDevUsers(20)
+        if (config.env === 'development') createDevUsers(20)
         // if (config.env === 'test') createDevUsers(1000)
-
-        // Club.collection.createIndexes()
-        // fresh: { type: Boolean, default: true },
-        // location: {
-        //     type: { type: String },
-        //     coordinates: [Number],
-        // },
-        // clubAddress: { type: String, default: '' },
-        // global: { type: Boolean, default: false },
-        // Club.updateMany({}, { location:  })
     })
 
 const exitHandler = () => {

@@ -12,6 +12,7 @@ const tagRoute = require('./tag.route')
 const commentRoute = require('./comment.route')
 const searchRoute = require('./search.route')
 const countRoute = require('./count.route')
+const profileRoute = require('./profile.route')
 
 const router = express.Router()
 
@@ -67,6 +68,10 @@ const defaultRoutes = [
     {
         path: '/count',
         route: countRoute,
+    },
+    {
+        path: '/profile',
+        route: profileRoute,
     },
 ]
 

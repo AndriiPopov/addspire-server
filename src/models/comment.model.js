@@ -33,12 +33,6 @@ const commentSchema = new mongoose.Schema(
     { minimize: false }
 )
 
-// Club search and in profile search
-commentSchema.index({
-    reputation: 1,
-    date: -1,
-})
-
 commentSchema.plugin(mongoosePaginate)
 
 commentSchema.pre(

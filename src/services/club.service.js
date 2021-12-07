@@ -28,7 +28,7 @@ const createClub = async (req) => {
             admin: true,
             clubName: name,
             clubImage: image,
-            clubTags: tags,
+
             member: true,
             global,
         })
@@ -70,71 +70,88 @@ const createClub = async (req) => {
             },
             { useFindAndModify: false }
         )
-            .select('image name tags')
+            .select(
+                'profiles.image profiles.name profiles.tags profiles._id profiles.label defaultProfile'
+            )
             .lean()
             .exec()
 
         saveTags(tags)
 
-        reputation.name = accountObj.name
-        reputation.image = accountObj.image
-        reputation.profileTags = accountObj.tags
-        reputation.tags = accountObj.tags
-
-        reputation.club = club._id
-        await club.save()
-        await reputation.save()
-
-        const accountReputations = await Reputation.find({ owner: accountId })
-            .select('followers')
-            .lean()
-            .exec()
-
-        if (accountReputations && accountReputations.length > 0) {
-            const uniqueFollowers = accountReputations.reduce(
-                (result, rep) => [...new Set([...result, ...rep.followers])],
-                []
+        if (accountObj) {
+            const defaultProfile = accountObj.profiles.find(
+                (item) =>
+                    item._id.toString() === accountObj.defaultProfile.toString()
             )
-            if (uniqueFollowers.length) {
-                const newNotificationId = await System.getNotificationId()
-                await Account.updateMany(
-                    { _id: { $in: uniqueFollowers } },
-                    {
-                        $push: {
-                            notifications: {
-                                $each: [
-                                    {
-                                        user: accountId,
-                                        code: 'created club',
-                                        details: {
-                                            clubId: club._id,
-                                            clubName: name,
-                                            userName: accountObj.name,
-                                            image,
-                                        },
-                                        notId: newNotificationId,
-                                    },
-                                ],
-                                $slice: -50,
-                            },
-                        },
-                    },
-                    { useFindAndModify: false }
-                )
-                notificationService.notify(uniqueFollowers, {
-                    title: 'New club',
-                    body: `${account.name} created a new club ${name}`,
-                    data: {
-                        id: club._id,
-                        type: 'club',
-                    },
+            if (defaultProfile) {
+                reputation.name = defaultProfile.name
+                reputation.image = defaultProfile.image
+                reputation.tags = defaultProfile.tags
+                reputation.label = defaultProfile.label
+
+                reputation.profile = accountObj.defaultProfile
+
+                reputation.club = club._id
+                await club.save()
+                await reputation.save()
+
+                const accountReputations = await Reputation.find({
+                    owner: accountId,
                 })
+                    .select('followers')
+                    .lean()
+                    .exec()
+
+                if (accountReputations && accountReputations.length > 0) {
+                    const uniqueFollowers = accountReputations.reduce(
+                        (result, rep) => [
+                            ...new Set([...result, ...rep.followers]),
+                        ],
+                        []
+                    )
+                    if (uniqueFollowers.length) {
+                        const newNotificationId =
+                            await System.getNotificationId()
+                        await Account.updateMany(
+                            { _id: { $in: uniqueFollowers } },
+                            {
+                                $push: {
+                                    notifications: {
+                                        $each: [
+                                            {
+                                                user: accountId,
+                                                code: 'created club',
+                                                details: {
+                                                    clubId: club._id,
+                                                    clubName: name,
+                                                    userName: accountObj.name,
+                                                    image,
+                                                },
+                                                notId: newNotificationId,
+                                            },
+                                        ],
+                                        $slice: -50,
+                                    },
+                                },
+                            },
+                            { useFindAndModify: false }
+                        )
+                        notificationService.notify(uniqueFollowers, {
+                            title: 'New club',
+                            body: `${account.name} created a new club ${name}`,
+                            data: {
+                                id: club._id,
+                                type: 'club',
+                            },
+                        })
+                    }
+                }
+
+                return club
             }
         }
-
-        return club
+        throw new ApiError(httpStatus.CONFLICT, 'Not created')
     } catch (error) {
-        console.log(error)
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error
@@ -174,7 +191,6 @@ const editClub = async (req) => {
                     $set: {
                         clubName: name,
                         clubImage: image,
-                        clubTags: tags,
                     },
                 },
                 { useFindAndModify: false }
@@ -871,51 +887,38 @@ const ban = async (req) => {
 const editReputation = async (req) => {
     try {
         const { account, body } = req
-        const {
-            reputationId,
-            description,
-            address,
-            phone,
-            web,
-            email,
-            background,
-            tags,
-            social,
-        } = body
+        const { profileId, reputationId } = body
         const { _id: accountId } = account
 
-        const result = await Reputation.updateOne(
-            { _id: reputationId, owner: accountId },
-            { $set: {} },
-            { useFindAndModify: false }
-        )
+        const accountObj = await Account.findById(accountId)
+            .select(
+                'profiles._id profiles.name profiles.image profiles.tags profiles.label'
+            )
+            .lean()
 
-        if (!result.nModified) {
-            throw new ApiError(httpStatus.CONFLICT, 'badRequest')
+        if (accountObj) {
+            const newProfile = accountObj.profiles.find(
+                (item) => item._id.toString() === profileId.toString()
+            )
+            if (newProfile) {
+                const result = await Reputation.updateOne(
+                    { _id: reputationId, owner: accountId },
+                    {
+                        $set: {
+                            profile: profileId,
+                            name: newProfile.name,
+                            tags: newProfile.tags,
+                            image: newProfile.image,
+                            label: newProfile.label,
+                        },
+                    },
+                    { useFindAndModify: false }
+                )
+
+                if (result.nModified) return
+            }
         }
-        await Reputation.updateOne(
-            { _id: reputationId, owner: accountId },
-
-            {
-                $set: {
-                    description,
-                    address,
-                    phone,
-                    web,
-                    email,
-                    background,
-                    social,
-                    reputationTags: tags,
-                    ...(tags && tags.length
-                        ? {
-                              tags,
-                          }
-                        : {}),
-                },
-            },
-
-            { useFindAndModify: false }
-        )
+        throw new ApiError(httpStatus.CONFLICT, 'badRequest')
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')

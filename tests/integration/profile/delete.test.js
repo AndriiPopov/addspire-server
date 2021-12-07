@@ -5,10 +5,11 @@ const setupTestDB = require('../../utils/setupTestDB')
 
 setupTestDB()
 
-describe('POST /api/club/edit-reputation', () => {
+describe('POST /api/profile/edit', () => {
+    // Delete is tested in edit profile
     test('should return 400 error if  validation fails', async () => {
         await request(app)
-            .post('/api/club/edit-reputation')
+            .post('/api/profile/delete')
             .set('accountId', '0')
             .send({})
             .expect(httpStatus.BAD_REQUEST)

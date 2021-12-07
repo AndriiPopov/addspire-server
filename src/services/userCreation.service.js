@@ -14,11 +14,23 @@ const createUserFB = async (profile, done) => {
             name = name && name.length > 1 && name
             account = new Account({
                 facebookProfile: profile.id.toString(),
-                name: name || `f_${profile.id}`,
                 userid: profile.id,
                 platformId: 'facebook',
                 logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
             })
+            const defaultProfile = account.profiles.create({
+                name: name || `f_${profile.id}`,
+                label: 'General profile',
+            })
+            if (
+                profile.photos &&
+                profile.photos.length > 0 &&
+                profile.photos[0].value
+            ) {
+                defaultProfile.image = profile.photos[0].value
+            }
+            account.profiles.push(defaultProfile)
+            account.defaultProfile = defaultProfile._id
         }
 
         account.accountInfo = {
@@ -26,13 +38,6 @@ const createUserFB = async (profile, done) => {
             emails: [profile.email],
             photos: [profile.picture],
             userid: profile.id,
-        }
-        if (
-            profile.photos &&
-            profile.photos.length > 0 &&
-            profile.photos[0].value
-        ) {
-            account.image = profile.photos[0].value
         }
         account.markModified('accountInfo')
         account = await account.save()
@@ -55,24 +60,30 @@ const createUserGG = async (profile, done) => {
             name = name && name.length > 1 && name
             account = new Account({
                 googleProfile: profile.id.toString(),
-                name: name || `g_${profile.id}`,
                 platformId: 'google',
                 userid: profile.id,
                 logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
             })
+
+            const defaultProfile = account.profiles.create({
+                name: name || `g_${profile.id}`,
+                label: 'General profile',
+            })
+            if (
+                profile.photos &&
+                profile.photos.length > 0 &&
+                profile.photos[0].value
+            ) {
+                defaultProfile.image = profile.photos[0].value
+            }
+            account.profiles.push(defaultProfile)
+            account.defaultProfile = defaultProfile._id
         }
         account.accountInfo = {
             displayName: profile.displayName,
             emails: profile.emails,
             photos: profile.photos,
             userid: profile.id,
-        }
-        if (
-            profile.photos &&
-            profile.photos.length > 0 &&
-            profile.photos[0].value
-        ) {
-            account.image = profile.photos[0].value
         }
         account.markModified('accountInfo')
         account = await account.save()
@@ -139,11 +150,16 @@ const createUserApple = async (profile, done) => {
             }
             account = new Account({
                 appleProfile: profile.id.toString(),
-                name,
                 userid: profile.id,
                 platformId: 'apple',
                 logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
             })
+            const defaultProfile = account.profiles.create({
+                name,
+                label: 'General profile',
+            })
+            account.profiles.push(defaultProfile)
+            account.defaultProfile = defaultProfile._id
         }
 
         account.accountInfo = {

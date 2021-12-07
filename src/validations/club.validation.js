@@ -120,20 +120,7 @@ const ban = {
 const editReputation = {
     body: Joi.object().keys({
         reputationId: Joi.objectId().required(),
-        description: Joi.string()
-            .optional()
-            .max(JoiLength.description.max)
-            .allow(''),
-        address: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        phone: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        web: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        email: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        social: Joi.string().optional().max(JoiLength.message.max).allow(''),
-        background: Joi.string().optional(),
-        tags: Joi.array()
-            .items(Joi.string().min(JoiLength.tag.min).max(JoiLength.tag.max))
-            .max(20)
-            .optional(),
+        profileId: Joi.objectId().required(),
     }),
 }
 

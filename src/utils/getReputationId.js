@@ -44,21 +44,32 @@ module.exports = async (accountId, clubId, withData) => {
             },
             { useFindAndModify: false }
         )
-            .select('name image tags')
+            .select(
+                'profiles.name profiles.image profiles.tags profiles.label profiles._id defaultProfile'
+            )
             .lean()
             .exec()
+
         if (club && account) {
-            reputation.name = account.name
-            reputation.image = account.image
-            reputation.tags = account.tags
-            reputation.profileTags = account.tags
-            reputation.clubName = club.name
-            reputation.clubImage = club.image
-            if (club.location) reputation.location = club.location
-            if (club.global) reputation.global = club.global
-            if (club.clubAddress) reputation.clubAddress = club.clubAddress
-            await reputation.save()
-            return reputation
+            const defaultProfile = account.profiles.find(
+                (item) =>
+                    item._id.toString() === account.defaultProfile.toString()
+            )
+
+            if (defaultProfile) {
+                reputation.name = defaultProfile.name
+                reputation.image = defaultProfile.image
+                reputation.tags = defaultProfile.tags
+                reputation.label = defaultProfile.label
+                reputation.profile = account.defaultProfile
+                reputation.clubName = club.name
+                reputation.clubImage = club.image
+                if (club.location) reputation.location = club.location
+                if (club.global) reputation.global = club.global
+                if (club.clubAddress) reputation.clubAddress = club.clubAddress
+                await reputation.save()
+                return reputation
+            }
         }
         throw new ApiError(httpStatus.CONFLICT, 'Not created')
     } else return reputation
