@@ -23,6 +23,7 @@ const general = async (req) => {
             sort,
             global,
             location,
+            idIn,
         } = body
 
         const tagsExist = tags && tags.length
@@ -31,6 +32,9 @@ const general = async (req) => {
         if (page) options.page = page + 1
 
         const query = {}
+
+        if (idIn) query._id = { $in: idIn }
+
         if (location) {
             query.location = {
                 $geoWithin: {

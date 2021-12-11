@@ -59,35 +59,7 @@ const general = {
                 })
                 .optional(),
         }),
-        // User search (my clubs)
-        Joi.object().keys({
-            page: Joi.number().optional(),
-            // clubName: Joi.string().optional(),
-            tags: tagsValidation,
-            ownerId: Joi.objectId().required(),
-            type: Joi.string().valid('reputation').required(),
-        }),
-        Joi.object().keys({
-            page: Joi.number().optional(),
-            ownerId: Joi.objectId().required(),
-            starred: Joi.boolean().required(),
-            type: Joi.string().valid('reputation').required(),
-        }),
-        // User search (my questions)
-        Joi.object().keys({
-            page: Joi.number().optional(),
-            tags: tagsValidation,
-            // name: Joi.string().optional(),
-            ownerId: Joi.objectId().required(),
-            type: Joi.string().valid('question').required(),
-        }),
-        Joi.object().keys({
-            page: Joi.number().optional(),
-            tags: tagsValidation,
-            // name: Joi.string().optional(),
-            followerId: Joi.objectId().required(),
-            type: Joi.string().valid('question').required(),
-        }),
+
         // Banned users
         Joi.object().keys({
             banned: Joi.boolean().required(),
@@ -119,6 +91,34 @@ const general = {
                     vote: Joi.number().valid(-1, 1).optional(),
                 })
                 .optional(),
+        }),
+
+        // User clubs
+        Joi.object().keys({
+            page: Joi.number().optional(),
+            ownerId: Joi.objectId().required(),
+            type: Joi.string().valid('reputation').required(),
+        }),
+
+        // Bookmarked clubs
+        Joi.object().keys({
+            page: Joi.number().optional(),
+            ownerId: Joi.objectId().required(),
+            starred: Joi.boolean().required(),
+            type: Joi.string().valid('reputation').required(),
+        }),
+
+        // Bookmarked questions
+        Joi.object().keys({
+            page: Joi.number().optional(),
+            type: Joi.string().valid('question').required(),
+            idIn: Joi.array().items(Joi.objectId()).required(),
+            // sort: Joi.object()
+            //     .keys({
+            //         date: Joi.number().valid(-1, 1).optional(),
+            //         vote: Joi.number().valid(-1, 1).optional(),
+            //     })
+            //     .optional(),
         }),
     ],
 }

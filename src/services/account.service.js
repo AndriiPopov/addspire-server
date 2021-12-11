@@ -54,7 +54,7 @@ const follow = async (req) => {
                         user: { $ne: accountId },
                     },
                     {
-                        $push: { followers: accountId },
+                        $addToSet: { followers: accountId },
                         $inc: { followersCount: 1 },
                     },
                     { useFindAndModify: false }
