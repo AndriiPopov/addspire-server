@@ -18,7 +18,7 @@ const auth = () => async (req, res, next) => {
         if (process.env.NODE_ENV === 'test') {
             const accountId = req.get('accountId')
             req.account = await Account.findOne({ facebookProfile: accountId })
-                .select('logoutAllDate name image wallet')
+                .select('logoutAllDate wallet')
                 .lean()
                 .exec()
 

@@ -88,8 +88,8 @@ const follow = async (req) => {
                 )
 
                 notificationService.notify(resource.user, {
-                    title: 'New follower',
-                    body: `${account.name} is folowing you`,
+                    key: 'newFollower',
+                    body: { clubName: resource.clubName },
                     data: {
                         id: account._id,
                         type: 'user',
@@ -356,6 +356,24 @@ const removeNotificationToken = async (req) => {
     }
 }
 
+const language = async (req) => {
+    try {
+        const { account, body } = req
+        const { _id: accountId } = account
+        const { language: lang } = body
+
+        await Account.updateMany(
+            { _id: accountId },
+            { $set: { language: lang } },
+            { useFindAndModify: false }
+        )
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
 module.exports = {
     follow,
     unfollow,
@@ -366,4 +384,5 @@ module.exports = {
     seenFeed,
     saveNotificationToken,
     removeNotificationToken,
+    language,
 }

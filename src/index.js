@@ -3,8 +3,9 @@ const app = require('./app')
 const config = require('./config/config')
 const logger = require('./config/logger')
 const { pushChanges } = require('./services/pushChanges.service')
-const { System, Club } = require('./models')
+const { System } = require('./models')
 const createDevUsers = require('../dev/createDevUsers')
+require('./loadLocales')
 
 let server
 mongoose

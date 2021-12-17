@@ -71,5 +71,12 @@ router
         validate(accountValidation.removeNotificationToken),
         accountController.removeNotificationToken
     )
+router
+    .route('/language')
+    .post(
+        validate(accountValidation.language),
+        auth(),
+        accountController.language
+    )
 
 module.exports = router

@@ -50,7 +50,7 @@ const acceptAnswer = async (req) => {
             { new: true, useFindAndModify: false }
         )
             .select(
-                'followers name bonusPaid bonusPending bonusCoins count acceptedAnswerOwner'
+                'owner followers name bonusPaid bonusPending bonusCoins count acceptedAnswerOwner'
             )
             .lean()
             .exec()
@@ -129,9 +129,19 @@ const acceptAnswer = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
+                const reputationLeanQuestion = await getReputationId(
+                    question.owner,
+                    clubId
+                )
                 notificationService.notify(notifiedAccounts, {
-                    title: 'Accepted answer',
-                    body: `An answer is accepted in question ${question.name}`,
+                    key: 'acceptedAnswer',
+                    body: {
+                        question: question.name,
+                        name: reputationLeanQuestion
+                            ? reputationLeanQuestion.name
+                            : 'The author',
+                    },
+
                     data: {
                         id: question._id,
                         type: 'question',
@@ -286,8 +296,11 @@ const vote = async (req) => {
                     { useFindAndModify: false }
                 )
                 notificationService.notify(resource.owner, {
-                    title: minus ? 'Vote down' : 'Vote up',
-                    body: `For your contribution in ${question.name}`,
+                    key: minus ? 'voteDown' : 'voteUp',
+                    body: {
+                        question: question.name,
+                        rep: repChange,
+                    },
                     data: {
                         id: question._id,
                         type: 'question',

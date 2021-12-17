@@ -11,7 +11,7 @@ module.exports = async (accountId, clubId, withData) => {
             `_id${
                 withData
                     ? ' minusToday plusToday reputation admin banned club name clubName clubImage owner image'
-                    : ''
+                    : 'name'
             }`
         )
         .lean()

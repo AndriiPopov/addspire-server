@@ -148,8 +148,12 @@ const create = async (req) => {
                 { useFindAndModify: false }
             )
             notificationService.notify(notifiedAccounts, {
-                title: 'New question',
-                body: `${reputationLean.name} asked a question: ${resource.name} ▶ ${reputationLean.clubName}`,
+                key: 'newQuestion',
+                body: {
+                    clubName: reputationLean.clubName,
+                    name: reputationLean.name,
+                    question: resource.name,
+                },
                 data: {
                     id: resource._id,
                     type: 'question',

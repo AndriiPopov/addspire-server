@@ -47,8 +47,8 @@ const replenish = async () => {
 
         reputations.forEach((rep) => {
             notificationService.notify(rep.owner, {
-                title: 'Reputation replenished',
-                body: `Your reputation is not negative again and you can add content in club ${rep.clubName} again`,
+                key: 'reputationReplenished',
+                body: { clubName: rep.clubName },
                 data: {
                     id: rep.club,
                     type: 'club',

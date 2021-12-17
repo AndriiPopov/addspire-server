@@ -1,6 +1,5 @@
 const httpStatus = require('http-status')
 
-const { response } = require('express')
 const ApiError = require('../utils/ApiError')
 const getResourcesFromList = require('../utils/getResourcesFromList')
 const resources = require('../config/resources')
@@ -8,6 +7,9 @@ const getModelFromType = require('../utils/getModelFromType')
 const { get, client } = require('./redis.service')
 const { System } = require('../models')
 const getDistributeCoinsToday = require('../utils/getDistributeCoinsToday')
+const grades = require('../config/grades')
+const fieldLength = require('../config/fieldLength')
+const value = require('../config/value')
 
 const poll = {}
 const responseIds = {}
@@ -63,79 +65,152 @@ const pollResource = async (req, res) => {
         // Subscribe responseId to resourceId by adding it to a list.
         // Compare the version of the resources to the version in redis.
         resources.forEach((key) => {
-            if (pollResources[key] && responseIds[resId]) {
+            if (pollResources.resources[key] && responseIds[resId]) {
                 // If the key has D at the end, remove it.
                 let shortKey = ` ${key}`.slice(1)
                 if (shortKey.indexOf('D') === shortKey.length - 1)
                     shortKey = shortKey.substring(0, shortKey.length - 1)
-                Object.keys(pollResources[key]).forEach(async (id) => {
-                    if (pollResources[key][id] && responseIds[resId]) {
-                        // Compare the version
-                        const clientV = pollResources[key][id]
-                        let version = await get(`${shortKey}_${id}`)
+                Object.keys(pollResources.resources[key]).forEach(
+                    async (id) => {
+                        if (
+                            pollResources.resources[key][id] &&
+                            responseIds[resId]
+                        ) {
+                            // Compare the version
+                            const clientV = pollResources.resources[key][id]
+                            let version = await get(`${shortKey}_${id}`)
 
-                        // If version not exist in redis, get it
-                        if (!version) {
-                            const model = getModelFromType(key)
-                            const resource = await model
-                                .findById(id)
-                                .select('__v')
-                                .lean()
-                                .exec()
-                            if (resource) {
-                                version = resource.__v
-                                client.set(
-                                    `${shortKey}_${id}`,
-                                    version,
-                                    'EX',
-                                    600
-                                )
-                            } else {
-                                res.write(
-                                    `data: ${JSON.stringify({
-                                        messageCode: 'notFoundResource',
-                                        _id: [id],
-                                    })}\n\n`
-                                )
-                                res.flush()
+                            // If version not exist in redis, get it
+                            if (!version) {
+                                const model = getModelFromType(key)
+                                const resource = await model
+                                    .findById(id)
+                                    .select('__v')
+                                    .lean()
+                                    .exec()
+                                if (resource) {
+                                    version = resource.__v
+                                    client.set(
+                                        `${shortKey}_${id}`,
+                                        version,
+                                        'EX',
+                                        600
+                                    )
+                                } else {
+                                    res.write(
+                                        `data: ${JSON.stringify({
+                                            messageCode: 'notFoundResource',
+                                            _id: [id],
+                                        })}\n\n`
+                                    )
+                                    res.flush()
+                                }
                             }
-                        }
 
-                        if (version) {
-                            const docId = `${shortKey}_${id}`
-                            // If version is actual, add the responseId to poll object.
-                            // Create property for the resourceId if not exist in poll object.
-                            if (version.toString() === clientV.toString()) {
-                                poll[docId] = poll[docId]
-                                    ? [...poll[docId], resId]
-                                    : [resId]
-                                if (
-                                    responseIds[resId] &&
-                                    responseIds[resId].ids
-                                )
-                                    responseIds[resId].ids.push(docId)
-                            } else {
-                                // If some versions are not actual, response with actual resources.
-                                const [result] = await getResourcesFromList({
-                                    type: key,
-                                    ids: [id],
-                                })
-                                res.write(
-                                    `data: ${JSON.stringify({
-                                        messageCode: 'addResource',
-                                        type: key,
-                                        resources: result.filter(
-                                            (item) => item
-                                        ),
-                                    })}\n\n`
-                                )
-                                res.flush()
+                            if (version) {
+                                const docId = `${shortKey}_${id}`
+                                // If version is actual, add the responseId to poll object.
+                                // Create property for the resourceId if not exist in poll object.
+                                if (version.toString() === clientV.toString()) {
+                                    poll[docId] = poll[docId]
+                                        ? [...poll[docId], resId]
+                                        : [resId]
+                                    if (
+                                        responseIds[resId] &&
+                                        responseIds[resId].ids
+                                    )
+                                        responseIds[resId].ids.push(docId)
+                                } else {
+                                    // If some versions are not actual, response with actual resources.
+                                    const [result] = await getResourcesFromList(
+                                        {
+                                            type: key,
+                                            ids: [id],
+                                        }
+                                    )
+                                    res.write(
+                                        `data: ${JSON.stringify({
+                                            messageCode: 'addResource',
+                                            type: key,
+                                            resources: result.filter(
+                                                (item) => item
+                                            ),
+                                        })}\n\n`
+                                    )
+                                    res.flush()
+                                }
                             }
                         }
                     }
-                })
+                )
             }
         })
+
+        // Handle locales
+        if (pollResources.locales) {
+            pollResources.locales.forEach(async (languageArray) => {
+                if (languageArray.length === 2) {
+                    const [languageName, languageVersion] = languageArray
+
+                    const version = await get(`${languageName}_frontend_v`)
+                    if (version.toString() !== languageVersion.toString()) {
+                        const locale = await get(`${languageName}_frontend_l`)
+                        if (locale) {
+                            res.write(
+                                `data: ${JSON.stringify({
+                                    messageCode: 'updateLocale',
+                                    value: [
+                                        languageName,
+                                        version,
+                                        JSON.parse(locale),
+                                    ],
+                                })}\n\n`
+                            )
+                            res.flush()
+                        }
+                    } else if (!version) {
+                        res.write(
+                            `data: ${JSON.stringify({
+                                messageCode: 'noLocale',
+                                value: languageName,
+                            })}\n\n`
+                        )
+                        res.flush()
+                    }
+                }
+            })
+        }
+        // Handle refresh constants
+        if (pollResources.refreshConstants) {
+            const refrehedData = {
+                grades,
+                constValues: value,
+                fieldLength: fieldLength.JoiLength,
+            }
+
+            let coins = await get('coinsTomorrow')
+            if (!coins) {
+                const system = await System.System.findOne({ name: 'system' })
+                    .select('date')
+                    .lean()
+                    .exec()
+                coins = getDistributeCoinsToday(system.date, true)
+                if (coins) client.set('coinsTomorrow', coins)
+            } else coins = parseFloat(coins)
+            if (coins) refrehedData.coinsTomorrow = coins
+
+            const availableLocales = await get('availableLocales_frontend')
+            if (availableLocales)
+                refrehedData.availableLocales = JSON.parse(availableLocales)
+
+            res.write(
+                `data: ${JSON.stringify({
+                    messageCode: 'refreshConstants',
+                    value: refrehedData,
+                })}\n\n`
+            )
+            res.flush()
+        }
 
         setTimeout(() => {
             req.pause()
@@ -186,22 +261,12 @@ const sendUpdatedData = (data, keys) => {
 }
 
 setInterval(async () => {
-    let coinsTomorrow = await get('coinsTomorrow')
-    if (!coinsTomorrow) {
-        const system = await System.System.findOne({ name: 'system' })
-            .select('date')
-            .lean()
-            .exec()
-        coinsTomorrow = getDistributeCoinsToday(system.date, true)
-        client.set('coinsTomorrow', coinsTomorrow)
-    }
     Object.keys(responseIds).forEach((resId) => {
         const res = responseIds[resId]
         if (res && res.res) {
             res.res.write(
                 `data: ${JSON.stringify({
                     messageCode: 'ping',
-                    coinsTomorrow,
                 })}\n\n`
             )
             res.res.flush()

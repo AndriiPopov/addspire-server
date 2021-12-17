@@ -113,12 +113,12 @@ const viewsReward = async () => {
                                 if (!result.nModified)
                                     distributeToday -= userGain
                                 notificationService.notify(userId, {
-                                    title: 'Coins for contribution',
-                                    body: `Addspire has sent you ${roundCoins(
-                                        userGain
-                                    )} coins for your contribution in question ${
-                                        count.questionName
-                                    }`,
+                                    key: 'coinsForContribution',
+                                    body: {
+                                        coins: roundCoins(userGain),
+                                        question: count.questionName,
+                                    },
+
                                     data: {
                                         id: count.question,
                                         type: 'question',
@@ -147,10 +147,12 @@ const viewsReward = async () => {
             )
 
             notificationService.notify('all', {
-                title: 'Addspire coins',
-                body: `Today we gave ${roundCoins(
-                    distributeToday
-                )} coins. Tomorrow We will give ${distributeTomorrow}. The more you contribute the more coins you get.`,
+                key: 'addspireCoins',
+                body: {
+                    today: roundCoins(distributeToday),
+                    tomorrow: roundCoins(distributeTomorrow),
+                },
+
                 data: {
                     id: '',
                     type: 'feed',

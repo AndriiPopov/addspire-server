@@ -306,8 +306,6 @@ const loginApp = async (req) => {
             }
             case 'dev': {
                 if (config.env === 'development') {
-                    console.log(token)
-                    console.log(type)
                     const account = await Account.findOne({
                         [type === 'apple'
                             ? 'appleProfile'

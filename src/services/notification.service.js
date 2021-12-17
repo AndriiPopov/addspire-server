@@ -1,6 +1,7 @@
 const dayjs = require('dayjs')
 const { Expo } = require('expo-server-sdk')
 const schedule = require('node-schedule')
+const i18next = require('i18next')
 const { Account } = require('../models')
 
 const expo = new Expo()
@@ -29,12 +30,18 @@ const notify = async (accountsIds, message) => {
         const accounts = await Account.find(
             search !== 'all' ? { _id: search } : {}
         )
-            .select('expoTokens')
+            .select('expoTokens language')
             .lean()
             .exec()
         if (!accounts || !accounts.length) return
         const tokens = accounts.reduce(
-            (result, value) => [...result, ...value.expoTokens],
+            (result, value) => [
+                ...result,
+                ...value.expoTokens.map((token) => ({
+                    token,
+                    language: value.language,
+                })),
+            ],
             []
         )
 
@@ -44,15 +51,22 @@ const notify = async (accountsIds, message) => {
         tokens.forEach((token) => {
             if (!Expo.isExpoPushToken(token)) {
                 Account.updateOne(
-                    { expoTokens: token },
-                    { $pull: { expoTokens: token } },
+                    { expoTokens: token.token },
+                    { $pull: { expoTokens: token.token } },
                     { useFindAndModify: false }
                 )
             } else {
+                const t = i18next.getFixedT(
+                    i18next.loadLanguages.includes(token.language)
+                        ? token.language
+                        : 'en',
+                    'translation',
+                    `notification.${message.key}`
+                )
                 messages.push({
-                    to: token,
-                    title: message.title,
-                    body: message.body,
+                    to: token.token,
+                    title: t('title', message.title || {}),
+                    body: t('body', message.body || {}),
                     data: message.data,
                     'content-available': 1,
                 })
@@ -63,7 +77,7 @@ const notify = async (accountsIds, message) => {
         const formattedTickets = tickets.map((ticket, idx) => {
             const formattedTicket = {}
             formattedTicket.status = ticket.status
-            formattedTicket.expoPushToken = tokens[idx]
+            formattedTicket.expoPushToken = tokens[idx].token
             if (ticket.id) formattedTicket.receiptId = ticket.id
             if (ticket.message) formattedTicket.message = ticket.message
             if (ticket.details) formattedTicket.details = ticket.details

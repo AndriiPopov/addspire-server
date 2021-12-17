@@ -75,6 +75,12 @@ const removeNotificationToken = {
     }),
 }
 
+const language = {
+    body: Joi.object().keys({
+        language: Joi.string().required(),
+    }),
+}
+
 module.exports = {
     follow,
     unfollow,
@@ -85,4 +91,5 @@ module.exports = {
     saveNotificationToken,
     removeNotificationToken,
     seenFeed,
+    language,
 }

@@ -137,8 +137,11 @@ const createClub = async (req) => {
                             { useFindAndModify: false }
                         )
                         notificationService.notify(uniqueFollowers, {
-                            title: 'New club',
-                            body: `${account.name} created a new club ${name}`,
+                            key: 'createdClub',
+                            body: {
+                                name: reputation.name,
+                                clubName: name,
+                            },
                             data: {
                                 id: club._id,
                                 type: 'club',
@@ -306,7 +309,7 @@ const acceptInvite = async (req) => {
                                     details: {
                                         clubId: doc.club,
                                         clubName: club.name,
-                                        userName: account.name,
+                                        userName: reputationLean.name,
                                         image: account.image,
                                     },
                                     notId: newNotificationId,
@@ -319,8 +322,8 @@ const acceptInvite = async (req) => {
                 { useFindAndModify: false }
             )
             notificationService.notify(notifiedAccounts, {
-                title: 'New resident',
-                body: `${account.name} has become a resident of club ${club.name}`,
+                key: 'newExpert',
+                body: { name: reputationLean.name, clubName: club.name },
                 data: {
                     id: club._id,
                     type: 'club',
@@ -393,7 +396,7 @@ const addResident = async (req) => {
                                     details: {
                                         clubId,
                                         clubName: club.name,
-                                        userName: account.name,
+                                        userName: reputationLean.name,
                                         image: reputationLean.image,
                                     },
                                     notId: newNotificationId,
@@ -406,8 +409,8 @@ const addResident = async (req) => {
                 { useFindAndModify: false }
             )
             notificationService.notify(notifiedAccounts, {
-                title: 'New resident',
-                body: `${account.name} has become a resident of club ${club.name}`,
+                key: 'newExpert',
+                body: { name: reputationLean.name, clubName: club.name },
                 data: {
                     id: club._id,
                     type: 'club',
@@ -468,7 +471,7 @@ const leaveResidence = async (req) => {
                                     details: {
                                         clubId,
                                         clubName: club.name,
-                                        userName: account.name,
+                                        userName: reputationLean.name,
                                         image: account.image,
                                     },
                                     notId: newNotificationId,
@@ -481,8 +484,8 @@ const leaveResidence = async (req) => {
                 { useFindAndModify: false }
             )
             notificationService.notify(club.followers, {
-                title: 'Leave residence',
-                body: `${account.name} has lost residence in club ${club.name}`,
+                key: 'leaveExpert',
+                body: { name: reputationLean.name, clubName: club.name },
                 data: {
                     id: club._id,
                     type: 'club',
@@ -552,7 +555,7 @@ const requestResidence = async (req) => {
                                         details: {
                                             clubId,
                                             clubName: club.name,
-                                            userName: account.name,
+                                            userName: reputationLean.name,
                                             image: account.image,
                                         },
                                         notId: newNotificationId,
@@ -565,8 +568,8 @@ const requestResidence = async (req) => {
                     { useFindAndModify: false }
                 )
                 notificationService.notify(notifiedAccounts, {
-                    title: 'New residence request',
-                    body: `${account.name} has sent a residence request in club ${club.name}`,
+                    key: 'expertRequest',
+                    body: { name: reputationLean.name, clubName: club.name },
                     data: {
                         id: club._id,
                         type: 'club',
@@ -660,8 +663,8 @@ const acceptResidenceRequest = async (req) => {
                 { useFindAndModify: false }
             )
             notificationService.notify(notifiedAccounts, {
-                title: 'New resident',
-                body: `${reputationLean.name} has become a resident in club ${club.name}`,
+                key: 'newExpert',
+                body: { name: reputationLean.name, clubName: club.name },
                 data: {
                     id: club._id,
                     type: 'club',
@@ -735,8 +738,8 @@ const declineResidenceRequest = async (req) => {
             { useFindAndModify: false }
         )
         notificationService.notify(residentId, {
-            title: 'Residence request declined',
-            body: `Your residence request in club ${club.name} has been declined`,
+            key: 'expertRequestDeclined',
+            body: { clubName: club.name },
             data: {
                 id: club._id,
                 type: 'club',
@@ -796,8 +799,9 @@ const editStartRule = async (req) => {
                 { useFindAndModify: false }
             )
             notificationService.notify(club.followers, {
-                title: 'Conversation rules chenged',
-                body: `New rules in club ${club.name}`,
+                key: 'rulesChange',
+                body: { clubName: club.name },
+
                 data: {
                     id: club._id,
                     type: 'club',
@@ -865,10 +869,10 @@ const ban = async (req) => {
                 { useFindAndModify: false }
             )
             notificationService.notify(reputation.owner, {
-                title: banning ? 'Ban' : 'Unban',
-                body: `Your profile in club ${reputation.clubName} is ${
-                    banning ? 'banned' : 'unbanned'
-                }`,
+                key: banning ? 'banned' : 'unbanned',
+                body: {
+                    clubName: reputation.clubName,
+                },
                 data: {
                     id: reputation.name,
                     type: 'club',

@@ -51,6 +51,11 @@ const removeNotificationToken = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send()
 })
 
+const language = catchAsync(async (req, res) => {
+    await accountService.language(req)
+    res.status(httpStatus.OK).send()
+})
+
 module.exports = {
     follow,
     unfollow,
@@ -61,4 +66,5 @@ module.exports = {
     seenFeed,
     saveNotificationToken,
     removeNotificationToken,
+    language,
 }

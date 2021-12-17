@@ -101,10 +101,12 @@ module.exports = async (question) => {
                         if (!result.nModified)
                             returnCoins += distributionCoins[userId]
                         notificationService.notify(userId, {
-                            title: 'Bonus',
-                            body: `You received a bonus ${roundCoins(
-                                distributionCoins[userId]
-                            )} for your contribution in ${count.questionName}`,
+                            key: 'bonus',
+                            body: {
+                                question: count.questionName,
+                                bonus: roundCoins(distributionCoins[userId]),
+                            },
+
                             data: {
                                 id: count.question,
                                 type: 'question',
