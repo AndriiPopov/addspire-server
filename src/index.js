@@ -5,7 +5,7 @@ const logger = require('./config/logger')
 const { pushChanges } = require('./services/pushChanges.service')
 const { System } = require('./models')
 const createDevUsers = require('../dev/createDevUsers')
-require('./loadLocales')
+require('./config/i18next/loadLocales')
 
 let server
 mongoose

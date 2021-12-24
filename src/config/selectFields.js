@@ -10,7 +10,7 @@ const answerD =
     'images views description votesUp votesDown club date owner reputation question commentsCount __v'
 
 const reputationD =
-    'label tags views club owner reputation plusToday minusToday admin banned starred image clubName clubImage tags name member clubAddress global location __v'
+    'label tags views club owner reputation plusToday minusToday admin banned starred image clubName clubImage tags name member clubAddress global location answersCount questionsCount commentsCount __v'
 
 module.exports.selectFields = {
     clubD,

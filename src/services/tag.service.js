@@ -25,7 +25,11 @@ const saveTags = async (tags) => {
                 )
             })
         }
-    } catch (error) {}
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not found')
+        } else throw error
+    }
 }
 
 const findTags = async (req) => {
