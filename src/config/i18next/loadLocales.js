@@ -18,7 +18,9 @@ const loadLocales = (side) => {
                 console.error(err)
                 return
             }
+            console.log(data)
             const versions = JSON.parse(data)
+            console.log(versions)
             if (versions && Array.isArray(versions)) {
                 // eslint-disable-next-line no-restricted-syntax
                 for (const element of versions) {
