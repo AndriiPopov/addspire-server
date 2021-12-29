@@ -18,14 +18,19 @@ const loadLocales = (side) => {
                 console.error(err)
                 return
             }
-            console.log(data)
+
             const versions = JSON.parse(data)
-            console.log(versions)
+            console.log('versions', versions)
             if (versions && Array.isArray(versions)) {
                 // eslint-disable-next-line no-restricted-syntax
                 for (const element of versions) {
+                    console.log('element', element)
                     if (element && Array.isArray(element)) {
                         const [name, version, title] = element
+                        console.log('name', name)
+                        console.log('version', version)
+                        console.log('title', title)
+
                         const savedVersion = await get(`${name}_${side}_v`)
                         let savedLocale = await get(`${name}_${side}_l`)
                         if (savedVersion !== version && savedLocale) {
