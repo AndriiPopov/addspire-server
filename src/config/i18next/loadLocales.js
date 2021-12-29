@@ -10,8 +10,8 @@ const loadLocales = (side) => {
     const availableLocales = []
     fs.readFile(
         path.resolve(
-            process.cwd(),
-            `../addspire-locales/locales/${side}/index.json`
+            __dirname,
+            `../../../../addspire-locales/locales/${side}/index.json`
         ),
         async (err, data) => {
             if (err) {
@@ -30,8 +30,8 @@ const loadLocales = (side) => {
                             // eslint-disable-next-line security/detect-non-literal-fs-filename
                             fs.readFile(
                                 path.resolve(
-                                    process.cwd(),
-                                    `../addspire-locales/locales/${side}/${name}.json`
+                                    __dirname,
+                                    `../../../../addspire-locales/locales/${side}/${name}.json`
                                 ),
                                 async (err, locale) => {
                                     if (err) {
@@ -59,8 +59,8 @@ const loadLocales = (side) => {
                         }
                     }
                 }
-                i18next.loadLanguages(availableLocales.map((i) => i.name))
                 console.log(`availableLocales${side}`, availableLocales)
+                i18next.loadLanguages(availableLocales.map((i) => i.name))
                 client.set(
                     `availableLocales_${side}`,
                     JSON.stringify(availableLocales)
@@ -71,7 +71,10 @@ const loadLocales = (side) => {
 }
 
 fs.readFile(
-    path.resolve(process.cwd(), `../addspire-locales/locales/backend/en.json`),
+    path.resolve(
+        __dirname,
+        `../../../../addspire-locales/locales/backend/en.json`
+    ),
     async (err, locale) => {
         let translations = locale
         if (err) {
