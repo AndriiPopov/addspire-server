@@ -20,20 +20,15 @@ const loadLocales = (side) => {
             }
 
             const versions = JSON.parse(data)
-            console.log('versions', versions)
             if (versions && Array.isArray(versions)) {
                 // eslint-disable-next-line no-restricted-syntax
                 for (const element of versions) {
-                    console.log('element', element)
                     if (element && Array.isArray(element)) {
                         const [name, version, title] = element
-                        console.log('name', name)
-                        console.log('version', version)
-                        console.log('title', title)
 
                         const savedVersion = await get(`${name}_${side}_v`)
                         let savedLocale = await get(`${name}_${side}_l`)
-                        if (savedVersion !== version && savedLocale) {
+                        if (savedVersion !== version || !savedLocale) {
                             // eslint-disable-next-line security/detect-non-literal-fs-filename
                             fs.readFile(
                                 path.resolve(
@@ -66,7 +61,6 @@ const loadLocales = (side) => {
                         }
                     }
                 }
-                console.log(`availableLocales${side}`, availableLocales)
                 i18next.loadLanguages(availableLocales.map((i) => i.name))
                 client.set(
                     `availableLocales_${side}`,
