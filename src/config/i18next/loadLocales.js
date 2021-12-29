@@ -46,8 +46,7 @@ const loadLocales = (side) => {
                                     availableLocales.push({ name, title })
                                 }
                             )
-                        }
-                        if (savedLocale) {
+                        } else if (savedLocale) {
                             availableLocales.push({ name, title })
                             if (side === 'backend') {
                                 i18next.addResourceBundle(
@@ -61,6 +60,7 @@ const loadLocales = (side) => {
                         }
                     }
                 }
+                console.log(availableLocales)
                 i18next.loadLanguages(availableLocales.map((i) => i.name))
                 client.set(
                     `availableLocales_${side}`,
