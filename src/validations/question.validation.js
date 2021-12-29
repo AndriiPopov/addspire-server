@@ -13,8 +13,8 @@ const create = {
         .keys({
             name: Joi.string()
                 .required()
-                .max(JoiLength.name.max)
-                .min(JoiLength.name.min),
+                .max(JoiLength.questionName.max)
+                .min(JoiLength.questionName.min),
             description: Joi.string()
                 .required()
                 .max(JoiLength.description.max)
@@ -33,8 +33,8 @@ const edit = {
         .keys({
             name: Joi.string()
                 .required()
-                .max(JoiLength.name.max)
-                .min(JoiLength.name.min),
+                .max(JoiLength.questionName.max)
+                .min(JoiLength.questionName.min),
             description: Joi.string()
                 .required()
                 .max(JoiLength.description.max)

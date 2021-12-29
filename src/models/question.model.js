@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const mongoosePaginate = require('mongoose-paginate-v2')
+const { mongoLength } = require('../config/fieldLength')
 const basicModel = require('./basicModel/basicModel')
 const basicVotes = require('./basicModel/basicVotes')
 const { increaseVersion } = require('./plugins')
@@ -8,6 +9,12 @@ const questionSchema = new mongoose.Schema(
     {
         ...basicModel,
         ...basicVotes,
+        name: {
+            type: String,
+            maxlength: mongoLength.questionName.max,
+            minlength: mongoLength.questionName.min,
+            required: true,
+        },
         owner: { type: String, required: true },
         reputation: { type: String, required: true },
         images: [String],
