@@ -53,8 +53,8 @@ const loadLocales = (side) => {
                                     name,
                                     'translation',
                                     JSON.parse(savedLocale),
-                                    true,
-                                    true
+                                    false,
+                                    false
                                 )
                             }
                         }
