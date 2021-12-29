@@ -12,7 +12,7 @@ const auth = () => async (req, res, next) => {
             authService.logout(req.get('refreshtoken'))
         }
 
-        return next(new ApiError(httpStatus.UNAUTHORIZED, 'logout'))
+        throw new ApiError(httpStatus.UNAUTHORIZED, 'logout')
     }
     try {
         if (process.env.NODE_ENV === 'test') {
