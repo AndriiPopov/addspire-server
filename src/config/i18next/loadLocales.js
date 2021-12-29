@@ -60,7 +60,6 @@ const loadLocales = (side) => {
                         }
                     }
                 }
-                console.log(availableLocales)
                 i18next.loadLanguages(availableLocales.map((i) => i.name))
                 client.set(
                     `availableLocales_${side}`,
