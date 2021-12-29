@@ -147,13 +147,18 @@ const pollResource = async (req, res) => {
         })
 
         // Handle locales
+
         if (pollResources.locales) {
+            console.log('pollResources.locales', pollResources.locales)
             pollResources.locales.forEach(async (languageArray) => {
                 if (languageArray.length === 2) {
                     const [languageName, languageVersion] = languageArray
 
                     const version = await get(`${languageName}_frontend_v`)
-                    if (version.toString() !== languageVersion.toString()) {
+                    if (
+                        version &&
+                        version.toString() !== languageVersion.toString()
+                    ) {
                         const locale = await get(`${languageName}_frontend_l`)
                         if (locale) {
                             res.write(
