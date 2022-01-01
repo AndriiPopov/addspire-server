@@ -13,7 +13,7 @@ const coinsTomorrow = catchAsync(async (req, res) => {
 const availableLanguages = catchAsync(async (req, res) => {
     const languages = await utilsService.availableLanguages()
     res.status(httpStatus.OK).send({
-        availableLanguages: languages,
+        availableLocales: JSON.parse(languages),
     })
 })
 
