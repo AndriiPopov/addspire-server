@@ -1,475 +1,76 @@
 {
-    "wallet": {
-        "wallet": "Wallet",
-        "availableBalance": "Available balance",
-        "contribution": "for contribution in ",
-        "notDistributed": "as a not distributed bonus in ",
-        "bonus": "as a bonus for contribution in ",
-        "coins": "coins"
-    },
-    "feed": {
-        "newQuestion": "New question",
-        "newQuestionEvents": "New question and events",
-        "newEvents": "New events",
-        "seen": "Seen",
-        "home": "Home"
-    },
-    "search": {
-        "clubs": "Clubs",
-        "questions": "Questions",
-        "users": "Users"
-    },
-    "nots": {
-        "newFollower": "You have a new follower in your profile in club",
-        "newClub": "created a new club",
-        "becameExpert": "became an expert in club",
-        "left": "left club",
-        "sentRequest": "sent a request to become an expert in club",
-        "approved": "Your expert request has been approved in club",
-        "declined": "Your expert request has been declined in club",
-        "rules": "Rules for starting new conversataions have been changed in club",
-        "banned": "Your profile has been banned",
-        "ubanned": "Your profile has been unbanned",
-        "receivedNotDistributed_one": "Received {{count}} coin as not distributed bonus in question",
-        "receivedNotDistributed_other": "Received {{count}} coins as not distributed bonus in question",
-        "contribution_one": "Received {{count}} coins for your contribution in question",
-        "contribution_other": "Received {{count}} coins for your contribution in question",
-        "bonus_one": "Received {{count}} coins as bonus for your contribution in question",
-        "bonus_other": "Received {{count}} coins as bonus for your contribution in question",
-        "markSeen": "Mark all as seen",
-        "noNotifications": "No notifications",
-        "seen": "Seen"
-    },
-    "createClub": {
-        "edit": "Edit club",
-        "create": "Create club",
-        "upload": "upload photo",
-        "name": "Club name",
-        "description": "Description",
-        "location": "Location",
-        "global": "Global club",
-        "local": "Local club",
-        "cannotChange": "Location can be set only at creation of club and cannot be changed later.",
-        "save": "Save"
-    },
-    "bookmarks": {
-        "clubs": "Clubs",
-        "questions": "Questions"
-    },
-    "ask": {
-        "question": "Question",
-        "details": "Details",
-        "bonus": "Bonus",
-        "addBonus": "Add bonus",
-        "have_one": "You have {{value}} coin",
-        "have_other": "You have: {{value}} coins",
-        "current_one": "Current bonus: {{value}} coin",
-        "current_other": "Current bonus: {{value}} coins",
-        "after_one": "Bonus after save: {{value}} coins",
-        "after_other": "Bonus after save: {{value}} coin",
-        "save": "Save",
-        "ask": "Ask",
-        "answer": "Answer",
-        "bookmark": "Bookmark and follow the question"
-    },
-    "user": {
-        "clubs_one": "{{count}} club ",
-        "clubs_other": "{{count}} clubs ",
-        "earned_one": "{{value}} coin earned",
-        "earned_other": "{{value}} coins earned",
-        "spent_one": "{{value}} coin spent",
-        "spent_other": "{{value}} coins spent",
-        "editProfile": "Edit profile",
-        "linkAccounts": "Link accounts",
-        "profilesOf": "Profiles of {{name}}",
-        "abount": "About",
-        "clubs": "Clubs",
-        "userOn": "{{name}} a user on Addspire",
-        "noClubs": "Not a memeber of clubs",
-        "addProfile": "Add profile",
-        "share": "{{name}} - a user on Addspire. ",
-        "buttons": {
-            "default": "Set as default",
-            "logout": "Logout",
-            "link": "Link accounts",
-            "edit": "Edit profile",
-            "delete": "Delete account",
-            "confirm1": "Are you sure you want to completely delete your account on Addspire?",
-            "confirm2": "You will not be able to restore your account.",
-            "deleteProfile": "Delete profile",
-            "deleteProfileConfirm": "Are you sure you want to completely delete this profile?",
-            "other": "Other profiles"
-        }
-    },
-    "editProfile": {
-        "upload": "Upload avatar image",
-        "label": "Label",
-        "name": "Name",
-        "bio": "Bio",
-        "web": "web",
-        "location": "Location",
-        "email": "Email",
-        "phone": "Phone",
-        "save": "Save"
-    },
-    "chooseProfile": {
-        "add": "Add a new profile",
-        "choose": "Choose a profile to show"
-    },
-    "linkAccounts": {
-        "unlink": "Unlink",
-        "notLinked": "Not linked accounts",
-        "linked": "Linked accounts"
-    },
-    "question": {
-        "editQuestion": "Edit question",
-        "editAnswer": "Edit answer",
-        "answer": "Answer",
-        "in": "In {{name}}",
-        "questionOnAddspire": "question on Addspire",
-        "headTitle": "{{question}} in {{club}} - a Q&A club on Addspire. ",
-        "answer_one": "{{count}} answer",
-        "answer_other": "{{count}} answers",
-        "newAnswer_one": "Show {{count}} new answer",
-        "newAnswer_other": "Show {{count}} new answers"
-    },
-    "login": {
-        "welcome": "Welcome to Addspire",
-        "subtitle": "All local experts in one account",
-        "privacy": "By continuing, you agree to Addspire <1>Terms of Service</1> and <3>Privacy policy<3>.",
-        "cookie": "You also agree to Addspire <1>Cookie use</1>.",
-        "apple": "Continue with Apple",
-        "facebook": "Continue with Facebook",
-        "google": "Continue with Google"
-    },
-    "club": {
-        "rule": {
-            "withPositive": "Anyone with a positive reputation can start discussions.",
-            "with10": "Anyone with a reputation 10+ can start discussions.",
-            "with100": "Anyone with a reputation 100+ can start discussions.",
-            "onlyExperts": "Only experts can start discussions.",
-            "save": "Save"
+    "notification": {
+        "newFollower": {
+            "title": "New follower",
+            "body": "You have a new follower in club {{clubName}}"
         },
-        "banner": {
-            "invite": "Invite experts",
-            "become": "Become expert",
-            "learn": "Learn more",
-            "willBe": "Your club will remain active for the first 14 days. After this period, the club will need to have at least 3 experts to be active. Otherwise, you and other members of the club will not be able to ask new questions.",
-            "is": "This club is not active and new content cannot be added."
+        "newAnswer": {
+            "title": "New answer",
+            "body": "{{name}} has added a new answer to your question {{questionName}}"
         },
-        "modals": {
-            "invite": "Create invite",
-            "request": "Become expert",
-            "requests": "Expert requests",
-            "ask": "Ask question",
-            "edit": "Edit club",
-            "rule": "Change rules",
-            "banned": "Banned profiles"
+        "createdClub": {
+            "title": "New club",
+            "body": "{{name}} has created a new club {{clubName}}"
         },
-        "fab": {
-            "ask": "Ask",
-            "close": "Close",
-            "error0": "You cannot ask questions now, because the club is not active. Clubs should have at least 8 experts.",
-            "error1": "You cannot ask questions now, because your profile has been banned.",
-            "error2": "You cannot ask questions now, because your reputation is negative.",
-            "error3": "You cannot ask questions now, because your reputation is not high enough or you are not a resident.",
-            "rights": "Not enough rights"
+        "newExpert": {
+            "title": "New expert",
+            "body": "{{name}} has become a new expert in club {{clubName}}"
         },
-        "request": {
-            "describe": "Describe why you should become a expert. Tell other experts about your unique knowledge or plans.",
-            "message": "Message",
-            "send": "Send request"
+        "leaveExpert": {
+            "title": "Expert left",
+            "body": "{{name}} is not an expert in {{clubName}} anymore"
         },
-
-        "invite": {
-            "info": "To invite new experts to the club you can generate an invite link. This link will be valid for 24 hours and can be used only one time.",
-            "generate": "Generate an invite link",
-            "ready": "Your invite link is ready. Now you can copy and send it to the potential expert of your club.",
-            "message": "Hello, I am inviting you to become a expert of my club on Addspire. To accept the invitation, simply click the link below:",
-            "copy": "Share link",
-            "warn0": "Each club can have up to 8 experts.",
-            "warn1": "Please note that all experts have equal rights and cannot remove other experts from the club. Invite only people you know who can bring value to the club.",
-            "more": "Read more"
+        "expertRequest": {
+            "title": "Expert request",
+            "body": "{{name}} has sent a request to become an expert in club {{clubName}}"
         },
-        "requests": {
-            "decline": "Decline",
-            "accept": "Accept",
-            "warnDecline": "Are you sure you want to decline the expert request?",
-            "warnAccept": "Are you sure you want to accept the expert request?",
-            "info": "Note that all experts including you have equal rights and cannot delete other experts. Also, clubs can have not more than 8 experts."
+        "expertRequestDeclined": {
+            "title": "Expert request declined",
+            "body": "Your expert request in club {{clubName}} has been declined"
+        },
+        "rulesChange": {
+            "title": "New rules",
+            "body": "The rules in club {{clubName}} have been changed."
         },
         "banned": {
-            "unban": "Unban this profile"
+            "title": "Ban",
+            "body": "You profile in club {{clubName}} has been banned"
         },
-        "buttons": {
-            "member": "Member",
-            "join": "Join",
-            "requests": "Expert requests",
-            "request": "Become expert",
-            "leave": "Leave club",
-            "warn0": "Are you sure you want to leave this club?",
-            "warn1": "You will not be able to become an expert unless an expert of this club accepts your request.",
-            "generate": "Generate an invite link",
-            "editRules": "Edit rules",
-            "editClub": "Edit club",
-            "banned": "Banned profiles"
+        "unbanned": {
+            "title": "Unban",
+            "body": "You profile in club {{clubName}} has been unbanned"
         },
-        "clubExperts": "Club experts",
-        "club": "Club",
-        "share": "{{name}} - a Q&A club on Addspire.",
-        "questions": "Questions",
-        "members": "Members",
-        "experts": "Experts"
-    },
-    "clubProfile": {
-        "chooseProfile": "Choose profile",
-        "about": "About",
-        "questions": "Questions",
-        "answers": "Answers",
-        "gains": "Gains",
-        "default": "Default",
-        "manage": "Manage profiles",
-        "chooseProfileShow": "Choose a profile to show in the club",
-        "buttons": {
-            "makeExpert": "Make an expert",
-            "warn0": "Each club can have up to 8 experts.",
-            "warn1": "Please note that all experts have equal rights and cannot remove other experts from the club. Invite only people you know who can bring value to the club.",
-            "main": "Main profile",
-            "share": "{{name}} - a Q&A club on Addspire.",
-            "edit": "Edit profile",
-            "ban": "Ban",
-            "unban": "Unban"
+        "newQuestion": {
+            "title": "New question",
+            "body": "{{name}} has asked a new question in club {{clubName}}: {{question}}"
         },
-        "gain": {
-            "upvote": "For upvote",
-            "downvote": "For downvote",
-            "accepted": "For accepted answer",
-            "reputation": "reputation",
-            "in": "{{action}} in question "
+        "reputationReplenished": {
+            "title": "Reputation replenished",
+            "body": "Your reputation is not negative again and you can add content in club {{clubName}} again"
         },
-        "expert": "expert",
-        "grade": "grade",
-        "reputation": "reputation",
-        "followers": "followers",
-        "following": "Following",
-        "follow": "Follow",
-        "decription": {
-            "title": "Status and rights in club",
-            "reputation": "Reputation",
-            "expert": "Expert",
-            "grade": "Grade",
-            "answer": "Can answer and comment",
-            "question": "Can ask questions",
-            "up": "Vote up day limit",
-            "unlimited": "Unlimited",
-            "remain": "remain",
-            "down": "Vote down day limit",
-            "yes": "Yes",
-            "no": "No"
+        "coinsForContribution": {
+            "title": "Coins for contribution",
+            "body": "Addspire has sent you {{coins}} coins for your contribution in question {{question}}"
+        },
+        "addspireCoins": {
+            "title": "Addspire coins",
+            "body": "Today we gave {{today}} coins. Tomorrow we will give {{tomorrow}} coins. The more you contribute the more coins you get."
+        },
+        "acceptedAnswer": {
+            "title": "Accepted answer",
+            "body": "{{name}} has accepted one answer in question {{question}}"
+        },
+        "voteUp": {
+            "title": "Vote up",
+            "body": "You have got +{{rep}} for an upvote on your contribution in {{question}}"
+        },
+        "voteDown": {
+            "title": "Vote down",
+            "body": "You have got -{{rep}} for an downvote on your contribution in {{question}}"
+        },
+        "bonus": {
+            "title": "Bonus",
+            "body": "You have got +{{bonus}} for your contribution in question {{question}}"
         }
-    },
-    "clubCard": {
-        "experts_one": "{{count}} Expert",
-        "experts_other": "{{count}} Experts",
-        "members_one": "{{count}} Member",
-        "members_other": "{{count}} Members",
-        "questions_one": "{{count}} Question",
-        "questions_other": "{{count}} Questions",
-        "share": "{{name}} - a Q&A club on Addspire.",
-        "ask": "Ask",
-        "shareButton": "Share",
-        "member": "Member",
-        "join": "Join"
-    },
-    "comment": {
-        "comment_one": "{{count}} Comment",
-        "comment_other": "{{count}} Comments",
-        "edit": "Edit comment",
-        "save": "Save",
-        "send": "Send",
-        "bookmark": "Bookmark and follow the question",
-        "add": "Add comment",
-        "cancel": "Cancel",
-        "buttons": {
-            "delete": "Delete",
-            "warn0": "Are you sure you want to delete this comment?",
-            "edit": "Edit comment",
-            "follow": "Follow {{name}}",
-            "unfollow": "Unfollow {{name}}"
-        }
-    },
-    "imagePicker": {
-        "camera": "Camera",
-        "browse": "Browse",
-        "source": "Choose source",
-        "remove": "Remove image",
-        "left": "Move left",
-        "right": "Move right",
-        "add": "Add image",
-        "limit": "You can add only {{count}} images"
-    },
-    "layout": {
-        "home": "Home",
-        "about": "About Addspire",
-        "search": "Search",
-        "bookmarks": "Bookmarks",
-        "reward": "Today's reward is",
-        "coinsTomorrow_one": "{{value}} coin",
-        "coinsTomorrow_other": "{{value}} coins",
-        "createClub": "Create club",
-        "login": "Sign up or Login",
-        "wallet": "Wallet",
-        "profile": "Profile"
-    },
-    "questionCard": {
-        "buttons": {
-            "delete": "Delete",
-            "warnQ": "Are you sure you want to delete this question?",
-            "warnA": "Are you sure you want to delete this answer?",
-            "edit": "Edit",
-            "followClub": "Follow club",
-            "unfollowClub": "Unfollow club",
-            "bookmark": "Bookmark",
-            "unbookmark": "Unbookmark",
-            "follow": "Follow {{name}}",
-            "unfollow": "Unfollow {{name}}",
-            "yourAnswer": "Your answer",
-            "haveAnswered": "You have already answered this question and you cannot answer one question more than one time.",
-            "canEdit": "You can edit your answer if you want to improve it.",
-            "answer": "Answer",
-            "accept": "Accept",
-            "accepted": "Accepted",
-            "helpful": "Helpful {{count}}",
-            "notHelpful": "Not helpful {{count}}",
-            "sure": "Are you sure you want to accept this answer as the best one? You can accept only one answer.",
-            "photos_one": "+ {{count}} photo",
-            "photos_other": "+ {{count}} photos",
-            "allAnswers": "See all answers ({{count}})"
-        }
-    },
-    "typo": {
-        "more": "Read more",
-        "hide": "Hide"
-    },
-    "inputs": {
-        "shouldBeMore_one": "Should be more than {{count}} character long.",
-        "shouldBeMore_other": "Should be more than {{count}} characters long.",
-        "shouldBeLess_one": "Should be less than {{count}} character long.",
-        "shouldBeLess_other": "Should be less than {{count}} characters long.",
-        "addHasktags": "Add hashtags",
-        "hashtagLong": "The hashtag is too long.",
-        "hashtagMax": "You can add only {{count}} hashtags.",
-        "hashtagMin": "Add at least {{count}} hashtags.",
-        "typeHashtags": "Type hashtags separated by comma or space."
-    },
-    "location": {
-        "local_one": "Local club",
-        "local_other": "Local clubs",
-        "localClubs": "Local clubs",
-        "global_one": "Global club",
-        "global_other": "Global clubs (without location)",
-        "globalClubs": "Global clubs",
-        "search": "Search location"
-    },
-    "bonus": {
-        "paid": "paid",
-        "due": "in ",
-        "Bonus": "Bonus",
-        "coins": "coins"
-    },
-    "ui": {
-        "resourceNotFound": "Resource is not found. It has been deleted, never existed, or you need to refresh the page.",
-        "ofPage": "of",
-        "search": "Search",
-        "hide": "Hide",
-        "confirm": "Confirm",
-        "cancel": "Cancel",
-        "confirmAction": "Confirm action",
-        "pleaseConfirm": "Please, confirm your action."
-    },
-    "cookie": {
-        "title": "Accept cookies from Addspire on this browser?",
-        "info": "This website uses cookies to enhance the user experience. By using this website you agree with using cookies.",
-        "policy": "Read more about cookies policy"
-    },
-    "head": {
-        "title": "Addspire - Q&A clubs with experts, reputation, and coins",
-        "description": "On Addspire you can discuss and answer questions and anyone can join the discussion. In a club you connect with the top experts and you can choose the best contractor or business based on the reputation and answers. As an expert or business you have a great chance to show your expertise, customer care and build reputation by giving top answers. Anyone who makes contributions in a club in the form of valuable questions, answers and comments can earn coins distributed by Addspire or rewarded as a bonus."
-    },
-    "reputationBox": {
-        "general": "General profile",
-        "expert": "Expert",
-        "grade": "Grade",
-        "banned": "Banned"
-    },
-    "reputationCard": {
-        "share": "{{name}} - a profile on Addspire. ",
-        "shareButton": "Share",
-        "following": "Following",
-        "follow": "Follow",
-        "question_one": "{{count}} Question",
-        "question_other": "{{count}} Questions",
-        "answer_one": "{{count}} Answer",
-        "answer_other": "{{count}} Answers",
-        "comment_one": "{{count}} Comment",
-        "comment_other": "{{count}} Comments"
-    },
-    "reputationInHeader": {
-        "expert": "Expert",
-        "banned": "Banned"
-    },
-    "shareWebModal": {
-        "share": "Share",
-        "link": "Copy link",
-        "copied": "The link is coppied",
-        "others": "Share it with others"
-    },
-    "modalScreens": {
-        "login": "Sign up or Login",
-        "profile": "Profile in club",
-        "bookmarks": "Bookmarks",
-        "history": "History",
-        "notifications": "Notifications",
-        "wallet": "Wallet",
-        "images": "Images"
-    },
-    "upload": {
-        "warn0": "Insufficient permissions",
-        "warn1": "You need to grant camera permissions to use this app.",
-        "close": "Close"
-    },
-    "responce": {
-        "badData": "Bad data",
-        "checkData": "Please check the data and try again.",
-        "login": "Sign up or Login",
-        "notEnough": "Not enough rights",
-        "maintenance": "The server is currently down for maintenance. Please, try again later.",
-        "expertMoreRep": "You need to be an expert or to have more reputation.",
-        "Cannot_follow_self": "You cannot follow yourself",
-        "Cannot_unfollow_self": "You cannot unfollow yourself",
-        "Already_following": "You are already following",
-        "You_are_not_following": "You are not following",
-        "Action_rejected": "The action has been rejected.",
-        "Bad_invite_link": "The invite link is wrong, used, or has expired,",
-        "The_link_has_been_used_for_resident": "The link has been used even though you are already an expert.",
-        "Residents_limit_reached": "You cannot become an expert of this club as the experts limit has been reached.",
-        "You_can_submit_one_residence_req": "You can submit only one residence request.",
-        "Resource_does_not_exist": "Resource does not exist",
-        "You_can_answer_only_one_time": "You can answer only one time",
-        "Answer_does_not_exist": "Answer does not exist",
-        "Already_accepted": "Already accepted",
-        "You_can_accept_only_one_answer": "You can accept only one answer.",
-        "Already_voted": "Already voted",
-        "You_can_vote_only_one_time": "You can vote only one time.",
-        "Club_not_active": "Club not active",
-        "Created": "Created",
-        "Saved": "Saved",
-        "Success": "Success",
-        "Thank_you_for_your_feedback": "Thank you for your feedback",
-        "Deleted": "Deleted",
-        "Club_added_to_bookmarked_list": "Club added to bookmarked list",
-        "Club_removed_from_bookmarked_list": "Club removed from bookmarked list",
-        "You_are_following": "You are following",
-        "You_are_not_following_anymore": "You are not following anymore"
     }
 }

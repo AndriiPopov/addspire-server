@@ -288,7 +288,7 @@ const remove = async (req) => {
 
         const resource = await Question.findById(resourceId)
             .select(
-                'club reputation owner vote bonusCoins bonusPending bonusPaid'
+                'club reputation owner vote bonusCoins bonusPending bonusPaid images'
             )
             .lean()
             .exec()
@@ -351,7 +351,9 @@ const remove = async (req) => {
                                         questionId: resource._id,
                                         questionName: resource.name,
                                         coins: resource.bonusCoins,
-                                        image: account.image,
+                                        image: resource.images.length
+                                            ? resource.images[0]
+                                            : reputationLean.image,
                                     },
                                     notId: newNotificationId,
                                 },
