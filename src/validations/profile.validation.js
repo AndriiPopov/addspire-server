@@ -36,6 +36,7 @@ const editProfile = {
             .min(JoiLength.label.min)
             .max(JoiLength.label.max),
         profileId: Joi.objectId().required(),
+        anonym: Joi.boolean().optional(),
     }),
 }
 

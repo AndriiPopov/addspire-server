@@ -14,6 +14,7 @@ const general = async (req) => {
             type,
             clubId,
             ownerId,
+            profileId,
             // clubName,
             starred,
             banned,
@@ -48,6 +49,7 @@ const general = async (req) => {
         if (global) query.global = true
         if (clubId) query.club = clubId
         if (ownerId) query.owner = ownerId
+        if (profileId) query.profile = profileId
         if (reputationId) query.reputation = reputationId
         // eslint-disable-next-line prefer-destructuring
         if (tagsExist) query.tags = tags[0]

@@ -189,7 +189,6 @@ describe('POST /api/club/invite', () => {
         expect(reputationObj1).toBeDefined()
         expect(reputationObj1.admin).toBeTruthy()
         expect(reputationObj1.location).toEqual(club1.location)
-        expect(reputationObj1.clubAddress).toEqual(club1.clubAddress)
         expect(reputationObj1.global).toEqual(club1.global)
 
         expect(club4.adminsCount - club3.adminsCount).toEqual(1)

@@ -20,7 +20,7 @@ describe('POST /api/vote/accept', () => {
         const clubId = oldClub._id.toString()
 
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -103,7 +103,7 @@ describe('POST /api/vote/accept', () => {
         const clubId = oldClub._id.toString()
 
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 

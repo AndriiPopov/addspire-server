@@ -129,13 +129,15 @@ const setupTestDB = () => {
             account: { _id: user0._id },
             body: {
                 clubId,
-                name: 'Test question',
+                name: 'Test question Test question',
                 description: 'I want to test.',
                 images: ['test1.jpg'],
             },
         })
 
-        const question = await Question.findOne({ name: 'Test question' })
+        const question = await Question.findOne({
+            name: 'Test question Test question',
+        })
         const questionId = question._id.toString()
 
         await answerService.create({
@@ -180,7 +182,7 @@ const setupTestDB = () => {
             account: { _id: user2._id },
             body: {
                 clubId,
-                name: 'Test question 2',
+                name: 'Test question Test question 2',
                 description: 'I want to test 2.',
                 images: ['test6.jpg'],
             },
@@ -190,12 +192,14 @@ const setupTestDB = () => {
             account: { _id: user1._id },
             body: {
                 clubId,
-                name: 'Test question 3',
+                name: 'Test question Test question 3',
                 description: 'I want to test 2.',
                 images: ['test6.jpg'],
             },
         })
-        const question3 = await Question.findOne({ name: 'Test question 3' })
+        const question3 = await Question.findOne({
+            name: 'Test question Test question 3',
+        })
         const questionId3 = question3._id.toString()
 
         await answerService.create({

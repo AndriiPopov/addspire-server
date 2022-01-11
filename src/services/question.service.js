@@ -79,7 +79,7 @@ const create = async (req) => {
             },
             { useFindAndModify: false }
         )
-            .select('followers global location clubAddress')
+            .select('followers global location')
             .lean()
             .exec()
 
@@ -88,7 +88,6 @@ const create = async (req) => {
         }
 
         if (club.location) resource.location = club.location
-        if (club.clubAddress) resource.clubAddress = club.clubAddress
         if (club.global) resource.global = club.global
 
         await resource.save()

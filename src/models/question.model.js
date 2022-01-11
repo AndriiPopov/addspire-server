@@ -37,7 +37,6 @@ const questionSchema = new mongoose.Schema(
             type: { type: String },
             coordinates: [Number],
         },
-        clubAddress: { type: String, default: '' },
         global: { type: Boolean, default: false },
         bestAnswer: String,
     },

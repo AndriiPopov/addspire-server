@@ -17,7 +17,7 @@ describe('POST /api/answer/create', () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })
         const clubId = oldClub._id.toString()
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         })
         const questionId = oldQuestion._id.toString()
         const oldUser = await Account.findOne({ facebookProfile: '3' })
@@ -75,7 +75,7 @@ describe('POST /api/answer/create', () => {
 
     test('should not add question to following if bookmark is false', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         })
         const questionId = oldQuestion._id.toString()
         const oldUser = await Account.findOne({ facebookProfile: '3' })
@@ -113,7 +113,7 @@ describe('POST /api/answer/create', () => {
 
     test('should return conflict if the user already answered', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 

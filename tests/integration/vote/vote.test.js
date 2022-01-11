@@ -17,7 +17,7 @@ setupTestDB()
 describe('POST /api/vote/vote', () => {
     test('should return 201 and successfully vote up question if data is ok and cannot vote it again, but another user can vote it down', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -181,7 +181,7 @@ describe('POST /api/vote/vote', () => {
 
     test('should return 201 and successfully vote up question but not add reputation ifself vote', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -197,7 +197,7 @@ describe('POST /api/vote/vote', () => {
 
     test('should return 400 error if  validation fails', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 

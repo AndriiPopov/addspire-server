@@ -27,7 +27,7 @@ module.exports = async (accountId, clubId, withData) => {
             { $inc: { reputationsCount: 1 } },
             { useFindAndModify: false }
         )
-            .select('name image location global clubAddress')
+            .select('name image location global')
             .lean()
             .exec()
 
@@ -66,7 +66,6 @@ module.exports = async (accountId, clubId, withData) => {
                 reputation.clubImage = club.image
                 if (club.location) reputation.location = club.location
                 if (club.global) reputation.global = club.global
-                if (club.clubAddress) reputation.clubAddress = club.clubAddress
                 await reputation.save()
                 return reputation
             }

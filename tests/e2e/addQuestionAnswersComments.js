@@ -29,16 +29,40 @@ const createAnswer = async (id, questionId, description) =>
         .expect(httpStatus.OK)
 
 module.exports = async (testData) => {
-    await createQuestion('0', testData.club0_Id, 'How to grow a flower?')
-    await createQuestion('1', testData.club0_Id, 'How to grow a tree?')
-    await createQuestion('4', testData.club0_Id, 'How to grow a bush?')
+    await createQuestion(
+        '0',
+        testData.club0_Id,
+        'How to grow a flower?How to grow a flower?'
+    )
+    await createQuestion(
+        '1',
+        testData.club0_Id,
+        'How to grow a tree?How to grow a tree?'
+    )
+    await createQuestion(
+        '4',
+        testData.club0_Id,
+        'How to grow a bush?How to grow a bush?'
+    )
 
     const question = await Question.findOne({
-        name: 'How to grow a flower?',
+        name: 'How to grow a flower?How to grow a flower?',
     }).lean()
     const questionId = question._id
 
-    await createQuestion('5', testData.club1_Id, 'How to grow a dog?')
-    await createQuestion('6', testData.club1_Id, 'How to grow a cat?')
-    await createQuestion('10', testData.club1_Id, 'How to grow a fish?')
+    await createQuestion(
+        '5',
+        testData.club1_Id,
+        'How to grow a dog?How to grow a dog?'
+    )
+    await createQuestion(
+        '6',
+        testData.club1_Id,
+        'How to grow a cat?How to grow a cat?'
+    )
+    await createQuestion(
+        '10',
+        testData.club1_Id,
+        'How to grow a fish?How to grow a fish?'
+    )
 }

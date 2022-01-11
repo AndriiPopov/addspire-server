@@ -56,7 +56,6 @@ const reputationSchema = new mongoose.Schema(
             type: { type: String },
             coordinates: [Number],
         },
-        clubAddress: { type: String, default: '' },
         global: { type: Boolean, default: false },
         answersCount: { type: Number, default: 0 },
         questionsCount: { type: Number, default: 0 },
@@ -120,6 +119,7 @@ reputationSchema.index(
 
 reputationSchema.index({
     owner: 1,
+    profile: -1,
     reputation: -1,
 })
 

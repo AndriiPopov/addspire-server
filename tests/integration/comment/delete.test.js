@@ -10,7 +10,7 @@ setupTestDB()
 describe('POST /api/comment/delete', () => {
     test('should return 201 and successfully delete comment if data is ok and the user is author', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -40,7 +40,7 @@ describe('POST /api/comment/delete', () => {
     })
     test('should return 201 and successfully delete comment if data is ok and the user is admin', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -92,7 +92,7 @@ describe('POST /api/comment/delete', () => {
 
     test('should delete reputation from count', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
 
         const oldComment = await Comment.findOne({

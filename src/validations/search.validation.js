@@ -96,7 +96,7 @@ const general = {
         // User clubs
         Joi.object().keys({
             page: Joi.number().optional(),
-            ownerId: Joi.objectId().required(),
+            profileId: Joi.objectId().required(),
             type: Joi.string().valid('reputation').required(),
         }),
 

@@ -9,7 +9,7 @@ setupTestDB()
 describe('POST /api/question/delete', () => {
     test('should return 201 and successfully delete question if data is ok and the user is admin', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question 2',
+            name: 'Test question Test question 2',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -41,7 +41,7 @@ describe('POST /api/question/delete', () => {
     })
     test('should return 401 error if not admin', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question 2',
+            name: 'Test question Test question 2',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -56,7 +56,7 @@ describe('POST /api/question/delete', () => {
 
     test('should return 201 and successfully delete question and return coins to the owner', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question 2',
+            name: 'Test question Test question 2',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -99,7 +99,7 @@ describe('POST /api/question/delete', () => {
 
     test('should return 201 and successfully delete question and not return coins to the owner if bonus is paid', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question 2',
+            name: 'Test question Test question 2',
         }).lean()
         const questionId = oldQuestion._id.toString()
 

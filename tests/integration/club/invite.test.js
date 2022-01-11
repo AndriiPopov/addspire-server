@@ -81,7 +81,6 @@ describe('POST /api/club/invite', () => {
         expect(reputation1.admin).toBeTruthy()
         expect(reputation1.location).toEqual(club1.location)
         expect(reputation1.global).toEqual(club1.global)
-        expect(reputation1.clubAddress).toEqual(club1.clubAddress)
         await acceptInviteTest(1, `${code1}gty`, httpStatus.CONFLICT)
         await acceptInviteTest(1, code1, httpStatus.CONFLICT)
         await acceptInviteTest(1, code20, httpStatus.CONFLICT)

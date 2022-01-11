@@ -36,6 +36,7 @@ describe('POST /api/profile/create', () => {
         expect(user2.profiles[1].label).toEqual('Profile 2')
         expect(user2.profiles[1].name).toEqual(user2.profiles[0].name)
         expect(user2.profiles[1].tags).toEqual(user2.profiles[0].tags)
+        expect(user2.profiles[1].anonym).toBeFalsy()
     })
 
     test('should return 400 error if  validation fails', async () => {

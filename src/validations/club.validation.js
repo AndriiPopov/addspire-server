@@ -31,7 +31,14 @@ const createClub = {
                 then: Joi.allow(null).optional(),
                 otherwise: Joi.required(),
             }),
-        clubAddress: Joi.string().allow('').optional(),
+        clubAddress: Joi.string()
+            .min(JoiLength.tag.min)
+            .max(JoiLength.tag.max)
+            .when('global', {
+                is: true,
+                then: Joi.allow('').optional(),
+                otherwise: Joi.required(),
+            }),
     }),
 }
 
@@ -48,6 +55,10 @@ const editClub = {
         image: Joi.string().optional(),
         clubId: Joi.objectId().required(),
         tags: tagsValidationClub,
+        clubAddress: Joi.string()
+            .min(JoiLength.tag.min)
+            .max(JoiLength.tag.max)
+            .optional(),
     }),
 }
 

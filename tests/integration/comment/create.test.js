@@ -9,7 +9,7 @@ setupTestDB()
 describe('POST /api/comment/create', () => {
     test('should return 201 and successfully create new comment to question if data is ok', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -49,7 +49,7 @@ describe('POST /api/comment/create', () => {
 
     test('should not add to following question if bookmark is not true', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 

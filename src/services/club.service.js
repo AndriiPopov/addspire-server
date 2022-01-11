@@ -164,7 +164,7 @@ const createClub = async (req) => {
 const editClub = async (req) => {
     try {
         const { account, body } = req
-        const { image, name, description, clubId, tags } = body
+        const { image, name, description, clubId, tags, clubAddress } = body
         const { _id: accountId } = account
 
         const reputationLean = await getReputationId(accountId, clubId, true)
@@ -181,6 +181,7 @@ const editClub = async (req) => {
                     image,
                     description,
                     tags,
+                    clubAddress,
                 },
             },
             { useFindAndModify: false }

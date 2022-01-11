@@ -55,6 +55,7 @@ const profileSchema = new mongoose.Schema(
             },
         },
         locationName: { type: String, default: '' },
+        anonym: { type: Boolean, default: false },
     },
     { minimize: false }
 )

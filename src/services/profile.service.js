@@ -38,6 +38,7 @@ const createProfile = async (req) => {
                                 email: defaultProfile.email,
                                 location: defaultProfile.location,
                                 locationName: defaultProfile.locationName,
+                                anonym: defaultProfile.anonym,
                             },
                         },
                     },

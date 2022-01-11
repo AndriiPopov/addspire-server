@@ -9,7 +9,7 @@ setupTestDB()
 describe('POST /api/question/edit', () => {
     test('should return 201 and successfully edit resource if data is ok and the user is owner', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -44,7 +44,7 @@ describe('POST /api/question/edit', () => {
     })
     test('should return 201 and successfully edit resource if data is ok and the user is admin', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question 2',
+            name: 'Test question Test question 2',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -69,7 +69,7 @@ describe('POST /api/question/edit', () => {
     const testWithCoins = (accountCoins, bonusCoins, bonusCoins2) =>
         test('should return 201 and successfully create new question if data is ok and add coins to bonus', async () => {
             const oldQuestion = await Question.findOne({
-                name: 'Test question 2',
+                name: 'Test question Test question 2',
             }).lean()
             const questionId = oldQuestion._id.toString()
 
@@ -125,7 +125,7 @@ describe('POST /api/question/edit', () => {
 
     test('if bonus is paid the bonus cannot be edited', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question 2',
+            name: 'Test question Test question 2',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -163,7 +163,7 @@ describe('POST /api/question/edit', () => {
 
     test('should return 400 error if  validation fails', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 
@@ -189,7 +189,7 @@ describe('POST /api/question/edit', () => {
     })
     test('should return 401 error if not author and not admin', async () => {
         const oldQuestion = await Question.findOne({
-            name: 'Test question',
+            name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
 

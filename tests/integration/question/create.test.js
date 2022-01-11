@@ -89,7 +89,6 @@ describe('POST /api/question/create', () => {
             coordinates: [30, 30],
         })
         expect(resource.global).toBeFalsy()
-        expect(resource.clubAddress).toEqual('Test address')
     })
 
     test('should not add to followers if bookmark is not true', async () => {

@@ -11,7 +11,7 @@ const createUserFB = async (profile, done) => {
             .exec()
         if (!account) {
             let name = profile.displayName || profile.username
-            name = name && name.length > 1 && name
+            name = name && name.trim().length > 1 && name.trim()
             account = new Account({
                 facebookProfile: profile.id.toString(),
                 userid: profile.id,
@@ -19,7 +19,7 @@ const createUserFB = async (profile, done) => {
                 logoutAllDate: new Date().getTime() - 10 * 60 * 1000,
             })
             const defaultProfile = account.profiles.create({
-                name: name || `f_${profile.id}`,
+                name: name || `User ${profile.id}`,
                 label: 'General profile',
             })
             if (
@@ -57,7 +57,7 @@ const createUserGG = async (profile, done) => {
             .exec()
         if (!account) {
             let name = profile.displayName || profile.username
-            name = name && name.length > 1 && name
+            name = name && name.trim().length > 1 && name.trim()
             account = new Account({
                 googleProfile: profile.id.toString(),
                 platformId: 'google',
@@ -66,7 +66,7 @@ const createUserGG = async (profile, done) => {
             })
 
             const defaultProfile = account.profiles.create({
-                name: name || `g_${profile.id}`,
+                name: name || `User ${profile.id}`,
                 label: 'General profile',
             })
             if (
@@ -143,9 +143,9 @@ const createUserApple = async (profile, done) => {
             .exec()
         if (!account) {
             let name = profile.displayName || profile.username
-            name = name && name.length > 1 && name
+            name = name && name.trim().length > 1 && name.trim()
             if (!name) {
-                name = `a_${profile.id.trim}`
+                name = `User ${profile.id.trim()}`
                 if (name.length > 10) name = name.substring(0, 10)
             }
             account = new Account({

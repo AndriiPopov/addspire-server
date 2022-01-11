@@ -114,7 +114,11 @@ describe('POST /api/profile/edit', () => {
         await request(app)
             .post('/api/profile/edit')
             .set('accountId', '0')
-            .send({ ...editData1, profileId: user2.profiles[0]._id })
+            .send({
+                ...editData1,
+                profileId: user2.profiles[0]._id,
+                anonym: true,
+            })
             .expect(httpStatus.OK)
         const oldReputation1 = await Reputation.findById(reputationId).lean()
 

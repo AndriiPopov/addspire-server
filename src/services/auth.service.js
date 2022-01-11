@@ -294,9 +294,10 @@ const loginApp = async (req) => {
                     return userCreationService.createUserApple(
                         {
                             id: userId,
-                            displayName: user
-                                ? `${user.firstName} ${user.lastName}`
-                                : '',
+                            displayName:
+                                user && (user.firstName || user.lastName)
+                                    ? `${user.firstName} ${user.lastName}`
+                                    : '',
                             emails: user.email,
                         },
                         (empty, account) => done(empty, account, authToken)
