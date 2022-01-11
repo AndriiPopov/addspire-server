@@ -40,10 +40,10 @@ const getResource = async (req) => {
 
 const pollResource = async (req, res) => {
     try {
-        res.setHeader('Cache-Control', 'no-cache')
+        // res.setHeader('Cache-Control', 'no-cache')
         res.setHeader('Content-Type', 'text/event-stream')
-        res.setHeader('Access-Control-Allow-Origin', '*')
-        res.setHeader('Connection', 'keep-alive')
+        // res.setHeader('Access-Control-Allow-Origin', '*')
+        // res.setHeader('Connection', 'keep-alive')
         res.setHeader('X-Accel-Buffering', 'no')
         res.flushHeaders() // flush the headers to establish SSE with client
 
