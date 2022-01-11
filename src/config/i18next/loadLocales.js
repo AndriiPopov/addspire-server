@@ -20,6 +20,8 @@ const loadLocales = (side) => {
             }
 
             const versions = JSON.parse(data)
+            console.log('versions', versions)
+
             if (versions && Array.isArray(versions)) {
                 // eslint-disable-next-line no-restricted-syntax
                 for (const element of versions) {
@@ -61,6 +63,7 @@ const loadLocales = (side) => {
                     }
                 }
                 i18next.loadLanguages(availableLocales.map((i) => i.name))
+                console.log('availableLocales', availableLocales)
                 client.set(
                     `availableLocales_${side}`,
                     JSON.stringify(availableLocales)
@@ -79,6 +82,7 @@ fs.readFile(
         let translations = locale
         if (err) {
             translations = en
+            console.log(err)
         }
         i18next.init(
             {
