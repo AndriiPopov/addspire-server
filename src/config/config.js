@@ -47,7 +47,7 @@ module.exports = {
             useCreateIndex: true,
             useNewUrlParser: true,
             useUnifiedTopology: true,
-            poolSize: 200,
+            maxPoolSize: 200,
         },
     },
     jwt: {
