@@ -44,12 +44,13 @@ const pollResource = async (req, res) => {
         res.setHeader('Content-Type', 'text/event-stream')
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Connection', 'keep-alive')
-        res.setHeader('transfer-encoding', 'chunked')
+        // res.setHeader('transfer-encoding', 'chunked')
         res.setHeader('X-Accel-Buffering', 'no')
 
         res.flushHeaders() // flush the headers to establish SSE with client
 
         const { pollResources } = req.body
+        console.log('here', pollResources)
         // Give each response an id and add it to object of reponses with ids it is polling
         currentId += 1
         const resId = `r_${currentId}`
@@ -271,6 +272,7 @@ setInterval(async () => {
     Object.keys(responseIds).forEach((resId) => {
         const res = responseIds[resId]
         if (res && res.res) {
+            console.log('sending ping')
             res.res.write(
                 `data: ${JSON.stringify({
                     messageCode: 'ping',
@@ -279,7 +281,7 @@ setInterval(async () => {
             res.res.flush()
         }
     })
-}, 15000)
+}, 15001)
 
 module.exports = {
     getResource,
