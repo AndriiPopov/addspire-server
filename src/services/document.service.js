@@ -52,7 +52,7 @@ const pollResource = async (req, res) => {
                 messageCode: 'ping',
             })}\n\n`
         )
-        res.flush()
+        // res.flush()
         // res.flushHeaders() // flush the headers to establish SSE with client
 
         const { pollResources } = req.body
@@ -115,7 +115,7 @@ const pollResource = async (req, res) => {
                                             _id: [id],
                                         })}\n\n`
                                     )
-                                    res.flush()
+                                    //  res.flush()
                                 }
                             }
 
@@ -149,7 +149,7 @@ const pollResource = async (req, res) => {
                                             ),
                                         })}\n\n`
                                     )
-                                    res.flush()
+                                    //  res.flush()
                                 }
                             }
                         }
@@ -182,7 +182,7 @@ const pollResource = async (req, res) => {
                                     ],
                                 })}\n\n`
                             )
-                            res.flush()
+                            //  res.flush()
                         }
                     } else if (!version) {
                         res.write(
@@ -191,7 +191,7 @@ const pollResource = async (req, res) => {
                                 value: languageName,
                             })}\n\n`
                         )
-                        res.flush()
+                        //  res.flush()
                     }
                 }
             })
@@ -225,7 +225,7 @@ const pollResource = async (req, res) => {
                     value: refrehedData,
                 })}\n\n`
             )
-            res.flush()
+            //  res.flush()
         }
 
         setTimeout(() => {
