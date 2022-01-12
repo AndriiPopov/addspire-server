@@ -45,6 +45,7 @@ const pollResource = async (req, res) => {
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Connection', 'keep-alive')
         res.setHeader('transfer-encoding', 'chunked')
+        res.setHeader('X-Accel-Buffering', 'no')
 
         res.flushHeaders() // flush the headers to establish SSE with client
 
