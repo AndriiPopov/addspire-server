@@ -48,22 +48,13 @@ const pollResource = async (req, res) => {
         res.setHeader('X-Accel-Buffering', 'no')
 
         res.flushHeaders() // flush the headers to establish SSE with client
-        // res.write(
-        //     `data: ${JSON.stringify({
-        //         messageCode: 'ping',
-        //     })}\n\n`
-        // )
-        // res.flush()
 
         const { pollResources } = req.body
         // Give each response an id and add it to object of reponses with ids it is polling
         currentId += 1
         const resId = `r_${currentId}`
         responseIds[resId] = { res, ids: [] }
-        console.log('here', pollResources)
-        console.log('here', resId)
-        console.log(req)
-
+        console.log('open', resId)
         // On close delete response from responseIds and remove the response id from object of subscribed resources
         req.on('close', () => {
             console.log('close', resId)
@@ -243,7 +234,10 @@ const pollResource = async (req, res) => {
 
 const sendUpdatedData = (data, keys) => {
     if (keys.length < 1) return
-
+    if (!data.documentKey) {
+        console.log('no documentkey  in update', data)
+        return
+    }
     if (data.updateDescription.updatedFields.__v)
         client.set(
             `${keys[0]}_${data.documentKey._id}`,
