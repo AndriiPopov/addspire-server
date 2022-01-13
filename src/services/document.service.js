@@ -47,13 +47,13 @@ const pollResource = async (req, res) => {
         // res.setHeader('transfer-encoding', 'chunked')
         res.setHeader('X-Accel-Buffering', 'no')
 
-        res.write(
-            `data: ${JSON.stringify({
-                messageCode: 'ping',
-            })}\n\n`
-        )
+        res.flushHeaders() // flush the headers to establish SSE with client
+        // res.write(
+        //     `data: ${JSON.stringify({
+        //         messageCode: 'ping',
+        //     })}\n\n`
+        // )
         // res.flush()
-        // res.flushHeaders() // flush the headers to establish SSE with client
 
         const { pollResources } = req.body
         // Give each response an id and add it to object of reponses with ids it is polling
