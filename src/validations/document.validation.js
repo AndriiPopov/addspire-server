@@ -13,9 +13,11 @@ const getDocument = {
 }
 
 const pollDocument = {
-    body: Joi.object().keys({
-        pollResources: Joi.object().keys(),
-    }),
+    body: Joi.object()
+        .keys({
+            pollResources: Joi.object().keys(),
+        })
+        .required(),
 }
 
 module.exports = {
