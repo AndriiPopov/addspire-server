@@ -62,6 +62,7 @@ const pollResource = async (req, res) => {
         responseIds[resId] = { res, ids: [] }
         console.log('here', pollResources)
         console.log('here', resId)
+        console.log(req)
 
         // On close delete response from responseIds and remove the response id from object of subscribed resources
         req.on('close', () => {
