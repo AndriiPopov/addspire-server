@@ -233,47 +233,49 @@ const pollResource = async (req, res) => {
 }
 
 const sendUpdatedData = (data, keys) => {
-    if (keys.length < 1) return
-    if (!data.documentKey) {
-        console.log('no documentkey  in update', data)
-        return
-    }
-    if (data.updateDescription.updatedFields.__v)
-        client.set(
-            `${keys[0]}_${data.documentKey._id}`,
-            data.updateDescription.updatedFields.__v.toString(),
-            'EX',
-            600
-        )
-    keys.forEach((key) => {
-        let ids = poll[`${key}_${data.documentKey._id.toString()}`]
-        if (ids && ids.length > 0) {
-            ids = [...new Set(ids)]
-            poll[`${key}_${data.documentKey._id.toString()}`] = []
-            ids.forEach((id) => {
-                const res = responseIds[id]
-
-                if (res) {
-                    res.res.write(
-                        `data: ${JSON.stringify({
-                            messageCode: 'updateResource',
-                            code: key,
-                            id: data.documentKey._id.toString(),
-                            update: data.updateDescription,
-                        })}\n\n`
-                    )
-                    res.res.flush()
-
-                    // delete responseIds[id]
-                }
-            })
+    try {
+        if (keys.length < 1) return
+        if (!data.documentKey) {
+            console.log('no documentkey  in update', data)
+            return
         }
-    })
+        if (data.updateDescription.updatedFields.__v)
+            client.set(
+                `${keys[0]}_${data.documentKey._id}`,
+                data.updateDescription.updatedFields.__v.toString(),
+                'EX',
+                600
+            )
+        keys.forEach((key) => {
+            let ids = poll[`${key}_${data.documentKey._id.toString()}`]
+            if (ids && ids.length > 0) {
+                ids = [...new Set(ids)]
+                poll[`${key}_${data.documentKey._id.toString()}`] = []
+                ids.forEach((id) => {
+                    const res = responseIds[id]
+
+                    if (res) {
+                        res.res.write(
+                            `data: ${JSON.stringify({
+                                messageCode: 'updateResource',
+                                code: key,
+                                id: data.documentKey._id.toString(),
+                                update: data.updateDescription,
+                            })}\n\n`
+                        )
+                        res.res.flush()
+
+                        // delete responseIds[id]
+                    }
+                })
+            }
+        })
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 setInterval(async () => {
-    console.log('sending ping start', responseIds)
-
     Object.keys(responseIds).forEach((resId) => {
         const res = responseIds[resId]
         if (res && res.res) {
