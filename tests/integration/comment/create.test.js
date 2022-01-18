@@ -133,5 +133,11 @@ describe('POST /api/comment/create', () => {
                 resourceId: answerId,
             })
             .expect(httpStatus.BAD_REQUEST)
+
+        await request(app)
+            .post('/api/comment/create')
+            .set('accountId', '2')
+            .send()
+            .expect(httpStatus.BAD_REQUEST)
     })
 })

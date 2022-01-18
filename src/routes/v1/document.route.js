@@ -12,7 +12,7 @@ router
         documentController.pollResource
     )
 router
-    .route('/')
+    .route('/get')
     .post(
         validate(documentValidation.getDocument),
         documentController.getResource

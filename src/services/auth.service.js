@@ -35,11 +35,15 @@ const getAppleSecret = async (type) => {
 }
 
 const logout = async (refreshToken) => {
-    if (refreshToken) {
-        await Token.deleteOne({
-            token: refreshToken,
-            type: tokenTypes.REFRESH,
-        })
+    try {
+        if (refreshToken) {
+            await Token.deleteOne({
+                token: refreshToken,
+                type: tokenTypes.REFRESH,
+            })
+        }
+    } catch (error) {
+        throw new ApiError(httpStatus.CONFLICT)
     }
 }
 

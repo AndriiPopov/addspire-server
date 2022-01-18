@@ -13,11 +13,31 @@ const getDocument = {
 }
 
 const pollDocument = {
-    body: Joi.object()
-        .keys({
-            pollResources: Joi.object().keys(),
-        })
-        .required(),
+    body: Joi.object().keys({
+        pollResources: Joi.object()
+            .keys({
+                resources: Joi.object()
+                    .pattern(
+                        Joi.string().valid(...resources),
+                        Joi.object().pattern(
+                            Joi.objectId(),
+                            Joi.alternatives().try(Joi.number(), Joi.string())
+                        )
+                    )
+                    .required(),
+                locales: Joi.array().items(
+                    Joi.array()
+                        .length(2)
+                        .ordered(
+                            Joi.string().length(2),
+                            Joi.alternatives().try(Joi.number(), Joi.string())
+                        )
+                        .required()
+                ),
+                refreshConstants: Joi.boolean().optional(),
+            })
+            .required(),
+    }),
 }
 
 module.exports = {

@@ -67,7 +67,8 @@ const pollResource = async (req, res) => {
         // Subscribe responseId to resourceId by adding it to a list.
         // Compare the version of the resources to the version in redis.
         resources.forEach((key) => {
-            if (pollResources.resources[key] && responseIds[resId]) {
+            const model = getModelFromType(key)
+            if (pollResources.resources[key] && responseIds[resId] && model) {
                 // If the key has D at the end, remove it.
                 let shortKey = ` ${key}`.slice(1)
                 if (shortKey.indexOf('D') === shortKey.length - 1)
@@ -84,7 +85,6 @@ const pollResource = async (req, res) => {
 
                             // If version not exist in redis, get it
                             if (!version) {
-                                const model = getModelFromType(key)
                                 const resource = await model
                                     .findById(id)
                                     .select('__v')

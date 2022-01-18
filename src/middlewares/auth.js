@@ -8,11 +8,14 @@ const { tokenTypes } = require('../config/tokens')
 const accountFields = 'logoutAllDate name image wallet'
 const auth = () => async (req, res, next) => {
     const logout = async () => {
-        if (req.get('refreshtoken')) {
-            authService.logout(req.get('refreshtoken'))
+        try {
+            if (req.get('refreshtoken')) {
+                await authService.logout(req.get('refreshtoken'))
+            }
+            next(new ApiError(httpStatus.UNAUTHORIZED, 'logout'))
+        } catch (error) {
+            next(new ApiError(httpStatus.UNAUTHORIZED, 'logout'))
         }
-
-        throw new ApiError(httpStatus.UNAUTHORIZED, 'logout')
     }
     try {
         if (process.env.NODE_ENV === 'test') {
