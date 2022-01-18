@@ -54,10 +54,8 @@ const pollResource = async (req, res) => {
         currentId += 1
         const resId = `r_${currentId}`
         responseIds[resId] = { res, ids: [] }
-        console.log('open', resId)
         // On close delete response from responseIds and remove the response id from object of subscribed resources
         req.on('close', () => {
-            console.log('close', resId)
             if (responseIds[resId]) {
                 responseIds[resId].ids.forEach((id) => {
                     poll[id] = poll[id].filter((item) => item !== resId)
@@ -279,7 +277,6 @@ setInterval(async () => {
     Object.keys(responseIds).forEach((resId) => {
         const res = responseIds[resId]
         if (res && res.res) {
-            console.log('sending ping')
             res.res.write(
                 `data: ${JSON.stringify({
                     messageCode: 'ping',
