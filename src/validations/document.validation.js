@@ -35,6 +35,7 @@ const pollDocument = {
                         .required()
                 ),
                 refreshConstants: Joi.boolean().optional(),
+                pollRefreshPoll: Joi.number(),
             })
             .required(),
     }),
