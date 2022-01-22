@@ -66,6 +66,28 @@ const editProfile = async (req) => {
         Object.keys(bodyToSave).forEach((key) => {
             updateData[`profiles.$.${key}`] = bodyToSave[key]
         })
+        // if (images.length) {
+        //     const oldAccount = await Account.findOne({
+        //         _id: accountId,
+        //         'profiles._id': profileId,
+        //     })
+        //         .select('profiles.$.images')
+        //         .lean()
+        //     const oldImages =
+        //         oldAccount &&
+        //         oldAccount.profiles &&
+        //         oldAccount.profiles[0] &&
+        //         oldAccount.profiles[0].images
+
+        //     updateData[`profiles.$.images`] = getImagesData(
+        //         images,
+        //         accountId,
+        //         oldImages
+        //     )
+        // } else {
+        //     updateData[`profiles.$.images`] = []
+        // }
+
         const res = await Account.updateOne(
             { _id: accountId, 'profiles._id': profileId },
             { $set: updateData },

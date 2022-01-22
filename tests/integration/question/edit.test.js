@@ -20,7 +20,7 @@ describe('POST /api/question/edit', () => {
             .set('accountId', '0')
             .send({
                 resourceId: questionId,
-                name: 'Test value?',
+                name: 'Test value?Test value?Test value?',
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg'],
                 tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
@@ -30,9 +30,12 @@ describe('POST /api/question/edit', () => {
 
         const question = await Question.findById(questionId).lean()
 
-        expect(question.name).toEqual('Test value?')
+        expect(question.name).toEqual('Test value?Test value?Test value?')
         expect(question.description).toEqual('Test description.')
-        expect(question.images).toEqual(['test3.jpg', 'test4.jpg'])
+        expect(question.images[0].url).toEqual('test3.jpg')
+        expect(question.images[1].url).toEqual('test4.jpg')
+        expect(question.images.length).toEqual(2)
+
         expect(question.tags).toEqual(['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'])
         expect(question.bonusCoins).toEqual(0)
 
@@ -40,7 +43,26 @@ describe('POST /api/question/edit', () => {
 
         expect(oldCount.question).toEqual(count.question)
         expect(oldCount.questionName).not.toEqual(count.questionName)
-        expect(count.questionName).toEqual('Test value?')
+        expect(count.questionName).toEqual('Test value?Test value?Test value?')
+
+        await request(app)
+            .post('/api/question/edit')
+            .set('accountId', '0')
+            .send({
+                resourceId: questionId,
+                name: 'Test value?Test value?Test value?',
+                description: 'Test description.',
+                images: ['test3.jpg', 'test4.jpg', 'test5.jpg'],
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
+                bonusCoins: 100,
+            })
+            .expect(httpStatus.OK)
+
+        const question1 = await Question.findById(questionId).lean()
+        expect(question1.images[0]).toMatchObject(question.images[0])
+        expect(question1.images[1]).toEqual(question.images[1])
+        expect(question1.images[2].url).toEqual('test5.jpg')
+        expect(question1.images.length).toEqual(3)
     })
     test('should return 201 and successfully edit resource if data is ok and the user is admin', async () => {
         const oldQuestion = await Question.findOne({
@@ -53,17 +75,17 @@ describe('POST /api/question/edit', () => {
             .set('accountId', '2')
             .send({
                 resourceId: questionId,
-                name: 'Test value?',
+                name: 'Test value?Test value?Test value?',
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg'],
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
             })
             .expect(httpStatus.OK)
 
         const question = await Question.findById(questionId).lean()
 
-        expect(question.name).toEqual('Test value?')
+        expect(question.name).toEqual('Test value?Test value?Test value?')
         expect(question.description).toEqual('Test description.')
-        expect(question.images).toEqual(['test3.jpg', 'test4.jpg'])
     })
 
     const testWithCoins = (accountCoins, bonusCoins, bonusCoins2) =>
@@ -83,10 +105,11 @@ describe('POST /api/question/edit', () => {
                 .set('accountId', '2')
                 .send({
                     resourceId: questionId,
-                    name: 'Test value?',
+                    name: 'Test value?Test value?Test value?',
                     description: 'Test description.',
                     images: ['test3.jpg', 'test4.jpg'],
                     bonusCoins,
+                    tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
                 })
                 .expect(httpStatus.OK)
 
@@ -95,10 +118,11 @@ describe('POST /api/question/edit', () => {
                 .set('accountId', '2')
                 .send({
                     resourceId: questionId,
-                    name: 'Test value?',
+                    name: 'Test value?Test value?Test value?',
                     description: 'Test description.',
                     images: ['test3.jpg', 'test4.jpg'],
                     bonusCoins: bonusCoins2,
+                    tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
                 })
                 .expect(httpStatus.OK)
 
@@ -109,13 +133,13 @@ describe('POST /api/question/edit', () => {
             const bonusSum = bonusCoins + bonusCoins2
             const realCoins = Math.min(bonusSum, accountCoins)
 
-            expect(question.bonusCoins).toEqual(realCoins * 0.95)
+            expect(question.bonusCoins).toEqual(realCoins * 1)
 
             expect(user.wallet).toEqual(accountCoins - realCoins)
             expect(user.totalSpent).toEqual(realCoins)
             expect(user.totalEarned).toEqual(0)
-            const system = await System.System.findOne({}).lean()
-            expect(system.myCoins).toEqual(realCoins * 0.05)
+            // const system = await System.System.findOne({}).lean()
+            // expect(system.myCoins).toEqual(realCoins * 0.05)
         })
 
     testWithCoins(100, 50, 100)
@@ -141,10 +165,11 @@ describe('POST /api/question/edit', () => {
             .set('accountId', '2')
             .send({
                 resourceId: questionId,
-                name: 'Test value?',
+                name: 'Test value?Test value?Test value?',
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg'],
                 bonusCoins: 100,
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
             })
             .expect(httpStatus.OK)
 
@@ -171,9 +196,10 @@ describe('POST /api/question/edit', () => {
             .post('/api/question/edit')
             .set('accountId', '0')
             .send({
-                name: 'Test value?',
+                name: 'Test value?Test value?Test value?',
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg'],
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
             })
             .expect(httpStatus.BAD_REQUEST)
         await request(app)
@@ -184,6 +210,7 @@ describe('POST /api/question/edit', () => {
                 name: 'Test value?',
                 description: 'ion.',
                 images: ['test3.jpg', 'test4.jpg'],
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
             })
             .expect(httpStatus.BAD_REQUEST)
     })
@@ -197,10 +224,11 @@ describe('POST /api/question/edit', () => {
             .post('/api/question/edit')
             .set('accountId', '2')
             .send({
-                name: 'Test value?',
+                name: 'Test value?Test value?Test value?',
                 resourceId: questionId,
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg'],
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
             })
             .expect(httpStatus.UNAUTHORIZED)
     })

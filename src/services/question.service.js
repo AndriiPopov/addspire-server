@@ -14,6 +14,7 @@ const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const { saveTags } = require('./tag.service')
+const getImagesData = require('../utils/getImagesData')
 
 const create = async (req) => {
     try {
@@ -42,8 +43,8 @@ const create = async (req) => {
         const addspireCommission = realCoinsBonusTotal - realCoinsBonus
 
         const bonusPending = !!realCoinsBonus
+
         const resource = new Question({
-            images,
             description,
             owner: accountId,
             club: clubId,
@@ -54,6 +55,14 @@ const create = async (req) => {
             bonusPending,
             ...(bonusPending ? { bonusCreatedDate: Date.now() } : {}),
         })
+        const imagesWithData = getImagesData(
+            images,
+            accountId,
+            clubId,
+            resource._id
+        )
+        resource.images = imagesWithData
+
         if (bookmark) {
             resource.followers = [accountId]
             resource.followersCount = 1
@@ -73,8 +82,15 @@ const create = async (req) => {
             { _id: clubId },
             {
                 $inc: { questionsCount: 1 },
-                ...(images.length
-                    ? { $push: { images: { $each: [images[0]], $slice: -20 } } }
+                ...(imagesWithData.length
+                    ? {
+                          $push: {
+                              images: {
+                                  $each: [imagesWithData[0]],
+                                  $slice: -20,
+                              },
+                          },
+                      }
                     : {}),
             },
             { useFindAndModify: false }
@@ -188,7 +204,7 @@ const edit = async (req) => {
         const { resourceId, name, description, images, tags, bonusCoins } = body
 
         const resource = await Question.findById(resourceId)
-            .select('club bonusPending bonusPaid')
+            .select('club bonusPending bonusPaid images')
             .lean()
             .exec()
         if (!resource) {
@@ -226,6 +242,14 @@ const edit = async (req) => {
             }
         }
 
+        const imagesWithData = getImagesData(
+            images,
+            accountId,
+            clubId,
+            resourceId,
+            resource.images
+        )
+
         const res = await Question.updateOne(
             {
                 _id: resourceId,
@@ -234,7 +258,7 @@ const edit = async (req) => {
             {
                 $set: {
                     description,
-                    images,
+                    images: imagesWithData,
                     name,
                     tags,
                     ...(bonusPending
@@ -252,6 +276,21 @@ const edit = async (req) => {
         if (!res.nModified) {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
+        if (
+            resource.images.length &&
+            !imagesWithData.find((i) => i.url === resource.images[0].url)
+        )
+            await Club.findOneAndUpdate(
+                { _id: resource.club },
+                {
+                    $pull: {
+                        images: {
+                            url: resource.images[0].url,
+                        },
+                    },
+                },
+                { useFindAndModify: false }
+            ).exec()
 
         if (realCoinsBonus)
             await Account.updateOne(
@@ -315,7 +354,12 @@ const remove = async (req) => {
 
         await Club.updateOne(
             { _id: clubId },
-            { $inc: { questionsCount: -1 } },
+            {
+                $inc: { questionsCount: -1 },
+                $pull: {
+                    images: { url: { $in: resource.images.map((i) => i.url) } },
+                },
+            },
             { useFindAndModify: false }
         )
 

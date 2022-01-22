@@ -9,7 +9,9 @@ const createComment = {
             .max(JoiLength.message.max)
             .required(),
         resourceId: Joi.objectId().required(),
-        resourceType: Joi.string().valid('answer', 'question').required(),
+        resourceType: Joi.string()
+            .valid('answer', 'question', 'imageData')
+            .required(),
         bookmark: Joi.boolean().optional(),
     }),
 }

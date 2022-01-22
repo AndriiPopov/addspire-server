@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const { mongoLength } = require('../../config/fieldLength')
 
 const basicTag = require('../basicModel/basicTag')
+const Image = require('./image.schema')
 
 const profileSchema = new mongoose.Schema(
     {

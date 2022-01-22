@@ -70,10 +70,11 @@ describe('POST /api/question/delete', () => {
             .set('accountId', '2')
             .send({
                 resourceId: questionId,
-                name: 'Test value?',
+                name: 'Test value?Test value?Test value?',
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg'],
                 bonusCoins: 100,
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
             })
             .expect(httpStatus.OK)
 
@@ -89,11 +90,11 @@ describe('POST /api/question/delete', () => {
         expect(question).toBeNull()
 
         const system = await System.System.findOne({}).lean()
-        expect(system.myCoins).toEqual(100 * 0.05)
+        expect(system.myCoins).toEqual(0)
 
         const user = await Account.findById(userId).lean()
-        expect(user.wallet).toEqual(200 - 100 * 0.05)
-        expect(user.totalSpent).toEqual(100 * 0.05)
+        expect(user.wallet).toEqual(200)
+        expect(user.totalSpent).toEqual(0)
         expect(user.totalEarned).toEqual(0)
     })
 
@@ -113,10 +114,11 @@ describe('POST /api/question/delete', () => {
             .set('accountId', '2')
             .send({
                 resourceId: questionId,
-                name: 'Test value?',
+                name: 'Test value?Test value?Test value?',
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg'],
                 bonusCoins: 100,
+                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
             })
             .expect(httpStatus.OK)
         await Question.updateOne({ _id: questionId }, { bonusPaid: true })
@@ -133,7 +135,7 @@ describe('POST /api/question/delete', () => {
         expect(question).toBeNull()
 
         const system = await System.System.findOne({}).lean()
-        expect(system.myCoins).toEqual(100 * 0.05)
+        expect(system.myCoins).toEqual(0)
 
         const user = await Account.findById(userId).lean()
         expect(user.wallet).toEqual(200 - 100)

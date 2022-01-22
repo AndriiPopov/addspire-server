@@ -13,6 +13,7 @@ const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const { questionService } = require('.')
+const getImagesData = require('../utils/getImagesData')
 
 const create = async (req) => {
     try {
@@ -36,8 +37,15 @@ const create = async (req) => {
         if (!rights) {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
-        const resource = new Answer({
+        const imagesWithData = getImagesData(
             images,
+            accountId,
+            clubId,
+            questionId
+        )
+
+        const resource = new Answer({
+            images: imagesWithData,
             description,
             owner: accountId,
             reputation: reputationLean._id,
@@ -151,7 +159,7 @@ const edit = async (req) => {
         const { resourceId, description, images } = body
 
         const resource = await Answer.findById(resourceId)
-            .select('club')
+            .select('club images question')
             .lean()
             .exec()
         if (!resource) {
@@ -165,6 +173,13 @@ const edit = async (req) => {
         if (!rights) {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
+        const imagesWithData = getImagesData(
+            images,
+            accountId,
+            clubId,
+            resource.question,
+            resource.images
+        )
 
         const res = await Answer.updateOne(
             {
@@ -174,7 +189,7 @@ const edit = async (req) => {
             {
                 $set: {
                     description,
-                    images,
+                    images: imagesWithData,
                 },
             },
             { useFindAndModify: false }

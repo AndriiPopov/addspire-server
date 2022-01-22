@@ -4,6 +4,7 @@ const { mongoLength } = require('../config/fieldLength')
 const basicModel = require('./basicModel/basicModel')
 const basicVotes = require('./basicModel/basicVotes')
 const { increaseVersion } = require('./plugins')
+const Image = require('./schemas/image.schema')
 
 const questionSchema = new mongoose.Schema(
     {
@@ -17,7 +18,7 @@ const questionSchema = new mongoose.Schema(
         },
         owner: { type: String, required: true },
         reputation: { type: String, required: true },
-        images: [String],
+        images: [Image],
         club: { type: String, required: true },
         answersCount: { type: Number, default: 0 },
         comments: [String],

@@ -3,6 +3,7 @@ const mongoosePaginate = require('mongoose-paginate-v2')
 const basicVotes = require('./basicModel/basicVotes')
 const { increaseVersion } = require('./plugins')
 const { mongoLength } = require('../config/fieldLength')
+const Image = require('./schemas/image.schema')
 
 const answerSchema = new mongoose.Schema(
     {
@@ -23,7 +24,7 @@ const answerSchema = new mongoose.Schema(
             required: true,
         },
         reputation: { type: String, required: true },
-        images: [String],
+        images: [Image],
         club: { type: String, required: true },
         question: { type: String, required: true },
         comments: [String],

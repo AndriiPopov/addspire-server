@@ -12,10 +12,13 @@ const answerD =
 const reputationD =
     'label tags views club owner reputation plusToday minusToday admin banned starred image clubName clubImage tags name member global location answersCount questionsCount commentsCount __v'
 
+const imageDataD = 'url votesDownCount votesUpCount commentsCount __v'
+
 module.exports.selectFields = {
     clubD,
     accountD,
     questionD,
     answerD,
     reputationD,
+    imageDataD,
 }

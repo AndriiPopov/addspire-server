@@ -62,6 +62,8 @@ describe('POST /api/answer/create', () => {
         expect(resource.owner).toEqual(userId)
         expect(resource.reputation).toEqual(reputationId)
         expect(resource.club).toEqual(clubId)
+        expect(resource.images.length).toEqual(1)
+        expect(resource.images[0].url).toEqual('test1.jpg')
 
         expect(resource.question).toEqual(questionId)
         expect(question.answersCount - oldQuestion.answersCount).toEqual(1)

@@ -15,7 +15,7 @@ const vote = {
             minus: Joi.boolean().optional(),
             resourceId: Joi.objectId().required(),
             type: Joi.string()
-                .valid('question', 'answer', 'comment')
+                .valid('question', 'answer', 'comment', 'imageData')
                 .required(),
         })
         .unknown(true),

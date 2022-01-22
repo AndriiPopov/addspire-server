@@ -6,6 +6,7 @@ const {
     Club,
     Question,
     Answer,
+    ImageData,
 } = require('../models')
 
 module.exports = (type) => {
@@ -39,6 +40,11 @@ module.exports = (type) => {
         case 'answerD':
             model = Answer
             break
+        case 'imageData':
+        case 'imageDataD':
+            model = ImageData
+            break
+
         default:
             break
     }

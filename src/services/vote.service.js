@@ -168,10 +168,8 @@ const vote = async (req) => {
         if (type === 'question' || type === 'answer') {
             if (minus) repChange = value.minusResource
             else repChange = value.plusResource
-        } else if (type === 'comment') {
-            if (minus) repChange = value.minusComment
-            else repChange = value.plusComment
-        }
+        } else if (minus) repChange = value.minusComment
+        else repChange = value.plusComment
 
         const model = getModelFromType(type)
 
@@ -227,12 +225,11 @@ const vote = async (req) => {
                 { useFindAndModify: false }
             )
 
-            const reputationLeanReciever = await getReputationId(
-                resource.owner,
-                clubId
-            )
-
             if (resource.owner !== accountId) {
+                const reputationLeanReciever = await getReputationId(
+                    resource.owner,
+                    clubId
+                )
                 await Reputation.updateOne(
                     { _id: reputationLeanReciever._id },
                     {

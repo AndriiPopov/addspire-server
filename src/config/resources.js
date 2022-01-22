@@ -6,6 +6,7 @@ const basicNames = [
     'plugin',
     'question',
     'reputation',
+    'imageData',
 ]
 
 module.exports = basicNames.reduce(

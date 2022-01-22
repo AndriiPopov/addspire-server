@@ -9,6 +9,7 @@ const {
     Question,
     Answer,
     Count,
+    ImageData,
 } = require('../models')
 const { selectFields } = require('../config/selectFields')
 const removePriveteFields = require('./removePriveteFields')
@@ -81,6 +82,15 @@ module.exports = async (data, req) => {
                 type = 'answer'
                 model = Answer
                 fields = selectFields.answerD
+                break
+            case 'imageData':
+                type = 'imageData'
+                model = ImageData
+                break
+            case 'imageDataD':
+                type = 'imageData'
+                model = ImageData
+                fields = selectFields.imageDataD
                 break
 
             default:

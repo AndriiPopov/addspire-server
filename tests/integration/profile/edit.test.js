@@ -14,12 +14,14 @@ describe('POST /api/profile/edit', () => {
             tags: ['profile1', 'profile2'],
             name: 'Jupiter',
             image: 'fernando.jpeg',
+            images: ['image1.jpeg', 'image2.jpeg'],
             address: 'kiev',
         }
         const editData1 = {
             name: 'Sergo',
             tags: ['serg'],
             image: 'seryi.jpeg',
+            images: ['image3.jpeg', 'image4.jpeg'],
             label: 'Sergs Profile',
         }
 
@@ -27,6 +29,7 @@ describe('POST /api/profile/edit', () => {
             name: 'Marko',
             tags: ['marc'],
             image: 'marko.jpeg',
+            images: ['image5.jpeg', 'image6.jpeg'],
             label: 'Marcos Profile',
         }
         const oldUser = await Account.findOne({ facebookProfile: '0' })
@@ -57,7 +60,10 @@ describe('POST /api/profile/edit', () => {
 
         const user1 = await Account.findById(userId).lean()
 
-        expect(user1.profiles[1]).toMatchObject(editData0)
+        expect(user1.profiles[1]).toMatchObject({
+            ...editData0,
+            images: editData0.images.map((i) => ({ url: i })),
+        })
 
         // Choose default profile
 
@@ -122,7 +128,15 @@ describe('POST /api/profile/edit', () => {
             .expect(httpStatus.OK)
         const oldReputation1 = await Reputation.findById(reputationId).lean()
 
-        expect(oldReputation1).toMatchObject(editData1)
+        const { images: images1, ...editData1Rep } = editData1
+        expect(oldReputation1).toMatchObject(editData1Rep)
+
+        const user11 = await Account.findById(userId).lean()
+
+        expect(user11.profiles[0]).toMatchObject({
+            ...editData1,
+            images: editData1.images.map((i) => ({ url: i })),
+        })
 
         // Edit new profile
 
@@ -134,7 +148,15 @@ describe('POST /api/profile/edit', () => {
 
         const newReputation1 = await Reputation.findById(newReputationId).lean()
 
-        expect(newReputation1).toMatchObject(editData2)
+        const { images: images2, ...editData2Rep } = editData2
+        expect(newReputation1).toMatchObject(editData2Rep)
+
+        const user111 = await Account.findById(userId).lean()
+
+        expect(user111.profiles[1]).toMatchObject({
+            ...editData2,
+            images: editData2.images.map((i) => ({ url: i })),
+        })
 
         // Set another profile in reputation
 
@@ -146,7 +168,7 @@ describe('POST /api/profile/edit', () => {
 
         const oldReputation2 = await Reputation.findById(reputationId).lean()
 
-        expect(oldReputation2).toMatchObject(editData2)
+        expect(oldReputation2).toMatchObject(editData2Rep)
 
         await request(app)
             .post('/api/club/edit-reputation')
@@ -156,7 +178,7 @@ describe('POST /api/profile/edit', () => {
 
         const oldReputation3 = await Reputation.findById(reputationId).lean()
 
-        expect(oldReputation3).toMatchObject(editData1)
+        expect(oldReputation3).toMatchObject(editData1Rep)
 
         // Delete profile
         await request(app)
@@ -173,7 +195,7 @@ describe('POST /api/profile/edit', () => {
 
         const oldReputation4 = await Reputation.findById(reputationId).lean()
 
-        expect(oldReputation4).toMatchObject(editData2)
+        expect(oldReputation4).toMatchObject(editData2Rep)
     })
 
     test('should return 400 error if  validation fails', async () => {

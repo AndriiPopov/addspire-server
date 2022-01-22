@@ -23,7 +23,7 @@ describe('POST /api/question/create', () => {
             .set('accountId', '0')
             .send({
                 clubId,
-                name: 'How to drive a car?',
+                name: 'How to drive a car?How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
                 tags: [
@@ -44,7 +44,7 @@ describe('POST /api/question/create', () => {
         const user = await Account.findById(userId).lean()
 
         const resource = await Question.findOne({
-            name: 'How to drive a car?',
+            name: 'How to drive a car?How to drive a car?',
         }).lean()
         expect(resource).not.toBeNull()
         const resourceId = resource._id.toString()
@@ -61,12 +61,14 @@ describe('POST /api/question/create', () => {
 
         expect(club.questionsCount - oldClub.questionsCount).toEqual(1)
 
+        expect(club.images.find((i) => i.url === 'test1.jpg')).toBeDefined()
+
         expect(user.followingQuestions).toContain(resourceId)
 
-        expect(resource.name).toEqual('How to drive a car?')
+        expect(resource.name).toEqual('How to drive a car?How to drive a car?')
         expect(resource.description).toEqual('I want to know how to o it.')
-        expect(resource.images).toContain('test1.jpg')
-        expect(resource.images).toContain('test2.jpg')
+        expect(resource.images[0].url).toEqual('test1.jpg')
+        expect(resource.images[1].url).toEqual('test2.jpg')
         expect(resource.images.length).toEqual(2)
         expect(resource.followers).toContain(userId)
         expect(resource.followersCount).toEqual(1)
@@ -101,7 +103,7 @@ describe('POST /api/question/create', () => {
             .set('accountId', '0')
             .send({
                 clubId,
-                name: 'How to drive a car?',
+                name: 'How to drive a car?How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
                 tags: [
@@ -119,7 +121,7 @@ describe('POST /api/question/create', () => {
         const user = await Account.findById(userId)
 
         const resource = await Question.findOne({
-            name: 'How to drive a car?',
+            name: 'How to drive a car?How to drive a car?',
         }).lean()
         const resourceId = resource._id.toString()
 
@@ -142,7 +144,7 @@ describe('POST /api/question/create', () => {
                 .set('accountId', '0')
                 .send({
                     clubId,
-                    name: 'How to drive a car?',
+                    name: 'How to drive a car?How to drive a car?',
                     description: 'I want to know how to o it.',
                     images: ['test1.jpg', 'test2.jpg'],
                     tags: [
@@ -160,7 +162,7 @@ describe('POST /api/question/create', () => {
             const user = await Account.findById(userId)
 
             const resource = await Question.findOne({
-                name: 'How to drive a car?',
+                name: 'How to drive a car?How to drive a car?',
             }).lean()
 
             const realCoins = Math.min(bonusCoins, accountCoins)
@@ -187,7 +189,7 @@ describe('POST /api/question/create', () => {
             .set('accountId', '0')
             .send({
                 clubId,
-                name: 'How to drive a car?',
+                name: 'How to drive a car?How to drive a car?',
                 description: 'I want',
                 images: ['test1.jpg', 'test2.jpg'],
                 tags: ['ssasdas'],
@@ -199,7 +201,7 @@ describe('POST /api/question/create', () => {
             .set('accountId', '0')
             .send({
                 clubId,
-                name: 'How to drive a car?',
+                name: 'How to drive a car?How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
             })
@@ -224,7 +226,7 @@ describe('POST /api/question/create', () => {
             .set('accountId', '6')
             .send({
                 clubId,
-                name: 'I know how to help',
+                name: 'I know how to helpHow to drive a car?',
                 description: 'Here is the information',
                 images: ['test2.jpg'],
                 tags: ['rte'],

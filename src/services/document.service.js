@@ -73,10 +73,12 @@ const pollResource = async (req, res) => {
                 let shortKey = ` ${key}`.slice(1)
                 if (shortKey.indexOf('D') === shortKey.length - 1)
                     shortKey = shortKey.substring(0, shortKey.length - 1)
+
                 Object.keys(pollResources.resources[key]).forEach(
                     async (id) => {
                         if (
-                            pollResources.resources[key][id] &&
+                            typeof pollResources.resources[key][id] ===
+                                'number' &&
                             responseIds[resId]
                         ) {
                             // Compare the version

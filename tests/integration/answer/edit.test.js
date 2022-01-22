@@ -28,7 +28,10 @@ describe('POST /api/answer/edit', () => {
         expect(answer).toBeDefined()
 
         expect(answer.description).toEqual('Test description for answer2.')
-        expect(answer.images).toEqual(['test3.jpg', 'test4.jpg'])
+
+        expect(answer.images.length).toEqual(2)
+        expect(answer.images[0].url).toEqual('test3.jpg')
+        expect(answer.images[1].url).toEqual('test4.jpg')
     })
     test('should return 201 and successfully edit resource if data is ok and the user is admin', async () => {
         const oldAnswer = await Answer.findOne({
@@ -51,7 +54,9 @@ describe('POST /api/answer/edit', () => {
         expect(answer).toBeDefined()
 
         expect(answer.description).toEqual('Test description for answer2.')
-        expect(answer.images).toEqual(['test3.jpg', 'test4.jpg'])
+        expect(answer.images.length).toEqual(2)
+        expect(answer.images[0].url).toEqual('test3.jpg')
+        expect(answer.images[1].url).toEqual('test4.jpg')
     })
     test('should return 400 error if  validation fails', async () => {
         await request(app)

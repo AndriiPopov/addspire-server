@@ -3,6 +3,7 @@ const mongoosePaginate = require('mongoose-paginate-v2')
 const basicModel = require('./basicModel/basicModel')
 const { mongoLength } = require('../config/fieldLength')
 const { increaseVersion } = require('./plugins')
+const Image = require('./schemas/image.schema')
 
 const clubSchema = new mongoose.Schema(
     {
@@ -49,7 +50,7 @@ const clubSchema = new mongoose.Schema(
         },
         clubAddress: { type: String, default: '' },
         global: { type: Boolean, default: false },
-        images: [String],
+        images: [Image],
     },
     { minimize: false }
 )

@@ -5,6 +5,7 @@ const {
     Reputation,
     Question,
     Answer,
+    ImageData,
 } = require('../models')
 const { sendUpdatedData } = require('./document.service')
 
@@ -32,4 +33,5 @@ module.exports.pushChanges = () => {
     watchCollection(Reputation, 'reputation')
     watchCollection(Question, 'question')
     watchCollection(Answer, 'answer')
+    watchCollection(ImageData, 'imageData')
 }
