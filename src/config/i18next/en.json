@@ -54,7 +54,7 @@
         },
         "addspireCoins": {
             "title": "Addspire coins",
-            "body": "Today we gave {{today}} coins. Tomorrow we will give {{tomorrow}} coins. The more you contribute the more coins you get."
+            "body": "Today we give {{today}} coins. Tomorrow we will give {{tomorrow}} coins. The more you contribute the more coins you get."
         },
         "acceptedAnswer": {
             "title": "Accepted answer",

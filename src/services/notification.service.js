@@ -49,7 +49,7 @@ const notify = async (accountsIds, message) => {
 
         const messages = []
         tokens.forEach((token) => {
-            if (!Expo.isExpoPushToken(token)) {
+            if (!Expo.isExpoPushToken(token.token)) {
                 Account.updateOne(
                     { expoTokens: token.token },
                     { $pull: { expoTokens: token.token } },
@@ -57,12 +57,13 @@ const notify = async (accountsIds, message) => {
                 )
             } else {
                 const t = i18next.getFixedT(
-                    i18next.loadLanguages.includes(token.language)
+                    i18next.languages.includes(token.language)
                         ? token.language
                         : 'en',
                     'translation',
                     `notification.${message.key}`
                 )
+
                 messages.push({
                     to: token.token,
                     title: t('title', message.title || {}),
