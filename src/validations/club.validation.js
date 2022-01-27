@@ -58,6 +58,7 @@ const editClub = {
         clubAddress: Joi.string()
             .min(JoiLength.tag.min)
             .max(JoiLength.tag.max)
+            .allow('')
             .optional(),
     }),
 }

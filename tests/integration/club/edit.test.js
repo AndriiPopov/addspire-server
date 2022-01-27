@@ -28,6 +28,7 @@ describe('POST /api/club/edit', () => {
                 description: 'For all of us',
                 image: 'roller.jpeg',
                 tags: ['club1', 'club2', 'club3', 'club7', 'club6', 'club5'],
+                clubAddress: '',
             })
             .expect(httpStatus.CREATED)
 
