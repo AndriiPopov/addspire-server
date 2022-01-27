@@ -25,7 +25,7 @@ const editProfile = {
         phone: Joi.string().optional().max(JoiLength.name.max).allow(''),
         web: Joi.string().optional().max(JoiLength.name.max).allow(''),
         email: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        image: Joi.string().optional(),
+        image: Joi.string().optional().allow(''),
         images: Joi.array().items(Joi.string()).max(20).optional(),
         tags: Joi.array()
             .items(Joi.string().min(JoiLength.tag.min).max(JoiLength.tag.max))
