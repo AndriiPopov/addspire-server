@@ -41,7 +41,7 @@ const sendSitemap = async (req, res) => {
             priority: 0.9,
         })
 
-        const urls = ['club-rules', 'reputation-rules', 'coins-rules']
+        const urls = ['club-rules', 'reputation-rules']
         urls.forEach((item) => {
             smStream.write({
                 url: `/${item}`,

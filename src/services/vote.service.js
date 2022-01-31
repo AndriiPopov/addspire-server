@@ -13,7 +13,7 @@ const ApiError = require('../utils/ApiError')
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
-const distributeBonus = require('../utils/distributeBonus')
+// const distributeBonus = require('../utils/distributeBonus')
 const notificationService = require('./notification.service')
 const { questionService } = require('.')
 
@@ -149,7 +149,7 @@ const acceptAnswer = async (req) => {
                 })
             }
 
-            await distributeBonus(question)
+            // await distributeBonus(question)
         } else throw new ApiError(httpStatus.CONFLICT, 'Already accepted')
     } catch (error) {
         if (!error.isOperational) {
