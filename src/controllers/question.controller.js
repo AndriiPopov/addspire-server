@@ -17,8 +17,14 @@ const remove = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send({ message: 'deleted' })
 })
 
+const pin = catchAsync(async (req, res) => {
+    await questionService.pin(req)
+    res.status(httpStatus.OK).send({ message: 'saved' })
+})
+
 module.exports = {
     create,
     edit,
     remove,
+    pin,
 }

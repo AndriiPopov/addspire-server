@@ -4,7 +4,7 @@ const notificationService = require('./notification.service')
 const config = require('../config/config')
 const { tokenTypes } = require('../config/tokens')
 const value = require('../config/value')
-const { Account, Club, Reputation, System } = require('../models')
+const { Account, Club, Reputation, System, Question } = require('../models')
 const ApiError = require('../utils/ApiError')
 const getReputationId = require('../utils/getReputationId')
 const { saveTags } = require('./tag.service')
@@ -164,13 +164,30 @@ const createClub = async (req) => {
 const editClub = async (req) => {
     try {
         const { account, body } = req
-        const { image, name, description, clubId, tags, clubAddress } = body
+        const {
+            image,
+            name,
+            description,
+            clubId,
+            tags,
+            clubAddress,
+            global,
+            location,
+        } = body
         const { _id: accountId } = account
 
         const reputationLean = await getReputationId(accountId, clubId, true)
 
         if (!reputationLean.admin) {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
+        }
+
+        let locationToSave
+        if (!global) {
+            locationToSave = {
+                type: 'Point',
+                coordinates: [location.longitude, location.latitude],
+            }
         }
 
         const res = await Club.updateOne(
@@ -182,6 +199,8 @@ const editClub = async (req) => {
                     description,
                     tags,
                     clubAddress,
+                    global,
+                    ...(locationToSave ? { location: locationToSave } : {}),
                 },
             },
             { useFindAndModify: false }
@@ -195,6 +214,19 @@ const editClub = async (req) => {
                     $set: {
                         clubName: name,
                         clubImage: image,
+                        global,
+                        ...(locationToSave ? { location: locationToSave } : {}),
+                    },
+                },
+                { useFindAndModify: false }
+            )
+
+            await Question.updateMany(
+                { club: clubId },
+                {
+                    $set: {
+                        global,
+                        ...(locationToSave ? { location: locationToSave } : {}),
                     },
                 },
                 { useFindAndModify: false }

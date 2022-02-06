@@ -1,5 +1,5 @@
 const clubD =
-    'date name views image questionsCount adminsCount reputationsCount notifications admins startConversation tags followersCount location clubAddress global images __v'
+    'date name views image questionsCount adminsCount reputationsCount notifications admins startConversation tags followersCount location clubAddress global images pinned __v'
 
 const accountD = 'reputationsCount __v'
 

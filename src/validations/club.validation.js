@@ -55,11 +55,25 @@ const editClub = {
         image: Joi.string().optional(),
         clubId: Joi.objectId().required(),
         tags: tagsValidationClub,
+        global: Joi.boolean().required(),
+        location: Joi.object()
+            .keys({
+                longitude: Joi.number().min(-180).max(180).required(),
+                latitude: Joi.number().min(-90).max(90).required(),
+            })
+            .when('global', {
+                is: true,
+                then: Joi.allow(null).optional(),
+                otherwise: Joi.required(),
+            }),
         clubAddress: Joi.string()
             .min(JoiLength.tag.min)
             .max(JoiLength.tag.max)
-            .allow('')
-            .optional(),
+            .when('global', {
+                is: true,
+                then: Joi.allow('').optional(),
+                otherwise: Joi.required(),
+            }),
     }),
 }
 

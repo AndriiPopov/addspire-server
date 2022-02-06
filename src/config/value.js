@@ -4,6 +4,6 @@ module.exports = {
     plusComment: 3,
     minusComment: -1,
     acceptedAnswer: 20,
-    minAdmins: 3,
+    minAdmins: 1,
     maxAdmins: 8,
 }

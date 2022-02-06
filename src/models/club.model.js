@@ -51,6 +51,7 @@ const clubSchema = new mongoose.Schema(
         clubAddress: { type: String, default: '' },
         global: { type: Boolean, default: false },
         images: [Image],
+        pinned: [String],
     },
     { minimize: false }
 )

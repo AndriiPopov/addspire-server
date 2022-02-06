@@ -30,6 +30,7 @@ const create = async (req) => {
             bookmark,
         } = body
         const reputationLean = await getReputationId(accountId, clubId, true)
+
         const rights = await checkVote(reputationLean, 'start')
         if (!rights) {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
@@ -108,26 +109,24 @@ const create = async (req) => {
 
         await resource.save()
 
-        await Account.updateOne(
-            { _id: accountId },
-            {
-                ...(bookmark
-                    ? {
-                          $push: {
-                              followingQuestions: {
-                                  $each: [resource._id],
-                                  $slice: -200,
-                              },
-                          },
-                      }
-                    : {}),
-                // $inc: {
-                //     wallet: -realCoinsBonusTotal,
-                //     totalSpent: realCoinsBonusTotal,
-                // },
-            },
-            { useFindAndModify: false }
-        )
+        if (bookmark)
+            await Account.updateOne(
+                { _id: accountId },
+                {
+                    $push: {
+                        followingQuestions: {
+                            $each: [resource._id],
+                            $slice: -200,
+                        },
+                    },
+
+                    // $inc: {
+                    //     wallet: -realCoinsBonusTotal,
+                    //     totalSpent: realCoinsBonusTotal,
+                    // },
+                },
+                { useFindAndModify: false }
+            )
 
         // if (addspireCommission)
         //     await System.System.updateOne(
@@ -358,6 +357,7 @@ const remove = async (req) => {
                 $inc: { questionsCount: -1 },
                 $pull: {
                     images: { url: { $in: resource.images.map((i) => i.url) } },
+                    pinned: resourceId,
                 },
             },
             { useFindAndModify: false }
@@ -445,9 +445,54 @@ const saveBestAnswer = async (questionId) => {
     }
 }
 
+const pin = async (req) => {
+    try {
+        const { account, body } = req
+        const { _id: accountId } = account
+
+        const { resourceId, unpin } = body
+
+        const resource = await Question.findById(resourceId)
+            .select('club ')
+            .lean()
+            .exec()
+        if (!resource) {
+            throw new ApiError(httpStatus.CONFLICT, 'No resource')
+        }
+
+        const clubId = resource.club
+
+        const reputationLean = await getReputationId(accountId, clubId, true)
+
+        if (!reputationLean.admin) {
+            throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
+        }
+
+        await Club.updateOne(
+            { _id: clubId },
+            unpin
+                ? {
+                      $push: {
+                          pinned: {
+                              $each: [resourceId],
+                              $slice: -20,
+                          },
+                      },
+                  }
+                : { $pull: { pinned: resourceId } },
+            { useFindAndModify: false }
+        )
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
 module.exports = {
     create,
     edit,
     remove,
     saveBestAnswer,
+    pin,
 }

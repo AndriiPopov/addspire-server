@@ -55,8 +55,18 @@ const remove = {
         .unknown(true),
 }
 
+const pin = {
+    body: Joi.object()
+        .keys({
+            resourceId: Joi.objectId().required(),
+            unpin: Joi.boolean().optional(),
+        })
+        .unknown(true),
+}
+
 module.exports = {
     create,
     edit,
     remove,
+    pin,
 }

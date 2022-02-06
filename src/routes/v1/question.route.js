@@ -26,4 +26,8 @@ router
         questionController.remove
     )
 
+router
+    .route('/pin')
+    .post(validate(questionValidation.pin), auth(), questionController.pin)
+
 module.exports = router
