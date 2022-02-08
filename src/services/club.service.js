@@ -182,13 +182,12 @@ const editClub = async (req) => {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
 
-        let locationToSave
-        if (!global) {
-            locationToSave = {
-                type: 'Point',
-                coordinates: [location.longitude, location.latitude],
-            }
-        }
+        const locationToSave = global
+            ? undefined
+            : {
+                  type: 'Point',
+                  coordinates: [location.longitude, location.latitude],
+              }
 
         const res = await Club.updateOne(
             { _id: clubId },
@@ -200,7 +199,7 @@ const editClub = async (req) => {
                     tags,
                     clubAddress,
                     global,
-                    ...(locationToSave ? { location: locationToSave } : {}),
+                    location: locationToSave,
                 },
             },
             { useFindAndModify: false }
@@ -215,7 +214,7 @@ const editClub = async (req) => {
                         clubName: name,
                         clubImage: image,
                         global,
-                        ...(locationToSave ? { location: locationToSave } : {}),
+                        location: locationToSave,
                     },
                 },
                 { useFindAndModify: false }
@@ -226,7 +225,7 @@ const editClub = async (req) => {
                 {
                     $set: {
                         global,
-                        ...(locationToSave ? { location: locationToSave } : {}),
+                        location: locationToSave,
                     },
                 },
                 { useFindAndModify: false }
