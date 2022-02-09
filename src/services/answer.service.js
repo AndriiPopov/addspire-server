@@ -119,17 +119,20 @@ const create = async (req) => {
                 },
                 { useFindAndModify: false }
             )
-        notificationService.notify(question.owner, {
-            key: 'newAnswer',
-            body: {
-                name: reputationLean.name,
-                questionName: question.name,
-            },
-            data: {
-                id: question._id,
-                type: 'question',
-            },
-        })
+        notificationService.notify(
+            question.followers.filter((i) => i !== accountId),
+            {
+                key: 'newAnswer',
+                body: {
+                    name: reputationLean.name,
+                    questionName: question.name,
+                },
+                data: {
+                    id: question._id,
+                    type: 'question',
+                },
+            }
+        )
         await Reputation.updateOne(
             { _id: reputationLean._id },
             {
