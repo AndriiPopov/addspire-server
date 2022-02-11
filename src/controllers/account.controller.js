@@ -56,6 +56,11 @@ const language = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send()
 })
 
+const visitClub = catchAsync(async (req, res) => {
+    await accountService.visitClub(req)
+    res.status(httpStatus.OK).send()
+})
+
 module.exports = {
     follow,
     unfollow,
@@ -67,4 +72,5 @@ module.exports = {
     saveNotificationToken,
     removeNotificationToken,
     language,
+    visitClub,
 }

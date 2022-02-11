@@ -194,6 +194,7 @@ const pollResource = async (req, res) => {
                 grades,
                 constValues: value,
                 fieldLength: fieldLength.JoiLength,
+                appVersion: 57,
             }
 
             let coins = await get('coinsTomorrow')
@@ -236,7 +237,6 @@ const sendUpdatedData = (data, keys) => {
     try {
         if (keys.length < 1) return
         if (!data.documentKey) {
-            console.log('no documentkey  in update', data)
             return
         }
         if (data.updateDescription.updatedFields.__v)

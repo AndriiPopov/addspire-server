@@ -24,6 +24,7 @@ const create = {
             tags: tagsValidation,
             bonusCoins: Joi.number().optional().min(0),
             bookmark: Joi.boolean().optional(),
+            post: Joi.boolean().optional(),
         })
         .unknown(true),
 }

@@ -79,4 +79,12 @@ router
         accountController.language
     )
 
+router
+    .route('/visit-club')
+    .post(
+        validate(accountValidation.visitClub),
+        auth(),
+        accountController.visitClub
+    )
+
 module.exports = router

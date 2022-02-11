@@ -362,10 +362,40 @@ const language = async (req) => {
         const { _id: accountId } = account
         const { language: lang } = body
 
-        await Account.updateMany(
+        await Account.updateOne(
             { _id: accountId },
             { $set: { language: lang } },
             { useFindAndModify: false }
+        )
+    } catch (error) {
+        if (!error.isOperational) {
+            throw new ApiError(httpStatus.CONFLICT, 'Not created')
+        } else throw error
+    }
+}
+
+const visitClub = async (req) => {
+    try {
+        const { account, body } = req
+        const { _id: accountId } = account
+        const { id } = body
+
+        await Account.updateOne(
+            { _id: accountId, lastClubVisits: { $ne: id } },
+            {
+                $push: {
+                    lastClubVisits: { $each: [id], $position: 0, $slice: 10 },
+                },
+            }
+        )
+
+        await Account.updateOne(
+            { _id: accountId },
+            {
+                $push: {
+                    topClubVisits: { $each: [id], $position: 0, $slice: 100 },
+                },
+            }
         )
     } catch (error) {
         if (!error.isOperational) {
@@ -385,4 +415,5 @@ module.exports = {
     saveNotificationToken,
     removeNotificationToken,
     language,
+    visitClub,
 }

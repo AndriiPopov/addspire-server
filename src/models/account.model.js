@@ -92,6 +92,8 @@ const accountSchema = new mongoose.Schema(
         totalSpent: { type: Number, default: 0 },
         profiles: [Profile],
         defaultProfile: String,
+        topClubVisits: [],
+        lastClubVisits: [],
     },
     { minimize: false }
 )

@@ -1,76 +1,80 @@
 {
-    "notification": {
-        "newFollower": {
-            "title": "New follower",
-            "body": "You have a new follower in club {{clubName}}"
-        },
-        "newAnswer": {
-            "title": "New answer",
-            "body": "{{name}} has added a new answer to your question {{questionName}}"
-        },
-        "createdClub": {
-            "title": "New club",
-            "body": "{{name}} has created a new club {{clubName}}"
-        },
-        "newExpert": {
-            "title": "New expert",
-            "body": "{{name}} has become a new expert in club {{clubName}}"
-        },
-        "leaveExpert": {
-            "title": "Expert left",
-            "body": "{{name}} is not an expert in {{clubName}} anymore"
-        },
-        "expertRequest": {
-            "title": "Expert request",
-            "body": "{{name}} has sent a request to become an expert in club {{clubName}}"
-        },
-        "expertRequestDeclined": {
-            "title": "Expert request declined",
-            "body": "Your expert request in club {{clubName}} has been declined"
-        },
-        "rulesChange": {
-            "title": "New rules",
-            "body": "The rules in club {{clubName}} have been changed."
-        },
-        "banned": {
-            "title": "Ban",
-            "body": "You profile in club {{clubName}} has been banned"
-        },
-        "unbanned": {
-            "title": "Unban",
-            "body": "You profile in club {{clubName}} has been unbanned"
-        },
-        "newQuestion": {
-            "title": "New question",
-            "body": "{{name}} has asked a new question in club {{clubName}}: {{question}}"
-        },
-        "reputationReplenished": {
-            "title": "Reputation replenished",
-            "body": "Your reputation is not negative again and you can add content in club {{clubName}} again"
-        },
-        "coinsForContribution": {
-            "title": "Coins for contribution",
-            "body": "Addspire has sent you {{coins}} coins for your contribution in question {{question}}"
-        },
-        "addspireCoins": {
-            "title": "Addspire coins",
-            "body": "Today we give {{today}} coins. Tomorrow we will give {{tomorrow}} coins. The more you contribute the more coins you get."
-        },
-        "acceptedAnswer": {
-            "title": "Accepted answer",
-            "body": "{{name}} has accepted one answer in question {{question}}"
-        },
-        "voteUp": {
-            "title": "Vote up",
-            "body": "You have got +{{rep}} for an upvote on your contribution in {{question}}"
-        },
-        "voteDown": {
-            "title": "Vote down",
-            "body": "You have got -{{rep}} for an downvote on your contribution in {{question}}"
-        },
-        "bonus": {
-            "title": "Bonus",
-            "body": "You have got +{{bonus}} for your contribution in question {{question}}"
-        }
+  "notification": {
+    "newFollower": {
+      "title": "New follower",
+      "body": "You have a new follower in club {{clubName}}"
+    },
+    "newAnswer": {
+      "title": "New answer",
+      "body": "{{name}} has added a new answer to your question {{questionName}}"
+    },
+    "createdClub": {
+      "title": "New club",
+      "body": "{{name}} has created a new club {{clubName}}"
+    },
+    "newExpert": {
+      "title": "New expert",
+      "body": "{{name}} has become a new expert in club {{clubName}}"
+    },
+    "leaveExpert": {
+      "title": "Expert left",
+      "body": "{{name}} is not an expert in {{clubName}} anymore"
+    },
+    "expertRequest": {
+      "title": "Expert request",
+      "body": "{{name}} has sent a request to become an expert in club {{clubName}}"
+    },
+    "expertRequestDeclined": {
+      "title": "Expert request declined",
+      "body": "Your expert request in club {{clubName}} has been declined"
+    },
+    "rulesChange": {
+      "title": "New rules",
+      "body": "The rules in club {{clubName}} have been changed."
+    },
+    "banned": {
+      "title": "Ban",
+      "body": "You profile in club {{clubName}} has been banned"
+    },
+    "unbanned": {
+      "title": "Unban",
+      "body": "You profile in club {{clubName}} has been unbanned"
+    },
+    "newQuestion": {
+      "title": "New question",
+      "body": "{{name}} has asked a new question in club {{clubName}}: {{question}}"
+    },
+    "reputationReplenished": {
+      "title": "Reputation replenished",
+      "body": "Your reputation is not negative again and you can add content in club {{clubName}} again"
+    },
+    "coinsForContribution": {
+      "title": "Coins for contribution",
+      "body": "Addspire has sent you {{coins}} coins for your contribution in question {{question}}"
+    },
+    "addspireCoins": {
+      "title": "Addspire coins",
+      "body": "Today we give {{today}} coins. Tomorrow we will give {{tomorrow}} coins. The more you contribute the more coins you get."
+    },
+    "acceptedAnswer": {
+      "title": "Accepted answer",
+      "body": "{{name}} has accepted one answer in question {{question}}"
+    },
+    "voteUp": {
+      "title": "Vote up",
+      "body": "You have got +{{rep}} for an upvote on your contribution in {{question}}"
+    },
+    "voteDown": {
+      "title": "Vote down",
+      "body": "You have got -{{rep}} for an downvote on your contribution in {{question}}"
+    },
+    "bonus": {
+      "title": "Bonus",
+      "body": "You have got +{{bonus}} for your contribution in question {{question}}"
+    },
+    "newPost": {
+      "title": "New post",
+      "body": "{{name}} has added a new post in club {{clubName}}: {{question}}"
     }
+  }
 }

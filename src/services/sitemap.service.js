@@ -49,10 +49,13 @@ const sendSitemap = async (req, res) => {
             })
         })
 
-        const questions = await Question.find({}).select('_id').lean().exec()
+        const questions = await Question.find({})
+            .select('_id post')
+            .lean()
+            .exec()
         questions.forEach((item) => {
             smStream.write({
-                url: `/question/${item._id}`,
+                url: `/${item.post ? 'post' : 'question'}/${item._id}`,
                 changefreq: 'daily',
                 priority: 0.7,
             })

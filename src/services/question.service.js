@@ -8,6 +8,7 @@ const {
     Count,
     Answer,
     Reputation,
+    Comment,
 } = require('../models')
 const ApiError = require('../utils/ApiError')
 
@@ -27,6 +28,7 @@ const create = async (req) => {
             images,
             tags,
             bonusCoins,
+            post,
             bookmark,
         } = body
         const reputationLean = await getReputationId(accountId, clubId, true)
@@ -52,6 +54,7 @@ const create = async (req) => {
             reputation: reputationLean._id,
             name,
             tags,
+            post,
             // bonusCoins: realCoinsBonus,
             // bonusPending,
             // ...(bonusPending ? { bonusCreatedDate: Date.now() } : {}),
@@ -162,7 +165,7 @@ const create = async (req) => {
                 { useFindAndModify: false }
             )
             notificationService.notify(notifiedAccounts, {
-                key: 'newQuestion',
+                key: resource.post ? 'newPost' : 'newQuestion',
                 body: {
                     clubName: reputationLean.clubName,
                     name: reputationLean.name,
@@ -445,6 +448,34 @@ const saveBestAnswer = async (questionId) => {
     }
 }
 
+const saveBestComment = async (questionId) => {
+    const question = await Question.findById(questionId)
+        .select('comments post')
+        .lean()
+
+    if (question && question.post && question.comments.length) {
+        const comments = await Comment.find({ _id: { $in: question.comments } })
+            .sort({ vote: -1 })
+            .limit(1)
+            .select('_id')
+            .exec()
+
+        if (comments && comments.length) {
+            const comment = comments[0]
+            if (comment) {
+                const commentId = comment._id
+                if (commentId) {
+                    await Question.updateOne(
+                        { _id: questionId },
+                        { $set: { bestAnswer: commentId } },
+                        { useFindAndModify: false }
+                    )
+                }
+            }
+        }
+    }
+}
+
 const pin = async (req) => {
     try {
         const { account, body } = req
@@ -494,5 +525,6 @@ module.exports = {
     edit,
     remove,
     saveBestAnswer,
+    saveBestComment,
     pin,
 }

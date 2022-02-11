@@ -25,6 +25,7 @@ const general = async (req) => {
             global,
             location,
             idIn,
+            post,
         } = body
 
         const tagsExist = tags && tags.length
@@ -36,6 +37,7 @@ const general = async (req) => {
 
         if (idIn) query._id = { $in: idIn }
 
+        if (typeof post === 'boolean') query.post = post
         if (location) {
             query.location = {
                 $geoWithin: {

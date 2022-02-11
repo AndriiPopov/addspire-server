@@ -81,6 +81,12 @@ const language = {
     }),
 }
 
+const visitClub = {
+    body: Joi.object().keys({
+        id: Joi.objectId().required(),
+    }),
+}
+
 module.exports = {
     follow,
     unfollow,
@@ -92,4 +98,5 @@ module.exports = {
     removeNotificationToken,
     seenFeed,
     language,
+    visitClub,
 }

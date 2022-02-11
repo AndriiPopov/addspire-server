@@ -25,6 +25,7 @@ const general = {
                 })
                 .optional(),
             global: Joi.boolean().optional(),
+            post: Joi.boolean().optional(),
             location: Joi.object()
                 .keys({
                     longitude: Joi.number().min(-180).max(180).required(),
@@ -42,6 +43,7 @@ const general = {
             page: Joi.number().optional(),
             tags: tagsValidation,
             // name: Joi.string().optional(),
+            post: Joi.boolean().optional(),
             clubId: Joi.objectId().required(),
             type: Joi.string().valid('question', 'reputation').required(),
         }),
@@ -50,6 +52,7 @@ const general = {
             page: Joi.number().optional(),
             tags: tagsValidation,
             // name: Joi.string().optional(),
+            post: Joi.boolean().optional(),
             clubId: Joi.objectId().required(),
             type: Joi.string().valid('question', 'reputation').required(),
             sort: Joi.object()
@@ -70,6 +73,7 @@ const general = {
         Joi.object().keys({
             page: Joi.number().optional(),
             reputationId: Joi.objectId().required(),
+            post: Joi.boolean().optional(),
             type: Joi.string()
                 .valid('question', 'answer', 'comment')
                 .required(),
@@ -111,6 +115,7 @@ const general = {
         // Bookmarked questions
         Joi.object().keys({
             page: Joi.number().optional(),
+            post: Joi.boolean().optional(),
             type: Joi.string().valid('question').required(),
             idIn: Joi.array().items(Joi.objectId()).required(),
             // sort: Joi.object()

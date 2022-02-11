@@ -175,7 +175,7 @@ const vote = async (req) => {
 
         const resource = await model
             .findById(resourceId)
-            .select('club owner question text reputation')
+            .select('club owner question text reputation post')
             .lean()
             .exec()
 
@@ -186,7 +186,7 @@ const vote = async (req) => {
         const question = await Question.findById(
             resource.question || resource._id
         )
-            .select('name')
+            .select('name post')
             .lean()
             .exec()
 
@@ -248,6 +248,7 @@ const vote = async (req) => {
                                         ...(type === 'comment'
                                             ? { comment: resource.text }
                                             : {}),
+                                        details: { post: question.post },
                                     },
                                 ],
                                 $slice: -50,
@@ -306,6 +307,9 @@ const vote = async (req) => {
             }
             if (type === 'answer') {
                 await questionService.saveBestAnswer(question._id)
+            }
+            if (type === 'comment' && question.post) {
+                await questionService.saveBestComment(question._id)
             }
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'Already voted')

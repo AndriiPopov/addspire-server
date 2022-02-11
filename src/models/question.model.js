@@ -40,54 +40,59 @@ const questionSchema = new mongoose.Schema(
         },
         global: { type: Boolean, default: false },
         bestAnswer: String,
+        post: { type: Boolean, default: false },
     },
     { minimize: false }
 )
 
 // General search
 questionSchema.index(
-    { tags: 1, vote: -1 },
-    {
-        partialFilterExpression: { global: true },
-    }
+    { post: 1, tags: 1, vote: -1 },
+    { partialFilterExpression: { global: true } }
 )
 
 questionSchema.index({
+    post: 1,
     location: '2dsphere',
     tags: 1,
     vote: -1,
 })
 
 questionSchema.index({
+    post: 1,
     location: '2dsphere',
     date: -1,
 })
 
 questionSchema.index(
-    { date: -1 },
+    { post: 1, date: -1 },
     { partialFilterExpression: { global: true } }
 )
 
 // Club search
 questionSchema.index({
+    post: 1,
     club: 1,
     tags: 1,
     vote: -1,
 })
 
 questionSchema.index({
+    post: 1,
     club: 1,
     date: 1,
 })
 
 // Profile search
 questionSchema.index({
+    post: 1,
     reputation: 1,
     date: -1,
 })
 
 // My questions search
 questionSchema.index({
+    post: 1,
     owner: 1,
     date: -1,
 })

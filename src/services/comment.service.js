@@ -14,6 +14,7 @@ const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
 
 const notificationService = require('./notification.service')
+const questionService = require('./question.service')
 
 const createComment = async (req) => {
     try {
@@ -89,7 +90,7 @@ const createComment = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
-                .select('followers name')
+                .select('followers name post')
                 .lean()
                 .exec()
             followers = question && question.followers
@@ -118,7 +119,7 @@ const createComment = async (req) => {
                       },
                       { useFindAndModify: false }
                   )
-                      .select('followers name')
+                      .select('followers name post')
                       .lean()
                       .exec()
                 : await Question.findById(questionId)
@@ -143,7 +144,7 @@ const createComment = async (req) => {
                                     user: accountId,
                                     code: 'commented',
                                     questionId,
-                                    details: {},
+                                    details: { commentId: comment._id },
                                     notId: newNotificationId,
                                 },
                             ],
@@ -175,9 +176,13 @@ const createComment = async (req) => {
             },
             { useFindAndModify: false }
         )
+        if (question.post) {
+            await questionService.saveBestComment(questionId)
+        }
 
         return { success: true }
     } catch (error) {
+        console.log(error)
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error
@@ -285,6 +290,8 @@ const deleteComment = async (req) => {
                 },
                 { useFindAndModify: false }
             )
+
+            await questionService.saveBestComment(comment.question)
         } else throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
     } catch (error) {
         if (!error.isOperational) {
