@@ -3,7 +3,7 @@
 const mongoose = require('mongoose')
 
 const config = require('./config/config')
-const { Question, Account, Reputation } = require('./models')
+const { Question, Account, Reputation, Club } = require('./models')
 
 mongoose
     .connect(config.mongoose.url, config.mongoose.options)
