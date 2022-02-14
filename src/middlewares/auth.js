@@ -5,8 +5,9 @@ const { Account, Token } = require('../models')
 const { tokenService, authService } = require('../services')
 const { tokenTypes } = require('../config/tokens')
 
-const accountFields = 'logoutAllDate name image wallet'
+const accountFields = 'logoutAllDate name image'
 const auth = () => async (req, res, next) => {
+    // If something is wrong or suspicious with the auth process, logout
     const logout = async () => {
         try {
             if (req.get('refreshtoken')) {
@@ -18,10 +19,11 @@ const auth = () => async (req, res, next) => {
         }
     }
     try {
+        // In test environment separate auth process
         if (process.env.NODE_ENV === 'test') {
             const accountId = req.get('accountId')
             req.account = await Account.findOne({ facebookProfile: accountId })
-                .select('logoutAllDate wallet')
+                .select('logoutAllDate')
                 .lean()
                 .exec()
 
@@ -29,8 +31,9 @@ const auth = () => async (req, res, next) => {
             else return logout()
             return
         }
+        // Normal auth process
+        // Check access token
         const accessToken = req.get('accesstoken')
-
         if (!accessToken) {
             return logout()
         }
@@ -43,10 +46,12 @@ const auth = () => async (req, res, next) => {
                         return logout()
                     }
 
+                    // Check access token if access token is expired
                     const refreshToken = req.get('refreshtoken')
                     if (!refreshToken) {
                         return logout()
                     }
+
                     await jwt.verify(
                         refreshToken,
                         process.env.jwtPrivateKey,
@@ -54,7 +59,7 @@ const auth = () => async (req, res, next) => {
                             if (errRT) {
                                 return logout()
                             }
-
+                            // Check if the user has logged out on all devices.
                             req.account = await Account.findById(decodedRT.sub)
                                 .select(accountFields)
                                 .lean()
@@ -80,23 +85,7 @@ const auth = () => async (req, res, next) => {
 
                             await Token.deleteOne({ token: refreshToken })
 
-                            // if (process.env.NODE_ENV !== 'development') {
-                            //     const { authToken, platform, type } =
-                            //         await authService.refreshOauthToken({
-                            //             accountId: req.account._id,
-                            //         })
-                            //     if (!authToken) {
-                            //         return logout()
-                            //     }
-
-                            //     await authService.updateCredentials(
-                            //         req.account,
-                            //         accessToken,
-                            //         platform,
-                            //         type,
-                            //         refreshToken
-                            //     )
-                            // }
+                            // Get new tokens
                             const tokens =
                                 await tokenService.generateAuthTokens(
                                     req.account
@@ -109,6 +98,7 @@ const auth = () => async (req, res, next) => {
                         }
                     )
                 } else {
+                    // Check if the user has logged out on all devices.
                     req.account = await Account.findById(decoded.sub)
                         .select(accountFields)
                         .lean()

@@ -28,7 +28,6 @@ const accountSchema = new mongoose.Schema(
             unique: true,
             sparse: true,
         },
-        background: { type: String, default: '' },
         notifications: [notificationSchema],
         feed: [notificationSchema],
         lastSeenNot: { type: Number, default: 0 },
@@ -66,30 +65,7 @@ const accountSchema = new mongoose.Schema(
             default: [],
         },
         expoTokens: [String],
-        wallet: { type: Number, default: 0 },
-        gains: [
-            {
-                coins: { type: Number, required: true },
-                questionId: { type: String, required: true },
-                questionName: { type: String, required: true },
-                actionType: { type: String, required: true },
-                date: {
-                    type: Date,
-                    default: Date.now,
-                },
-            },
-        ],
-        walletHistory: [
-            {
-                coins: { type: Number, required: true },
-                date: {
-                    type: Date,
-                    default: Date.now,
-                },
-            },
-        ],
-        totalEarned: { type: Number, default: 0 },
-        totalSpent: { type: Number, default: 0 },
+
         profiles: [Profile],
         defaultProfile: String,
         topClubVisits: [],

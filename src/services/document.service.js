@@ -6,7 +6,6 @@ const resources = require('../config/resources')
 const getModelFromType = require('../utils/getModelFromType')
 const { get, client } = require('./redis.service')
 const { System } = require('../models')
-const getDistributeCoinsToday = require('../utils/getDistributeCoinsToday')
 const grades = require('../config/grades')
 const fieldLength = require('../config/fieldLength')
 const value = require('../config/value')
@@ -27,6 +26,7 @@ const getResource = async (req) => {
                 resources: result.filter((item) => item),
             }
         }
+
         return {
             messageCode: 'notFoundResource',
             _id: data.ids,
@@ -196,17 +196,6 @@ const pollResource = async (req, res) => {
                 fieldLength: fieldLength.JoiLength,
                 appVersion: 57,
             }
-
-            let coins = await get('coinsTomorrow')
-            if (!coins) {
-                const system = await System.System.findOne({ name: 'system' })
-                    .select('date')
-                    .lean()
-                    .exec()
-                coins = getDistributeCoinsToday(system.date, true)
-                if (coins) client.set('coinsTomorrow', coins)
-            } else coins = parseFloat(coins)
-            if (coins) refrehedData.coinsTomorrow = coins
 
             const availableLocales = await get('availableLocales_frontend')
             if (availableLocales)

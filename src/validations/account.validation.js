@@ -27,30 +27,6 @@ const starClub = {
     }),
 }
 
-const editAccount = {
-    body: Joi.object().keys({
-        name: Joi.string()
-            .required()
-            .min(JoiLength.name.min)
-            .max(JoiLength.name.max),
-        description: Joi.string()
-            .optional()
-            .max(JoiLength.description.max)
-            .allow(''),
-        address: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        phone: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        web: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        email: Joi.string().optional().max(JoiLength.name.max).allow(''),
-        social: Joi.string().optional().max(JoiLength.message.max).allow(''),
-        image: Joi.string().optional(),
-        background: Joi.string().optional(),
-        tags: Joi.array()
-            .items(Joi.string().min(JoiLength.tag.min).max(JoiLength.tag.max))
-            .max(20)
-            .optional(),
-    }),
-}
-
 const seenNotification = {
     body: Joi.object().keys({
         notId: Joi.string().required(),
@@ -92,7 +68,6 @@ module.exports = {
     unfollow,
     deleteAccount,
     starClub,
-    editAccount,
     seenNotification,
     saveNotificationToken,
     removeNotificationToken,

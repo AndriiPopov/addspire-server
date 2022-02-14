@@ -1,3 +1,4 @@
+// Current constants for vote ups, votes downs, plusses and minuses per day etc.
 module.exports = {
     plusResource: 5,
     minusResource: -2,

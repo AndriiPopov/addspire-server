@@ -43,9 +43,10 @@ describe('POST /api/account/ban', () => {
             .set('accountId', '2')
             .send({
                 clubId,
-                name: 'How to drive a car?',
+                name: 'How to drive a car?How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
+                tags: ['lolo', 'lala'],
             })
             .expect(httpStatus.UNAUTHORIZED)
 
@@ -71,9 +72,10 @@ describe('POST /api/account/ban', () => {
             .set('accountId', '2')
             .send({
                 clubId,
-                name: 'How to drive a car?',
+                name: 'How to drive a car?How to drive a car?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
+                tags: ['lolo', 'lala'],
             })
             .expect(httpStatus.OK)
     })

@@ -27,7 +27,7 @@ const create = async (req) => {
             description,
             images,
             tags,
-            bonusCoins,
+
             post,
             bookmark,
         } = body
@@ -38,15 +38,6 @@ const create = async (req) => {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
 
-        // const realCoinsBonusTotal = bonusCoins
-        //     ? Math.min(account.wallet, bonusCoins)
-        //     : 0
-        // const realCoinsBonus = realCoinsBonusTotal
-        // // const realCoinsBonus = realCoinsBonusTotal * 0.95
-        // const addspireCommission = realCoinsBonusTotal - realCoinsBonus
-
-        // const bonusPending = !!realCoinsBonus
-
         const resource = new Question({
             description,
             owner: accountId,
@@ -55,9 +46,6 @@ const create = async (req) => {
             name,
             tags,
             post,
-            // bonusCoins: realCoinsBonus,
-            // bonusPending,
-            // ...(bonusPending ? { bonusCreatedDate: Date.now() } : {}),
         })
         const imagesWithData = getImagesData(
             images,
@@ -75,7 +63,6 @@ const create = async (req) => {
 
         const count = new Count({
             question: resource._id,
-            questionName: name,
         })
         await count.save()
         resource.count = count._id
@@ -85,7 +72,7 @@ const create = async (req) => {
         const club = await Club.findOneAndUpdate(
             { _id: clubId },
             {
-                $inc: { questionsCount: 1 },
+                $inc: { [post ? 'postsCount' : 'questionsCount']: 1 },
                 ...(imagesWithData.length
                     ? {
                           $push: {
@@ -122,21 +109,9 @@ const create = async (req) => {
                             $slice: -200,
                         },
                     },
-
-                    // $inc: {
-                    //     wallet: -realCoinsBonusTotal,
-                    //     totalSpent: realCoinsBonusTotal,
-                    // },
                 },
                 { useFindAndModify: false }
             )
-
-        // if (addspireCommission)
-        //     await System.System.updateOne(
-        //         { name: 'system' },
-        //         { $inc: { myCoins: addspireCommission } },
-        //         { useFindAndModify: false }
-        //     )
 
         if (club.followers.length) {
             const notifiedAccounts = club.followers.filter(
@@ -181,13 +156,7 @@ const create = async (req) => {
         await Reputation.updateOne(
             { _id: reputationLean._id },
             {
-                $inc: { questionsCount: 1 },
-                $set: {
-                    lastContent: {
-                        resourceId: resource._id,
-                        resourceType: 'question',
-                    },
-                },
+                $inc: { [post ? 'postsCount' : 'questionsCount']: 1 },
             },
             { useFindAndModify: false }
         )
@@ -203,21 +172,15 @@ const edit = async (req) => {
         const { account, body } = req
         const { _id: accountId } = account
 
-        const { resourceId, name, description, images, tags, bonusCoins } = body
+        const { resourceId, name, description, images, tags } = body
 
         const resource = await Question.findById(resourceId)
-            .select('club bonusPending bonusPaid images')
+            .select('club images')
             .lean()
             .exec()
         if (!resource) {
             throw new ApiError(httpStatus.CONFLICT, 'No club')
         }
-
-        await Count.updateOne(
-            { question: resourceId },
-            { $set: { questionName: name } },
-            { useFindAndModify: false }
-        )
 
         const clubId = resource.club
 
@@ -226,23 +189,6 @@ const edit = async (req) => {
         if (!rights) {
             throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
         }
-
-        // let bonusPending = false
-        // let realCoinsBonus = 0
-        // let addspireCommission = 0
-        // let realCoinsBonusTotal = 0
-        // if (!resource.bonusPaid) {
-        //     realCoinsBonusTotal = bonusCoins
-        //         ? Math.min(account.wallet, bonusCoins)
-        //         : 0
-        //     // realCoinsBonus = realCoinsBonusTotal * 0.95
-        //     realCoinsBonus = realCoinsBonusTotal
-        //     addspireCommission = realCoinsBonusTotal - realCoinsBonus
-
-        //     if (!resource.bonusPending) {
-        //         bonusPending = !!realCoinsBonus
-        //     }
-        // }
 
         const imagesWithData = getImagesData(
             images,
@@ -263,13 +209,7 @@ const edit = async (req) => {
                     images: imagesWithData,
                     name,
                     tags,
-                    // ...(bonusPending
-                    //     ? { bonusPending: true, bonusCreatedDate: Date.now() }
-                    //     : {}),
                 },
-                // $inc: {
-                //     bonusCoins: realCoinsBonus,
-                // },
             },
             { useFindAndModify: false }
         )
@@ -293,25 +233,6 @@ const edit = async (req) => {
                 },
                 { useFindAndModify: false }
             ).exec()
-
-        // if (realCoinsBonus)
-        //     await Account.updateOne(
-        //         { _id: accountId },
-        //         {
-        //             $inc: {
-        //                 wallet: -realCoinsBonusTotal,
-        //                 totalSpent: realCoinsBonusTotal,
-        //             },
-        //         },
-        //         { useFindAndModify: false }
-        //     )
-
-        // if (addspireCommission)
-        //     await System.System.updateOne(
-        //         { name: 'system' },
-        //         { $inc: { myCoins: addspireCommission } },
-        //         { useFindAndModify: false }
-        //     )
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -327,9 +248,7 @@ const remove = async (req) => {
         const { resourceId } = body
 
         const resource = await Question.findById(resourceId)
-            .select(
-                'club reputation owner vote bonusCoins bonusPending bonusPaid images'
-            )
+            .select('club reputation owner vote images post')
             .lean()
             .exec()
         if (!resource) {
@@ -357,7 +276,7 @@ const remove = async (req) => {
         await Club.updateOne(
             { _id: clubId },
             {
-                $inc: { questionsCount: -1 },
+                $inc: { [resource.post ? 'postsCount' : 'questionsCount']: -1 },
                 $pull: {
                     images: { url: { $in: resource.images.map((i) => i.url) } },
                     pinned: resourceId,
@@ -365,60 +284,6 @@ const remove = async (req) => {
             },
             { useFindAndModify: false }
         )
-
-        // if (resource.bonusPending && !resource.bonusPaid) {
-        //     const newNotificationId = await System.getNotificationId()
-        //     const result = await Account.updateOne(
-        //         { _id: resource.owner },
-        //         {
-        //             $inc: {
-        //                 wallet: resource.bonusCoins,
-        //                 totalSpent: -resource.bonusCoins,
-        //             },
-        //             $push: {
-        //                 gains: {
-        //                     $each: [
-        //                         {
-        //                             coins: resource.bonusCoins,
-        //                             actionType: 'return',
-        //                             questionId: resource._id,
-        //                             questionName: resource.name,
-        //                             user: resource.owner,
-        //                         },
-        //                     ],
-        //                     $slice: -100,
-        //                 },
-        //                 notifications: {
-        //                     $each: [
-        //                         {
-        //                             user: resource.owner,
-        //                             code: 'return bonus',
-        //                             details: {
-        //                                 questionId: resource._id,
-        //                                 questionName: resource.name,
-        //                                 coins: resource.bonusCoins,
-        //                                 image: resource.images.length
-        //                                     ? resource.images[0]
-        //                                     : reputationLean.image,
-        //                             },
-        //                             notId: newNotificationId,
-        //                         },
-        //                     ],
-        //                     $slice: -50,
-        //                 },
-        //             },
-        //         },
-        //         { useFindAndModify: false }
-        //     )
-
-        //     if (!result.nModified) {
-        //         await System.System.updateOne(
-        //             { name: 'system' },
-        //             { $inc: { myCoins: resource.bonusCoins } },
-        //             { useFindAndModify: false }
-        //         )
-        //     }
-        // }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')

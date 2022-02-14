@@ -1,3 +1,5 @@
+// Grades depending on the reputation.
+
 module.exports = {
     grade0: {
         max: 0,

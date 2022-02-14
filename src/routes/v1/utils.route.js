@@ -5,8 +5,6 @@ const { utilsValidation } = require('../../validations')
 
 const router = express.Router()
 
-router.route('/coins-tomorrow').get(utilsController.coinsTomorrow)
-
 router.route('/available-languages').get(utilsController.availableLanguages)
 
 router

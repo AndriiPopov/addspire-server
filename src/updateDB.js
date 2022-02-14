@@ -1,20 +1,25 @@
+//
+
 const mongoose = require('mongoose')
 
 const config = require('./config/config')
-const { Question, Account } = require('./models')
+const { Question, Account, Reputation } = require('./models')
 
 mongoose
     .connect(config.mongoose.url, config.mongoose.options)
     .then(async () => {
-        const res = await Question.updateMany({
-            $set: { post: false },
-        })
-
-        const res2 = await Account.updateMany({
+        let res = await Account.updateMany({
             $set: { topClubVisits: [], lastClubVisits: [] },
         })
         console.log(res)
-        console.log(res2)
+        res = await Club.updateMany({
+            $set: { postsCount: 0 },
+        })
+        console.log(res)
+        res = await Reputation.updateMany({
+            $set: { postsCount: 0 },
+        })
+        console.log(res)
     })
 
 const exitHandler = () => {

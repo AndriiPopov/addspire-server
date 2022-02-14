@@ -21,6 +21,10 @@ const clubSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        postsCount: {
+            type: Number,
+            default: 0,
+        },
         startConversation: {
             type: String,
             default: 'any',
@@ -38,7 +42,6 @@ const clubSchema = new mongoose.Schema(
             },
         ],
         banned: [String],
-        fresh: { type: Boolean, default: true },
         location: {
             type: {
                 type: String,

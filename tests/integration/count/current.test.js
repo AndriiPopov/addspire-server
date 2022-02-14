@@ -21,18 +21,14 @@ describe('POST /api/count/current', () => {
         const questionId0 = mongoose.Types.ObjectId()
         await Count.create({
             total: 10,
-            day: 1,
+
             question: questionId0,
-            questionName: 'questionId0',
-            reputationDestribution: {},
         })
         const questionId1 = mongoose.Types.ObjectId()
         await Count.create({
             total: 20,
-            day: 1,
+
             question: questionId1,
-            questionName: 'questionId1',
-            reputationDestribution: {},
         })
 
         const res1 = await request(app)

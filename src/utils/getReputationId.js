@@ -10,7 +10,7 @@ module.exports = async (accountId, clubId, withData) => {
         .select(
             `_id${
                 withData
-                    ? ' minusToday plusToday reputation admin banned club name clubName clubImage owner image'
+                    ? ' minusToday plusToday reputation admin banned club name clubName owner image'
                     : 'name'
             }`
         )
@@ -63,7 +63,6 @@ module.exports = async (accountId, clubId, withData) => {
                 reputation.label = defaultProfile.label
                 reputation.profile = account.defaultProfile
                 reputation.clubName = club.name
-                reputation.clubImage = club.image
                 if (club.location) reputation.location = club.location
                 if (club.global) reputation.global = club.global
                 await reputation.save()

@@ -60,10 +60,7 @@ describe('POST /api/profile/edit', () => {
 
         const user1 = await Account.findById(userId).lean()
 
-        expect(user1.profiles[1]).toMatchObject({
-            ...editData0,
-            images: editData0.images.map((i) => ({ url: i })),
-        })
+        expect(user1.profiles[1]).toMatchObject(editData0)
 
         // Choose default profile
 
@@ -133,10 +130,7 @@ describe('POST /api/profile/edit', () => {
 
         const user11 = await Account.findById(userId).lean()
 
-        expect(user11.profiles[0]).toMatchObject({
-            ...editData1,
-            images: editData1.images.map((i) => ({ url: i })),
-        })
+        expect(user11.profiles[0]).toMatchObject(editData1)
 
         // Edit new profile
 
@@ -153,10 +147,7 @@ describe('POST /api/profile/edit', () => {
 
         const user111 = await Account.findById(userId).lean()
 
-        expect(user111.profiles[1]).toMatchObject({
-            ...editData2,
-            images: editData2.images.map((i) => ({ url: i })),
-        })
+        expect(user111.profiles[1]).toMatchObject(editData2)
 
         // Set another profile in reputation
 

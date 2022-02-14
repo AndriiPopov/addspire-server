@@ -53,41 +53,4 @@ describe('POST /api/answer/delete', () => {
             })
             .expect(httpStatus.UNAUTHORIZED)
     })
-
-    test('should delete reputation from count', async () => {
-        const oldAnswer = await Answer.findOne({
-            description: 'Here is how to test.',
-        }).lean()
-        const answerId = oldAnswer._id.toString()
-
-        const oldQuestion = await Question.findById(oldAnswer.question).lean()
-
-        await request(app)
-            .post('/api/vote/vote')
-            .set('accountId', '5')
-            .send({
-                resourceId: answerId,
-                type: 'answer',
-            })
-            .expect(httpStatus.OK)
-
-        const countId = oldQuestion.count
-        const count = await Count.findById(countId).lean()
-        expect(count.reputationDestribution).toMatchObject({
-            [oldAnswer.owner]: value.plusResource,
-        })
-
-        await request(app)
-            .post('/api/answer/delete')
-            .set('accountId', '0')
-            .send({
-                resourceId: answerId,
-            })
-            .expect(httpStatus.OK)
-
-        const newCount = await Count.findById(countId).lean()
-        expect(newCount.reputationDestribution).toMatchObject({
-            [oldAnswer.owner]: 0,
-        })
-    })
 })

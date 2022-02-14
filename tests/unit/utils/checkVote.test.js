@@ -228,26 +228,4 @@ describe('Check rights', () => {
             )
         ).toBeTruthy()
     })
-
-    test('If club is fresh and not enough admins allow start conversations and not allow if not fresh', async () => {
-        await createClubTest('0', {
-            name: 'Rollers of US 33',
-            description: 'For all of us',
-            image: 'roller.jpeg',
-            tags: ['club1', 'club2'],
-        })
-
-        const club = await Club.findOne({ name: 'Rollers of US 33' })
-        const clubId = club._id.toString()
-
-        expect(
-            await checkVote({ reputation: 0, club: clubId }, 'start')
-        ).toBeTruthy()
-
-        await Club.updateOne({ _id: clubId }, { $set: { fresh: false } })
-
-        await expect(
-            checkVote({ reputation: 0, club: clubId }, 'start')
-        ).rejects.toThrowError()
-    })
 })

@@ -30,10 +30,6 @@ const questionSchema = new mongoose.Schema(
         },
         acceptedAnswerOwner: { type: String, default: '' },
         count: { type: String, required: true },
-        bonusCoins: { type: Number, default: 0 },
-        bonusPaid: { type: Boolean, default: false },
-        bonusPending: { type: Boolean, default: false },
-        bonusCreatedDate: Date,
         location: {
             type: { type: String },
             coordinates: [Number],

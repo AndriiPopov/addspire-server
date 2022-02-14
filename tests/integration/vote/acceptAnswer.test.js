@@ -8,7 +8,6 @@ const {
     Reputation,
     Question,
     Answer,
-    Count,
 } = require('../../../src/models')
 const value = require('../../../src/config/value')
 
@@ -71,11 +70,6 @@ describe('POST /api/vote/accept', () => {
         expect(
             reputationObj.gains.length - oldReputationObj.gains.length
         ).toEqual(1)
-
-        const count = await Count.findById(question.count).lean()
-        expect(count.reputationDestribution).toMatchObject({
-            [userId]: value.acceptedAnswer,
-        })
 
         await request(app)
             .post('/api/vote/accept')

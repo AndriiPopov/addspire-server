@@ -27,7 +27,6 @@ const createClub = async (req) => {
             owner: accountId,
             admin: true,
             clubName: name,
-            clubImage: image,
 
             member: true,
             global,
@@ -212,7 +211,6 @@ const editClub = async (req) => {
                 {
                     $set: {
                         clubName: name,
-                        clubImage: image,
                         global,
                         location: locationToSave,
                     },
@@ -232,137 +230,6 @@ const editClub = async (req) => {
             )
         } else {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
-        }
-    } catch (error) {
-        if (!error.isOperational) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not created')
-        } else throw error
-    }
-}
-
-const invite = async (req) => {
-    try {
-        const { account, body } = req
-        const { clubId } = body
-        const { _id: accountId } = account
-
-        const reputationLean = await getReputationId(accountId, clubId, true)
-
-        if (!reputationLean.admin) {
-            throw new ApiError(httpStatus.UNAUTHORIZED, 'Not enough rights')
-        }
-
-        const token = await tokenService.generateInviteToken(
-            req.account,
-            clubId
-        )
-
-        const inviteLink = `${config.baseUrl}club/${clubId}?invite=${token}`
-
-        return inviteLink
-    } catch (error) {
-        if (!error.isOperational) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not created')
-        } else throw error
-    }
-}
-
-const acceptInvite = async (req) => {
-    try {
-        const { account, body } = req
-        const { code } = body
-        const { _id: accountId } = account
-
-        const doc = await tokenService.verifyInviteToken(
-            code,
-            tokenTypes.INVITE
-        )
-
-        if (!doc) {
-            throw new ApiError(
-                httpStatus.CONFLICT,
-                'Token is used or is not exist'
-            )
-        }
-
-        const reputationLean = await getReputationId(accountId, doc.club, true)
-        const reputationId = reputationLean._id.toString()
-
-        if (reputationLean.admin) {
-            throw new ApiError(httpStatus.CONFLICT, 'Already admin')
-        }
-
-        const club = await Club.findOneAndUpdate(
-            { _id: doc.club, adminsCount: { $lt: value.maxAdmins } },
-            {
-                $push: { adminReputations: reputationId },
-                $inc: { adminsCount: 1 },
-            },
-            { useFindAndModify: false }
-        )
-            .select('followers name')
-            .lean()
-            .exec()
-        if (club) {
-            await Reputation.updateOne(
-                { _id: reputationId },
-                { $set: { admin: true, member: true, banned: false } },
-                { useFindAndModify: false }
-            )
-
-            await Account.updateOne(
-                { _id: accountId, followngClubs: { $ne: accountId } },
-                { $addToSet: { followngClubs: doc.club } },
-                { useFindAndModify: false }
-            )
-
-            await Club.updateOne(
-                { _id: doc.club, followers: { $ne: accountId } },
-                {
-                    $push: { followers: accountId },
-                    $inc: { followersCount: 1 },
-                },
-                { useFindAndModify: false }
-            )
-
-            const newNotificationId = await System.getNotificationId()
-            const notifiedAccounts = club.followers.filter(
-                (i) => i.toString() !== accountId.toString()
-            )
-            await Account.updateMany(
-                { _id: { $in: notifiedAccounts } },
-                {
-                    $push: {
-                        notifications: {
-                            $each: [
-                                {
-                                    user: accountId,
-                                    code: 'became admin',
-                                    details: {
-                                        clubId: doc.club,
-                                        clubName: club.name,
-                                        userName: reputationLean.name,
-                                        image: reputationLean.image,
-                                    },
-                                    notId: newNotificationId,
-                                },
-                            ],
-                            $slice: -50,
-                        },
-                    },
-                },
-                { useFindAndModify: false }
-            )
-            notificationService.notify(notifiedAccounts, {
-                key: 'newExpert',
-                body: { name: reputationLean.name, clubName: club.name },
-                data: {
-                    id: club._id,
-                    type: 'club',
-                },
-            })
-        } else {
-            throw new ApiError(httpStatus.CONFLICT, 'Max admins reached')
         }
     } catch (error) {
         if (!error.isOperational) {
@@ -979,8 +846,6 @@ const getReputationIdService = async (req) => {
 module.exports = {
     createClub,
     editClub,
-    invite,
-    acceptInvite,
     addResident,
     leaveResidence,
     requestResidence,

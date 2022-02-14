@@ -1,3 +1,4 @@
+// Field lengths for mongoDB
 const mongoLength = {
     name: { max: 202, min: 1 },
     questionName: { max: 152, min: 19 },
@@ -7,6 +8,7 @@ const mongoLength = {
     tag: { max: 72, min: 1 },
 }
 
+// Field lengths for Joi
 const JoiLength = {
     name: { max: 201, min: 2 },
     questionName: { max: 151, min: 20 },

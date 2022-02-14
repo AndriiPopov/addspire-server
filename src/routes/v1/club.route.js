@@ -19,18 +19,6 @@ router
     .post(validate(clubValidation.editClub), auth(), clubController.editClub)
 
 router
-    .route('/invite')
-    .post(validate(clubValidation.invite), auth(), clubController.invite)
-
-router
-    .route('/accept-invite')
-    .post(
-        validate(clubValidation.acceptInvite),
-        auth(),
-        clubController.acceptInvite
-    )
-
-router
     .route('/add-resident')
     .post(
         validate(clubValidation.addResident),

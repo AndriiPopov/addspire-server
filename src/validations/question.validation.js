@@ -22,7 +22,6 @@ const create = {
             images: Joi.array().items(Joi.string()).optional(),
             clubId: Joi.objectId().required(),
             tags: tagsValidation,
-            bonusCoins: Joi.number().optional().min(0),
             bookmark: Joi.boolean().optional(),
             post: Joi.boolean().optional(),
         })
@@ -43,7 +42,6 @@ const edit = {
             images: Joi.array().items(Joi.string()).optional(),
             tags: tagsValidation,
             resourceId: Joi.objectId().required(),
-            bonusCoins: Joi.number().optional().min(0),
         })
         .unknown(true),
 }

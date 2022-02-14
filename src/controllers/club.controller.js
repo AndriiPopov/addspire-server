@@ -18,18 +18,6 @@ const editClub = catchAsync(async (req, res) => {
     res.status(httpStatus.CREATED).send({ message: 'saved' })
 })
 
-const invite = catchAsync(async (req, res) => {
-    const inviteLink = await clubService.invite(req)
-    res.status(httpStatus.OK).send({
-        inviteLink,
-    })
-})
-
-const acceptInvite = catchAsync(async (req, res) => {
-    await clubService.acceptInvite(req)
-    res.status(httpStatus.OK).send({ message: 'success' })
-})
-
 const addResident = catchAsync(async (req, res) => {
     await clubService.addResident(req)
     res.status(httpStatus.OK).send({ message: 'success' })
@@ -78,8 +66,7 @@ const getReputationId = catchAsync(async (req, res) => {
 module.exports = {
     createClub,
     editClub,
-    invite,
-    acceptInvite,
+
     addResident,
     leaveResidence,
     requestResidence,

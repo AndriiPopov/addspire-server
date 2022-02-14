@@ -1,3 +1,4 @@
+// All available collections that we use for change streams for real time updates.
 const basicNames = [
     'account',
     'answer',

@@ -1,19 +1,11 @@
 const httpStatus = require('http-status')
 const value = require('../config/value')
-const {
-    System,
-    Account,
-    Reputation,
-    Question,
-    Answer,
-    Count,
-} = require('../models')
+const { System, Account, Reputation, Question, Answer } = require('../models')
 const ApiError = require('../utils/ApiError')
 
 const { checkVote } = require('../utils/checkRights')
 const getReputationId = require('../utils/getReputationId')
 const getModelFromType = require('../utils/getModelFromType')
-// const distributeBonus = require('../utils/distributeBonus')
 const notificationService = require('./notification.service')
 const { questionService } = require('.')
 
@@ -49,9 +41,7 @@ const acceptAnswer = async (req) => {
             },
             { new: true, useFindAndModify: false }
         )
-            .select(
-                'owner followers name bonusPaid bonusPending bonusCoins count acceptedAnswerOwner'
-            )
+            .select('owner followers name acceptedAnswerOwner')
             .lean()
             .exec()
         if (question) {
@@ -74,17 +64,6 @@ const acceptAnswer = async (req) => {
                                 ],
                                 $slice: -50,
                             },
-                        },
-                    },
-                    { useFindAndModify: false }
-                )
-
-                await Count.updateOne(
-                    { question: question._id },
-                    {
-                        $inc: {
-                            [`reputationDestribution.${answer.owner}`]:
-                                value.acceptedAnswer,
                         },
                     },
                     { useFindAndModify: false }
@@ -148,11 +127,10 @@ const acceptAnswer = async (req) => {
                     },
                 })
             }
-
-            // await distributeBonus(question)
         } else throw new ApiError(httpStatus.CONFLICT, 'Already accepted')
     } catch (error) {
         if (!error.isOperational) {
+            console.log(error)
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
         } else throw error
     }
@@ -253,17 +231,6 @@ const vote = async (req) => {
                                 ],
                                 $slice: -50,
                             },
-                        },
-                    },
-                    { useFindAndModify: false }
-                )
-
-                await Count.updateOne(
-                    { question: question._id },
-                    {
-                        $inc: {
-                            [`reputationDestribution.${resource.owner}`]:
-                                repChange,
                         },
                     },
                     { useFindAndModify: false }

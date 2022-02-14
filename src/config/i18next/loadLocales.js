@@ -18,7 +18,7 @@ const loadLocales = (side) => {
                 console.error(err)
                 return
             }
-
+            // get current verions and available language packs
             const versions = JSON.parse(data)
 
             if (versions && Array.isArray(versions)) {
@@ -26,10 +26,11 @@ const loadLocales = (side) => {
                 for (const element of versions) {
                     if (element && Array.isArray(element)) {
                         const [name, version, title] = element
-
+                        //get current version in redis
                         const savedVersion = await get(`${name}_${side}_v`)
                         let savedLocale = await get(`${name}_${side}_l`)
                         if (savedVersion !== version || !savedLocale) {
+                            // if version is different load and save to redis
                             // eslint-disable-next-line security/detect-non-literal-fs-filename
                             fs.readFile(
                                 path.resolve(
@@ -48,6 +49,7 @@ const loadLocales = (side) => {
                                 }
                             )
                         } else if (savedLocale) {
+                            //if versions are the same, load to backend and add to available locales
                             availableLocales.push({ name, title })
                             if (side === 'backend') {
                                 i18next.addResourceBundle(
@@ -61,6 +63,7 @@ const loadLocales = (side) => {
                         }
                     }
                 }
+                //load  all languages and save available languages to redis
                 i18next.loadLanguages(availableLocales.map((i) => i.name))
                 client.set(
                     `availableLocales_${side}`,
@@ -71,6 +74,7 @@ const loadLocales = (side) => {
     )
 }
 
+//Load default english language pack for backend
 fs.readFile(
     path.resolve(
         __dirname,
@@ -92,6 +96,7 @@ fs.readFile(
                     },
                 },
             },
+            // Load other language packs for backend and frontend and schedule checking for updates every day.
             () => {
                 loadLocales('frontend')
                 loadLocales('backend')

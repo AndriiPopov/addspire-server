@@ -26,11 +26,6 @@ const starClub = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send({ message: added ? 'starred' : 'unstarred' })
 })
 
-const editAccount = catchAsync(async (req, res) => {
-    await accountService.editAccount(req)
-    res.status(httpStatus.OK).send({ message: 'saved' })
-})
-
 const seenNotification = catchAsync(async (req, res) => {
     await accountService.seenNotification(req)
     res.status(httpStatus.OK).send()
@@ -66,7 +61,6 @@ module.exports = {
     unfollow,
     deleteAccount,
     starClub,
-    editAccount,
     seenNotification,
     seenFeed,
     saveNotificationToken,

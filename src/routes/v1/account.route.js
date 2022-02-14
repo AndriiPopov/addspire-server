@@ -35,14 +35,6 @@ router
     )
 
 router
-    .route('/edit')
-    .post(
-        validate(accountValidation.editAccount),
-        auth(),
-        accountController.editAccount
-    )
-
-router
     .route('/seen-notification')
     .post(
         validate(accountValidation.seenNotification),

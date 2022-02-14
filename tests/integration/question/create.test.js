@@ -34,7 +34,7 @@ describe('POST /api/question/create', () => {
 
                     'res3sdfsfsdfsdfsdfsd',
                 ],
-                bonusCoins: 100,
+
                 bookmark: true,
             })
             .expect(httpStatus.OK)
@@ -85,7 +85,7 @@ describe('POST /api/question/create', () => {
             'res3sdfsfsdfsdfsdfsd',
             'res3sdfsfsdfsdfsdfsd',
         ])
-        expect(resource.bonusCoins).toEqual(0)
+
         expect(resource.location).toMatchObject({
             type: 'Point',
             coordinates: [30, 30],
@@ -114,7 +114,6 @@ describe('POST /api/question/create', () => {
 
                     'res3sdfsfsdfsdfsdfsd',
                 ],
-                bonusCoins: 100,
             })
             .expect(httpStatus.OK)
 
@@ -129,57 +128,6 @@ describe('POST /api/question/create', () => {
         expect(resource.followers).not.toContain(userId)
         expect(resource.followersCount).toEqual(0)
     })
-
-    const testWithCoins = (accountCoins, bonusCoins) =>
-        test('should return 201 and successfully create new question if data is ok and add coins to bonus', async () => {
-            const oldClub = await Club.findOne({ name: 'Test club 1' })
-            const clubId = oldClub._id.toString()
-            const oldUser = await Account.findOne({ facebookProfile: '0' })
-            const userId = oldUser._id.toString()
-
-            await Account.updateOne({ _id: userId }, { wallet: accountCoins })
-
-            await request(app)
-                .post('/api/question/create')
-                .set('accountId', '0')
-                .send({
-                    clubId,
-                    name: 'How to drive a car?How to drive a car?',
-                    description: 'I want to know how to o it.',
-                    images: ['test1.jpg', 'test2.jpg'],
-                    tags: [
-                        'res1',
-                        'res2',
-                        'res3sdfsfsdfsdfsdfsd',
-                        'res3sdfsfsdfsdfsdfsd',
-
-                        'res3sdfsfsdfsdfsdfsd',
-                    ],
-                    bonusCoins,
-                })
-                .expect(httpStatus.OK)
-
-            const user = await Account.findById(userId)
-
-            const resource = await Question.findOne({
-                name: 'How to drive a car?How to drive a car?',
-            }).lean()
-
-            const realCoins = Math.min(bonusCoins, accountCoins)
-
-            expect(resource.bonusCoins).toEqual(realCoins)
-
-            expect(user.wallet).toEqual(accountCoins - realCoins)
-            expect(user.totalSpent).toEqual(realCoins)
-            expect(user.totalEarned).toEqual(0)
-
-            const system = await System.System.findOne({}).lean()
-            expect(system.myCoins).toEqual(0)
-        })
-
-    testWithCoins(50, 100)
-    testWithCoins(100, 50)
-    testWithCoins(0, 50)
 
     test('should return 400 error if  validation fails', async () => {
         const oldClub = await Club.findOne({ name: 'Test club 1' })

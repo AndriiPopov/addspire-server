@@ -37,7 +37,6 @@ export default function (data) {
         name: 'How to drive a car?',
         description: 'I want to know how to o it.',
         images: ['test1.jpg', 'test2.jpg'],
-        bonusCoins: 100,
         bookmark: true,
         tags: ['question1', 'question2', `question_${__VU}_${__ITER}`],
     }

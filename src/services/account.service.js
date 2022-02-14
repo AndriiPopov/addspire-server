@@ -59,7 +59,7 @@ const follow = async (req) => {
                     },
                     { useFindAndModify: false }
                 )
-                .select('user clubName clubImage club')
+                .select('user clubName club')
                 .lean()
                 .exec()
             if (resource && resource.user && type === 'reputation') {
@@ -75,7 +75,6 @@ const follow = async (req) => {
                                         details: {
                                             clubProfileId: resourceId,
                                             clubName: resource.clubName,
-                                            image: resource.clubImage,
                                         },
                                         notId: newNotificationId,
                                     },
@@ -203,60 +202,6 @@ const starClub = async (req) => {
             { useFindAndModify: false }
         )
         return add
-    } catch (error) {
-        if (!error.isOperational) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not created')
-        } else throw error
-    }
-}
-
-const editAccount = async (req) => {
-    try {
-        const { account, body } = req
-        const { _id: accountId } = account
-        const {
-            name,
-            description,
-            address,
-            phone,
-            web,
-            email,
-            background,
-            image,
-            social,
-            tags,
-        } = body
-
-        const res1 = await Account.updateOne(
-            { _id: accountId },
-            { $set: body },
-            { useFindAndModify: false }
-        )
-
-        saveTags(tags)
-        if (res1.nModified) {
-            await Reputation.updateMany(
-                { owner: accountId },
-                {
-                    $set: {
-                        name,
-                        image,
-                        profileTags: tags,
-                        profileDescription: description,
-                        profileAddress: address,
-                        profilePhone: phone,
-                        profileWeb: web,
-                        profileEmail: email,
-                        profileBackground: background,
-                        profileSocial: social,
-                    },
-                },
-
-                { useFindAndModify: false }
-            )
-        } else {
-            throw new ApiError(httpStatus.CONFLICT, 'Not created')
-        }
     } catch (error) {
         if (!error.isOperational) {
             throw new ApiError(httpStatus.CONFLICT, 'Not created')
@@ -409,7 +354,6 @@ module.exports = {
     unfollow,
     starClub,
     deleteAccount,
-    editAccount,
     seenNotification,
     seenFeed,
     saveNotificationToken,

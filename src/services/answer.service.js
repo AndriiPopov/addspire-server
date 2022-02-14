@@ -137,12 +137,6 @@ const create = async (req) => {
             { _id: reputationLean._id },
             {
                 $inc: { answersCount: 1 },
-                $set: {
-                    lastContent: {
-                        resourceId: resource._id,
-                        resourceType: 'answer',
-                    },
-                },
             },
             { useFindAndModify: false }
         )
@@ -216,7 +210,7 @@ const remove = async (req) => {
         const { resourceId } = body
 
         const resource = await Answer.findById(resourceId)
-            .select('club question reputation owner vote voteReputation')
+            .select('club question')
             .lean()
             .exec()
         if (!resource) {
@@ -235,17 +229,6 @@ const remove = async (req) => {
         await Answer.deleteOne({ _id: resourceId }, { useFindAndModify: false })
 
         if (questionId) {
-            await Count.updateOne(
-                { question: questionId },
-                {
-                    $inc: {
-                        [`reputationDestribution.${resource.owner}`]:
-                            -resource.voteReputation,
-                    },
-                },
-                { useFindAndModify: false }
-            )
-
             await Question.updateOne(
                 {
                     _id: questionId,

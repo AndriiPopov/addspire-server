@@ -167,12 +167,6 @@ const createComment = async (req) => {
             { _id: reputationLean._id },
             {
                 $inc: { commentsCount: 1 },
-                $set: {
-                    lastContent: {
-                        resourceId: comment._id,
-                        resourceType: 'comment',
-                    },
-                },
             },
             { useFindAndModify: false }
         )
@@ -243,9 +237,7 @@ const deleteComment = async (req) => {
 
         const { commentId } = body
         const comment = await Comment.findById(commentId)
-            .select(
-                'club resource resourceType question owner vote voteReputation'
-            )
+            .select('club resource resourceType question owner')
             .lean()
             .exec()
 
@@ -277,16 +269,6 @@ const deleteComment = async (req) => {
                 {
                     $pull: { comments: commentId },
                     $inc: { commentsCount: -1 },
-                },
-                { useFindAndModify: false }
-            )
-            await Count.updateOne(
-                { question: comment.question },
-                {
-                    $inc: {
-                        [`reputationDestribution.${comment.owner}`]:
-                            -comment.voteReputation,
-                    },
                 },
                 { useFindAndModify: false }
             )

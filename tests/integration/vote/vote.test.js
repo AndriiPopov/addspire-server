@@ -6,7 +6,6 @@ const {
     Account,
     Reputation,
     Question,
-    Count,
     Club,
     Answer,
 } = require('../../../src/models')
@@ -20,8 +19,6 @@ describe('POST /api/vote/vote', () => {
             name: 'Test question Test question',
         }).lean()
         const questionId = oldQuestion._id.toString()
-
-        const oldCount = await Count.findById(oldQuestion.count).lean()
 
         const clubId = oldQuestion.club
 
@@ -96,14 +93,6 @@ describe('POST /api/vote/vote', () => {
             reputationObjR.gains.length - oldReputationObjR.gains.length
         ).toEqual(1)
 
-        const count = await Count.findById(oldQuestion.count).lean()
-
-        expect(oldCount.reputationDestribution).not.toBeDefined()
-
-        expect(count.reputationDestribution).toMatchObject({
-            [userIdR]: value.plusResource,
-        })
-
         await request(app)
             .post('/api/vote/vote')
             .set('accountId', '1')
@@ -163,12 +152,6 @@ describe('POST /api/vote/vote', () => {
             newReputationObjR.gains.length - reputationObjR.gains.length
         ).toEqual(1)
 
-        const newCount = await Count.findById(oldQuestion.count).lean()
-
-        expect(newCount.reputationDestribution).toMatchObject({
-            [userIdR]: value.plusResource + value.minusResource,
-        })
-
         await request(app)
             .post('/api/vote/vote')
             .set('accountId', '2')
@@ -219,7 +202,7 @@ describe('POST /api/vote/vote', () => {
             .set('accountId', '0')
             .send({
                 clubId,
-                name: 'Voting question?',
+                name: 'Voting question?Voting question?',
                 description: 'I want to know how to o it.',
                 images: ['test1.jpg', 'test2.jpg'],
                 tags: [
@@ -234,7 +217,7 @@ describe('POST /api/vote/vote', () => {
             .expect(httpStatus.OK)
 
         const question = await Question.findOne({
-            name: 'Voting question?',
+            name: 'Voting question?Voting question?',
         }).lean()
         const questionId = question._id.toString()
         expect(question.bestAnswer).not.toBeDefined()

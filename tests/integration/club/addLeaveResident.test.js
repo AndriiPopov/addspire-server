@@ -36,13 +36,20 @@ describe('POST /api/club/invite', () => {
             .post('/api/club/create')
             .set('accountId', '0')
             .send({
-                name: 'Rollers of US',
-                description: 'For all of us',
+                name: 'Rollers of USRollers of US',
+                description: 'For all of usFor all of usFor all of us',
                 image: 'roller.jpeg',
+                tags: ['tag1', 'tag2', 'tag3', 'tag4', 'tag5'],
+                location: {
+                    longitude: 30,
+                    latitude: 30,
+                },
+                clubAddress: 'Test address',
+                global: false,
             })
             .expect(httpStatus.CREATED)
 
-        const club0 = await Club.findOne({ name: 'Rollers of US' })
+        const club0 = await Club.findOne({ name: 'Rollers of USRollers of US' })
         expect(club0).not.toBeNull()
         const clubId = club0._id.toString()
 

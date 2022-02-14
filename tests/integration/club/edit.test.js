@@ -20,7 +20,6 @@ describe('POST /api/club/edit', () => {
         expect(oldReputation).not.toBeNull()
         expect(oldReputation.global).toBeFalsy()
         expect(oldReputation.clubName).not.toEqual('Rollers of US')
-        expect(oldReputation.clubImage).not.toEqual('roller.jpeg')
 
         const oldQuestion = await Question.findOne({
             club: oldClub._id,
@@ -65,7 +64,6 @@ describe('POST /api/club/edit', () => {
 
         expect(reputation).not.toBeNull()
         expect(reputation.clubName).toEqual('Rollers of US')
-        expect(reputation.clubImage).toEqual('roller.jpeg')
         expect(reputation.global).toBeTruthy()
 
         const question = await Question.findById(questionId).lean()

@@ -13,8 +13,6 @@ describe('POST /api/question/edit', () => {
         }).lean()
         const questionId = oldQuestion._id.toString()
 
-        const oldCount = await Count.findById(oldQuestion.count).lean()
-
         await request(app)
             .post('/api/question/edit')
             .set('accountId', '0')
@@ -24,7 +22,6 @@ describe('POST /api/question/edit', () => {
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg'],
                 tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
-                bonusCoins: 100,
             })
             .expect(httpStatus.OK)
 
@@ -37,13 +34,6 @@ describe('POST /api/question/edit', () => {
         expect(question.images.length).toEqual(2)
 
         expect(question.tags).toEqual(['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'])
-        expect(question.bonusCoins).toEqual(0)
-
-        const count = await Count.findById(oldQuestion.count).lean()
-
-        expect(oldCount.question).toEqual(count.question)
-        expect(oldCount.questionName).not.toEqual(count.questionName)
-        expect(count.questionName).toEqual('Test value?Test value?Test value?')
 
         await request(app)
             .post('/api/question/edit')
@@ -54,7 +44,6 @@ describe('POST /api/question/edit', () => {
                 description: 'Test description.',
                 images: ['test3.jpg', 'test4.jpg', 'test5.jpg'],
                 tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
-                bonusCoins: 100,
             })
             .expect(httpStatus.OK)
 
@@ -86,104 +75,6 @@ describe('POST /api/question/edit', () => {
 
         expect(question.name).toEqual('Test value?Test value?Test value?')
         expect(question.description).toEqual('Test description.')
-    })
-
-    const testWithCoins = (accountCoins, bonusCoins, bonusCoins2) =>
-        test('should return 201 and successfully create new question if data is ok and add coins to bonus', async () => {
-            const oldQuestion = await Question.findOne({
-                name: 'Test question Test question 2',
-            }).lean()
-            const questionId = oldQuestion._id.toString()
-
-            const oldUser = await Account.findOne({ facebookProfile: '2' })
-            const userId = oldUser._id.toString()
-
-            await Account.updateOne({ _id: userId }, { wallet: accountCoins })
-
-            await request(app)
-                .post('/api/question/edit')
-                .set('accountId', '2')
-                .send({
-                    resourceId: questionId,
-                    name: 'Test value?Test value?Test value?',
-                    description: 'Test description.',
-                    images: ['test3.jpg', 'test4.jpg'],
-                    bonusCoins,
-                    tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
-                })
-                .expect(httpStatus.OK)
-
-            await request(app)
-                .post('/api/question/edit')
-                .set('accountId', '2')
-                .send({
-                    resourceId: questionId,
-                    name: 'Test value?Test value?Test value?',
-                    description: 'Test description.',
-                    images: ['test3.jpg', 'test4.jpg'],
-                    bonusCoins: bonusCoins2,
-                    tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
-                })
-                .expect(httpStatus.OK)
-
-            const user = await Account.findById(userId)
-
-            const question = await Question.findById(questionId).lean()
-
-            const bonusSum = bonusCoins + bonusCoins2
-            const realCoins = Math.min(bonusSum, accountCoins)
-
-            expect(question.bonusCoins).toEqual(realCoins * 1)
-
-            expect(user.wallet).toEqual(accountCoins - realCoins)
-            expect(user.totalSpent).toEqual(realCoins)
-            expect(user.totalEarned).toEqual(0)
-            // const system = await System.System.findOne({}).lean()
-            // expect(system.myCoins).toEqual(realCoins * 0.05)
-        })
-
-    testWithCoins(100, 50, 100)
-    testWithCoins(100, 50, 0)
-    testWithCoins(0, 50, 0)
-    testWithCoins(50, 100, 50)
-
-    test('if bonus is paid the bonus cannot be edited', async () => {
-        const oldQuestion = await Question.findOne({
-            name: 'Test question Test question 2',
-        }).lean()
-        const questionId = oldQuestion._id.toString()
-
-        const oldUser = await Account.findOne({ facebookProfile: '2' })
-        const userId = oldUser._id.toString()
-
-        await Account.updateOne({ _id: userId }, { wallet: 200 })
-
-        await Question.updateOne({ _id: questionId }, { bonusPaid: true })
-
-        await request(app)
-            .post('/api/question/edit')
-            .set('accountId', '2')
-            .send({
-                resourceId: questionId,
-                name: 'Test value?Test value?Test value?',
-                description: 'Test description.',
-                images: ['test3.jpg', 'test4.jpg'],
-                bonusCoins: 100,
-                tags: ['res1', 'res2', 'res3sdfsfsdfsdfsdfsd'],
-            })
-            .expect(httpStatus.OK)
-
-        const user = await Account.findById(userId)
-
-        const question = await Question.findById(questionId).lean()
-
-        expect(question.bonusCoins).toEqual(0)
-
-        expect(user.wallet).toEqual(200)
-        expect(user.totalSpent).toEqual(0)
-        expect(user.totalEarned).toEqual(0)
-        const system = await System.System.findOne({}).lean()
-        expect(system.myCoins).toEqual(0)
     })
 
     test('should return 400 error if  validation fails', async () => {

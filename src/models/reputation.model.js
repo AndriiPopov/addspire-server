@@ -9,23 +9,16 @@ const reputationSchema = new mongoose.Schema(
         ...basicModel,
         club: { type: String, required: true },
         clubName: { type: String, required: true },
-        clubImage: { type: String, default: '' },
         owner: { type: String, required: true },
         reputation: { type: Number, default: 0 },
         plusToday: { type: Number, default: 0 },
         minusToday: { type: Number, default: 0 },
         admin: { type: Boolean, default: false },
-        invitedBy: String,
         userSince: {
             type: Date,
             default: Date.now,
         },
-        adminSince: {
-            type: Date,
-            default: Date.now,
-        },
         banned: { type: Boolean, default: false },
-        bannedUntil: { type: Date },
         gains: [
             {
                 reputation: Number,
@@ -59,11 +52,8 @@ const reputationSchema = new mongoose.Schema(
         global: { type: Boolean, default: false },
         answersCount: { type: Number, default: 0 },
         questionsCount: { type: Number, default: 0 },
+        postsCount: { type: Number, default: 0 },
         commentsCount: { type: Number, default: 0 },
-        lastContent: {
-            resourceId: String,
-            resourceType: String,
-        },
         profile: {
             type: String,
             required: true,

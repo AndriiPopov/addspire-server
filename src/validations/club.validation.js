@@ -77,18 +77,6 @@ const editClub = {
     }),
 }
 
-const invite = {
-    body: Joi.object().keys({
-        clubId: Joi.objectId().required(),
-    }),
-}
-
-const acceptInvite = {
-    body: Joi.object().keys({
-        code: Joi.string().required(),
-    }),
-}
-
 const addResident = {
     body: Joi.object().keys({
         clubId: Joi.objectId().required(),
@@ -159,8 +147,6 @@ const getReputationId = {
 module.exports = {
     createClub,
     editClub,
-    invite,
-    acceptInvite,
     addResident,
     leaveResidence,
     requestResidence,

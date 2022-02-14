@@ -15,7 +15,7 @@ describe('POST /api/account/follow', () => {
             owner: { $ne: followerId },
         })
         const reputationId = oldReputation._id.toString()
-
+        // Follow the first time
         await request(app)
             .post('/api/account/follow')
             .set('accountId', '1')
@@ -37,7 +37,7 @@ describe('POST /api/account/follow', () => {
         expect(following.followersCount - oldReputation.followersCount).toEqual(
             1
         )
-
+        // Follow the same again
         await request(app)
             .post('/api/account/follow')
             .set('accountId', '1')
@@ -46,7 +46,7 @@ describe('POST /api/account/follow', () => {
                 resourceId: reputationId,
             })
             .expect(httpStatus.CONFLICT)
-
+        // Unfollow the same
         await request(app)
             .post('/api/account/unfollow')
             .set('accountId', '1')
@@ -69,6 +69,7 @@ describe('POST /api/account/follow', () => {
             1
         )
 
+        // Unfollow the same again
         await request(app)
             .post('/api/account/unfollow')
             .set('accountId', '1')

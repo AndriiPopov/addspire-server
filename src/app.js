@@ -7,13 +7,11 @@ const cors = require('cors')
 const httpStatus = require('http-status')
 const config = require('./config/config')
 const morgan = require('./config/morgan')
-const { authLimiter } = require('./middlewares/rateLimiter')
 const routes = require('./routes/v1')
 const { errorConverter, errorHandler } = require('./middlewares/error')
 const ApiError = require('./utils/ApiError')
 const { sitemapService } = require('./services')
 require('./services/redis.service')
-// const { redis } = require('./services')
 
 const app = express()
 
@@ -50,20 +48,12 @@ app.use((req, res, next) => {
     next()
 })
 
-// limit repeated failed requests to auth endpoints
-if (config.env === 'production') {
-    app.use('/api/auth', authLimiter)
-}
-
 // Allow clients access auth headers
 app.use('/api/ping', (req, res) => {
     res.status(httpStatus.OK).send()
 })
 
-// v1 api routes
 app.use('/api', routes)
-
-// v1 api routes
 app.get('/sitemap.xml', sitemapService.sendSitemap)
 
 // send back a 404 error for any unknown api request
@@ -78,13 +68,3 @@ app.use(errorConverter)
 app.use(errorHandler)
 
 module.exports = app
-
-// // Connect auth session to Redis. Needed to return to the same url.
-// app.use(
-//     session({
-//         store: new RedisStore({ client: redis.client }),
-//         secret: 'addspire',
-//         resave: false,
-//         saveUninitialized: true,
-//     })
-// )

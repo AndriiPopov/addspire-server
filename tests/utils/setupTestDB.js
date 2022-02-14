@@ -9,6 +9,7 @@ const {
     answerService,
     voteService,
     commentService,
+    accountService,
 } = require('../../src/services')
 const { client } = require('../../src/services/redis.service')
 const dbHandler = require('./db-handler')
@@ -37,21 +38,14 @@ const createUser = async (id, cb) => {
     )
 }
 
-const createInvite = async (id, clubId) => {
-    const inviteLink = await clubService.invite({
-        account: { _id: id },
-        body: { clubId },
+const addResident = async (clubId, resId, id) => {
+    await accountService.follow({
+        account: { _id: id._id },
+        body: { resourceId: clubId, type: 'club' },
     })
-    if (inviteLink) {
-        const queryData = url.parse(inviteLink, true).query
-        return queryData.invite
-    }
-}
-
-const acceptInvite = async (id, code) => {
-    await clubService.acceptInvite({
-        account: { _id: id },
-        body: { code },
+    await clubService.addResident({
+        account: { _id: resId._id },
+        body: { clubId, residentId: id._id },
     })
 }
 
@@ -121,9 +115,9 @@ const setupTestDB = () => {
         const club = await Club.findOne({ name: 'Test club 1' })
         const clubId = club._id.toString()
 
-        await acceptInvite(user3._id, await createInvite(user0._id, clubId))
-        await acceptInvite(user4._id, await createInvite(user0._id, clubId))
-        await acceptInvite(user5._id, await createInvite(user0._id, clubId))
+        await addResident(clubId, user0, user3)
+        await addResident(clubId, user0, user4)
+        await addResident(clubId, user0, user5)
 
         await questionService.create({
             account: { _id: user0._id },

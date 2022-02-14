@@ -76,33 +76,6 @@ const replenish = async () => {
             { useFindAndModify: false }
         )
 
-        await Account.updateMany(
-            {},
-            [
-                {
-                    $set: {
-                        walletHistory: {
-                            $concatArrays: [
-                                '$walletHistory',
-                                [{ coins: '$wallet' }],
-                            ],
-                        },
-                    },
-                },
-            ],
-            { useFindAndModify: false }
-        )
-
-        await Club.updateMany(
-            {
-                fresh: true,
-                date: {
-                    $lt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-                },
-            },
-            { $set: { fresh: false } }
-        )
-
         await System.System.updateOne(
             { name: 'system' },
             {

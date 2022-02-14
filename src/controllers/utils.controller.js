@@ -3,13 +3,6 @@ const catchAsync = require('../utils/catchAsync')
 
 const { utilsService } = require('../services')
 
-const coinsTomorrow = catchAsync(async (req, res) => {
-    const coins = await utilsService.coinsTomorrow()
-    res.status(httpStatus.OK).send({
-        coinsTomorrow: coins,
-    })
-})
-
 const availableLanguages = catchAsync(async (req, res) => {
     const languages = await utilsService.availableLanguages()
     res.status(httpStatus.OK).send({
@@ -23,7 +16,6 @@ const getLocale = catchAsync(async (req, res) => {
 })
 
 module.exports = {
-    coinsTomorrow,
     availableLanguages,
     getLocale,
 }

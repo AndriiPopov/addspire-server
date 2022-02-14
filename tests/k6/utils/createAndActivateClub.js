@@ -67,7 +67,6 @@ export default () => {
             name: 'How to drive a car?',
             description: 'I want to know how to o it.',
             images: ['test1.jpg', 'test2.jpg'],
-            bonusCoins: 100,
             bookmark: true,
             tags: ['adsasd', 'questionER'],
         },

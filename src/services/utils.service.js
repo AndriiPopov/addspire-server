@@ -2,26 +2,6 @@ const httpStatus = require('http-status')
 const ApiError = require('../utils/ApiError')
 const { get, client } = require('./redis.service')
 const { System } = require('../models')
-const getDistributeCoinsToday = require('../utils/getDistributeCoinsToday')
-
-const coinsTomorrow = async () => {
-    try {
-        let coins = await get('coinsTomorrow')
-        if (!coins) {
-            const system = await System.System.findOne({ name: 'system' })
-                .select('date')
-                .lean()
-                .exec()
-            coins = getDistributeCoinsToday(system.date, true)
-            client.set('coinsTomorrow', coins)
-        }
-        return coins
-    } catch (error) {
-        if (!error.isOperational) {
-            throw new ApiError(httpStatus.CONFLICT, 'Not found')
-        } else throw error
-    }
-}
 
 const availableLanguages = async () => {
     try {
@@ -49,7 +29,6 @@ const getLocale = async (req) => {
 }
 
 module.exports = {
-    coinsTomorrow,
     getLocale,
     availableLanguages,
 }

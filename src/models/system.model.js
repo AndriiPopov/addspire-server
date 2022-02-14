@@ -12,10 +12,6 @@ const systemSchema = new mongoose.Schema({
     },
     notifications: [],
     lastReplenishDate: String,
-    lastViewsRewardDate: String,
-    totalCoins: { type: Number, default: 100000000 },
-    undestributedCoins: { type: Number, default: 100000000 },
-    myCoins: { type: Number, default: 0 },
     date: {
         type: Date,
         default: Date.now,
