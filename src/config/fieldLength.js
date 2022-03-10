@@ -4,7 +4,7 @@ const mongoLength = {
     questionName: { max: 152, min: 19 },
     label: { max: 42, min: 4 },
     description: { max: 20002, min: 9 },
-    message: { max: 1002, min: 9 },
+    message: { max: 1002, min: 1 },
     tag: { max: 72, min: 1 },
 }
 
@@ -14,7 +14,7 @@ const JoiLength = {
     questionName: { max: 151, min: 20 },
     label: { max: 41, min: 5 },
     description: { max: 20001, min: 10 },
-    message: { max: 1001, min: 10 },
+    message: { max: 1001, min: 1 },
     tag: { max: 71, min: 1 },
 }
 

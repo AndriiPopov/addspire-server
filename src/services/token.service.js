@@ -94,46 +94,9 @@ const generateAuthTokens = async (user) => {
     }
 }
 
-const verifyInviteToken = async (token, type) => {
-    const payload = jwt.verify(token, process.env.jwtPrivateKey)
-    const res = await Token.findOneAndDelete(
-        {
-            token,
-            type,
-            user: payload.sub,
-        },
-        { useFindAndModify: false }
-    )
-
-    return res
-}
-
-const generateInviteToken = async (user, clubId) => {
-    const tokenExpires = dayjs().add(config.jwt.inviteExpirationDays, 'days')
-    const inviteToken = generateToken(
-        user._id,
-        tokenExpires,
-        tokenTypes.INVITE,
-        undefined,
-        clubId
-    )
-    await saveToken(
-        inviteToken,
-        user._id,
-        tokenExpires,
-        tokenTypes.INVITE,
-        undefined,
-        clubId
-    )
-
-    return inviteToken
-}
-
 module.exports = {
     generateToken,
     saveToken,
     verifyToken,
     generateAuthTokens,
-    verifyInviteToken,
-    generateInviteToken,
 }

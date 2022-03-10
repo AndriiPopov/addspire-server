@@ -1,38 +1,6 @@
 import http from 'k6/http'
 import { sleep, check } from 'k6'
 export default () => {
-    const addResident = (id, clubId) => {
-        const res = http.post(
-            'http://localhost:5001/api/club/invite',
-            { clubId },
-            {
-                headers: { accountId: `0` },
-            }
-        )
-
-        check(res, {
-            'Invite in setup created': (r) => {
-                return r.status == 200
-            },
-        })
-
-        const link = res.json('inviteLink')
-        const queryData = link.split('=')
-        const code = queryData[1]
-
-        const res2 = http.post(
-            'http://localhost:5001/api/club/accept-invite',
-            { code },
-            {
-                headers: { accountId: `${id}` },
-            }
-        )
-        check(res2, {
-            'Invite accepted in setup': (r) => {
-                return r.status == 200
-            },
-        })
-    }
     let newCrocResp = http.post(
         'http://localhost:5001/api/club/create',
         {
@@ -51,14 +19,6 @@ export default () => {
         },
     })
     let clubId = newCrocResp.json('redirect._id')
-
-    addResident(1, clubId)
-    addResident(2, clubId)
-    addResident(3, clubId)
-    addResident(4, clubId)
-    addResident(5, clubId)
-    addResident(6, clubId)
-    addResident(7, clubId)
 
     newCrocResp = http.post(
         'http://localhost:5001/api/question/create',

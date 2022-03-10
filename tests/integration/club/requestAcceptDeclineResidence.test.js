@@ -12,7 +12,7 @@ const {
 
 setupTestDB()
 
-describe('POST /api/club/invite', () => {
+describe('POST /api/club', () => {
     test(`should return 200 and create request if data is ok,
     fail if already an admin, 
     fail if too many admins, 

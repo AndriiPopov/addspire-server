@@ -160,7 +160,10 @@ const createComment = async (req) => {
                 data: {
                     id: question._id,
                     type: 'question',
+                    resCommentId: resourceId,
+                    resCommentType: resourceType,
                 },
+                categoryIdentifier: 'comment',
             })
         }
         await Reputation.updateOne(

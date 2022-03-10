@@ -3,26 +3,6 @@ const httpStatus = require('http-status')
 const url = require('url')
 const app = require('../../src/app')
 
-const createInviteTest = async (id, clubId, expected) => {
-    const res = await request(app)
-        .post('/api/club/invite')
-        .set('accountId', `${id}`)
-        .send({ clubId })
-        .expect(expected || httpStatus.OK)
-    if (res.body.inviteLink) {
-        const queryData = url.parse(res.body.inviteLink, true).query
-        return queryData.invite
-    }
-}
-
-const acceptInviteTest = async (id, code, expected) => {
-    await request(app)
-        .post('/api/club/accept-invite')
-        .set('accountId', `${id}`)
-        .send({ code })
-        .expect(expected || httpStatus.OK)
-}
-
 const requestResidenceTest = async (id, expected, message, contact, clubId) => {
     await request(app)
         .post('/api/club/request-residence')
@@ -90,8 +70,6 @@ const createClubTest = async (id, data, status = httpStatus.CREATED) => {
 }
 
 module.exports = {
-    createInviteTest,
-    acceptInviteTest,
     requestResidenceTest,
     acceptResidenceTest,
     declineResidenceRequestTest,

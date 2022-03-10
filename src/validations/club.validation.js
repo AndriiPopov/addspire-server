@@ -18,7 +18,7 @@ const createClub = {
             .required()
             .min(JoiLength.description.min)
             .max(JoiLength.description.max),
-        image: Joi.string().optional(),
+        image: Joi.string().allow('').optional(),
         tags: tagsValidationClub,
         global: Joi.boolean().required(),
         location: Joi.object()
@@ -52,7 +52,7 @@ const editClub = {
             .required()
             .min(JoiLength.description.min)
             .max(JoiLength.description.max),
-        image: Joi.string().optional(),
+        image: Joi.string().allow('').optional(),
         clubId: Joi.objectId().required(),
         tags: tagsValidationClub,
         global: Joi.boolean().required(),

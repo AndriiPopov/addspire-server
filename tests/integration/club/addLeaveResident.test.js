@@ -7,7 +7,7 @@ const value = require('../../../src/config/value')
 
 setupTestDB()
 
-describe('POST /api/club/invite', () => {
+describe('POST /api/club/', () => {
     test(`should return 200 and successfully add resident if data is ok,
     fail if thereare more than max admins, 
     return 400 on validation fail`, async () => {

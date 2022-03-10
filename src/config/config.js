@@ -18,9 +18,6 @@ const envVarsSchema = Joi.object()
         JWT_REFRESH_EXPIRATION_DAYS: Joi.number()
             .default(30)
             .description('days after which refresh tokens expire'),
-        JWT_INVITE_EXPIRATION_DAYS: Joi.number()
-            .default(2)
-            .description('days after which invite tokens expire'),
     })
     .unknown()
 
@@ -54,7 +51,6 @@ module.exports = {
         secret: envVars.JWT_SECRET,
         accessExpirationDays: envVars.JWT_ACCESS_EXPIRATION_DAYS,
         refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
-        inviteExpirationDays: envVars.JWT_INVITE_EXPIRATION_DAYS,
     },
 
     baseUrl:
