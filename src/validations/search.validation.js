@@ -25,6 +25,7 @@ const general = {
                 })
                 .optional(),
             global: Joi.boolean().optional(),
+            general: Joi.boolean().optional(),
             post: Joi.boolean().optional(),
             location: Joi.object()
                 .keys({

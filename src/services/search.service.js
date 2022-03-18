@@ -48,7 +48,7 @@ const general = async (req) => {
                 },
             }
         }
-        if (global) query.global = true
+        if (general) query.global = global || false
         if (clubId) query.club = clubId
         if (ownerId) query.owner = ownerId
         if (profileId) query.profile = profileId
