@@ -60,15 +60,10 @@ const clubSchema = new mongoose.Schema(
 )
 
 // General search
-clubSchema.index(
-    {
-        tags: 1,
-        followersCount: -1,
-    },
-    {
-        partialFilterExpression: { global: true },
-    }
-)
+clubSchema.index({
+    tags: 1,
+    followersCount: -1,
+})
 
 clubSchema.index({
     location: '2dsphere',
@@ -81,10 +76,7 @@ clubSchema.index({
     followersCount: -1,
 })
 
-clubSchema.index(
-    { followersCount: -1 },
-    { partialFilterExpression: { global: true } }
-)
+clubSchema.index({ followersCount: -1 })
 
 clubSchema.plugin(mongoosePaginate)
 

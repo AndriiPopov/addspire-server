@@ -78,6 +78,7 @@ const create = async (req) => {
                           $push: {
                               images: {
                                   $each: [imagesWithData[0]],
+                                  $position: 0,
                                   $slice: -20,
                               },
                           },

@@ -42,10 +42,7 @@ const questionSchema = new mongoose.Schema(
 )
 
 // General search
-questionSchema.index(
-    { post: 1, tags: 1, vote: -1 },
-    { partialFilterExpression: { global: true } }
-)
+questionSchema.index({ post: 1, tags: 1, vote: -1 })
 
 questionSchema.index({
     post: 1,
@@ -60,10 +57,7 @@ questionSchema.index({
     date: -1,
 })
 
-questionSchema.index(
-    { post: 1, date: -1 },
-    { partialFilterExpression: { global: true } }
-)
+questionSchema.index({ post: 1, date: -1 })
 
 // Club search
 questionSchema.index({

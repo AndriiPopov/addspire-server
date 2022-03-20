@@ -69,12 +69,7 @@ const reputationSchema = new mongoose.Schema(
 )
 
 // General search
-reputationSchema.index(
-    { tags: 1, reputation: -1 },
-    {
-        partialFilterExpression: { global: true },
-    }
-)
+reputationSchema.index({ tags: 1, reputation: -1 })
 
 reputationSchema.index({
     location: '2dsphere',
@@ -87,10 +82,7 @@ reputationSchema.index({
     reputation: -1,
 })
 
-reputationSchema.index(
-    { reputation: -1 },
-    { partialFilterExpression: { global: true } }
-)
+reputationSchema.index({ reputation: -1 })
 
 // Club search
 reputationSchema.index({
@@ -99,13 +91,10 @@ reputationSchema.index({
 })
 
 // My clubs search
-reputationSchema.index(
-    {
-        owner: 1,
-        reputation: -1,
-    },
-    { partialFilterExpression: { starred: true } }
-)
+reputationSchema.index({
+    owner: 1,
+    reputation: -1,
+})
 
 reputationSchema.index({
     owner: 1,
