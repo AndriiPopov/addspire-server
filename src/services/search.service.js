@@ -26,6 +26,7 @@ const general = async (req) => {
             location,
             idIn,
             post,
+            general: generalBody,
         } = body
 
         const tagsExist = tags && tags.length
@@ -48,7 +49,7 @@ const general = async (req) => {
                 },
             }
         }
-        if (general) query.global = global || false
+        if (generalBody) query.global = global || false
         if (clubId) query.club = clubId
         if (ownerId) query.owner = ownerId
         if (profileId) query.profile = profileId
