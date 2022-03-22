@@ -8,7 +8,6 @@ const expo = new Expo()
 
 let allTickets = []
 const sendNotifications = async (messages) => {
-    console.log(messages)
     const chunks = expo.chunkPushNotifications(messages)
     const tickets = []
     chunks.forEach(async (chunk) => {
@@ -58,9 +57,7 @@ const notify = async (accountsIds, message) => {
                 )
             } else {
                 const t = i18next.getFixedT(
-                    i18next.languages.includes(token.language)
-                        ? token.language
-                        : 'en',
+                    token.language,
                     'translation',
                     `notification.${message.key}`
                 )

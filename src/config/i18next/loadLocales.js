@@ -5,7 +5,8 @@ const path = require('path')
 const i18next = require('i18next')
 const { get, client } = require('../../services/redis.service')
 const en = require('./en.json')
-
+const ru = require('./ru.json')
+const uk = require('./uk.json')
 const loadLocales = (side) => {
     const availableLocales = []
     fs.readFile(
@@ -46,6 +47,16 @@ const loadLocales = (side) => {
                                     client.set(`${name}_${side}_v`, version)
                                     savedLocale = locale
                                     availableLocales.push({ name, title })
+                                    if (side === 'backend') {
+                                        i18next.addResourceBundle(
+                                            name,
+                                            'translation',
+                                            JSON.parse(locale),
+                                            false,
+                                            false
+                                        )
+                                        i18next.loadLanguages(name)
+                                    }
                                 }
                             )
                         } else if (savedLocale) {
@@ -59,12 +70,16 @@ const loadLocales = (side) => {
                                     false,
                                     false
                                 )
+                                i18next.loadLanguages(name)
                             }
                         }
                     }
                 }
                 //load  all languages and save available languages to redis
-                i18next.loadLanguages(availableLocales.map((i) => i.name))
+                i18next.loadLanguages(
+                    availableLocales.map((i) => i.name),
+                    () => {}
+                )
                 client.set(
                     `availableLocales_${side}`,
                     JSON.stringify(availableLocales)
@@ -81,9 +96,9 @@ fs.readFile(
         `../../../../addspire-locales/locales/backend/en.json`
     ),
     async (err, locale) => {
-        let translations = locale
+        let translations = { en: locale }
         if (err) {
-            translations = en
+            translations.en = en
             console.log(err)
         }
         i18next.init(
@@ -92,7 +107,13 @@ fs.readFile(
                 fallbackLng: 'en',
                 resources: {
                     en: {
-                        translation: translations,
+                        translation: translations.en,
+                    },
+                    ru: {
+                        translation: ru,
+                    },
+                    uk: {
+                        translation: uk,
                     },
                 },
             },

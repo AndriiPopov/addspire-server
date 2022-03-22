@@ -1,0 +1,80 @@
+{
+  "notification": {
+    "newFollower": {
+      "title": "Новий передплатник",
+      "body": "У вас з'явився новий передплатник у {{clubName}} клубі"
+    },
+    "newAnswer": {
+      "title": "Нова відповідь",
+      "body": "{{name}} додав нову відповідь на {{questionName}}"
+    },
+    "createdClub": {
+      "title": "Новий клуб",
+      "body": "{{name}} створив новий клуб {{clubName}}"
+    },
+    "newExpert": {
+      "title": "Новий експерт",
+      "body": "{{name}} став новим експертом у клубі {{clubName}}"
+    },
+    "leaveExpert": {
+      "title": "Експерт пішов",
+      "body": "{{name}} більше не є експертом у клубі {{clubName}}"
+    },
+    "expertRequest": {
+      "title": "Запит експерта",
+      "body": "{{name}} надіслав запит, щоб стати експертом у клубі {{clubName}}"
+    },
+    "expertRequestDeclined": {
+      "title": "Запит відхилений",
+      "body": "Ваш запит експерта в {{clubName}} був відхилений"
+    },
+    "rulesChange": {
+      "title": "Нові правила",
+      "body": "Правила в {{clubName}} були змінені."
+    },
+    "banned": {
+      "title": "Блокування",
+      "body": "Ваш профайл у {{clubName}} був заблокований"
+    },
+    "unbanned": {
+      "title": "Розблокування",
+      "body": "Ваш профайл у {{clubName}} був розблокований"
+    },
+    "newQuestion": {
+      "title": "Нове питання",
+      "body": "{{name}} запитав у клубі {{clubName}}: {{question}}"
+    },
+    "reputationReplenished": {
+      "title": "Репутація поповнена",
+      "body": "Ваша репутація знову не відчутна в {{clubName}}"
+    },
+    "coinsForContribution": {
+      "title": "Монети за внесок",
+      "body": "Addspire відправив вам {{coins}} монет за ваш внесок у питання {{question}}"
+    },
+    "addspireCoins": {
+      "title": "Монети Addspire",
+      "body": "Сьогодні ми роздаємо {{today}} монет. Завтра ми роздамо {{tomorrow}} монет. Давайте більше цінних відповідей та коментарів, щоб отримувати більше монет!"
+    },
+    "acceptedAnswer": {
+      "title": "Прийнята відповідь",
+      "body": "{{name}} прийняв одну з відповідей у питанні {{question}}"
+    },
+    "voteUp": {
+      "title": "Голос за",
+      "body": "Ви отримали +{{rep}} за позитивний голос за ваш контент у {{question}}"
+    },
+    "voteDown": {
+      "title": "Голос проти",
+      "body": "Ви втратили -{{rep}} за голос проти вашого контенту в {{question}}"
+    },
+    "bonus": {
+      "title": "Бонус",
+      "body": "Ви отримали +{{bonus}} за внесок у питання {{question}}"
+    },
+    "newPost": {
+      "title": "Нове пост",
+      "body": "{{name}} додав новий пост у клубі {{clubName}}: {{question}}"
+    }
+  }
+}
